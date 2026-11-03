@@ -14,6 +14,10 @@ export interface WriterAgentInput {
   // plus the previous draft so the writer edits instead of starting over.
   reviewerFeedback?: string;
   previousDraftJson?: string;
+  // Draft size budget. Output length drives model latency, so the lite
+  // (demo) mode asks for a short draft.
+  maxSections: number;
+  maxBodyChars: number;
 }
 
 // Agent 5 (PRD section 7, Bid Writer). Drafts the technical proposal in the
@@ -24,7 +28,7 @@ export class WriterAgent extends BaseAgent<WriterAgentInput, DraftOffer> {
   protected readonly agentName = 'writer';
   protected readonly agentRole = 'Bid Writer Agent';
   protected readonly taskName = 'draft';
-  protected readonly promptVersion = 'writer-v1';
+  protected readonly promptVersion = 'writer-v2';
   protected readonly outputSchema = DraftOfferSchema;
 
   public constructor(metaModel: MetaModelService) {
@@ -70,7 +74,7 @@ export class WriterAgent extends BaseAgent<WriterAgentInput, DraftOffer> {
       '  met: state the gap and the action instead.',
       '- requirementIds of a section lists every requirement id it answers.',
       '  The response matrix section must reference every mandatory id.',
-      '- Keep each body under 1200 characters; at most 13 sections.',
+      `- Keep each body under ${input.maxBodyChars} characters; at most ${input.maxSections} sections.`,
       '- The company is a fictional demo entity: never call it real.',
       '',
       'Response format: reply with EXACTLY this JSON shape, no extra keys:',

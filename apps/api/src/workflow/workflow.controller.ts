@@ -16,6 +16,7 @@ import { WorkflowRunner } from './workflow-runner.service';
 const StartWorkflowBodySchema = z.object({
   opportunityId: z.string().min(1),
   companyId: z.string().min(1).optional(),
+  mode: z.enum(['lite', 'full']).optional(),
 });
 
 // TECH section 8 REST endpoints. POST returns the queued run at once; the
@@ -31,7 +32,9 @@ export class WorkflowController {
   public start(@Body() body: unknown) {
     const parsed = StartWorkflowBodySchema.safeParse(body);
     if (!parsed.success) {
-      throw new BadRequestException('Body must be { opportunityId: string, companyId?: string }.');
+      throw new BadRequestException(
+        'Body must be { opportunityId: string, companyId?: string, mode?: "lite" | "full" }.',
+      );
     }
     return this.runner.startWorkflow(parsed.data);
   }

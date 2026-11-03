@@ -9,6 +9,8 @@ export interface ReviewerAgentInput {
   findingsText: string;
   pricingText: string;
   draftJson: string;
+  // Caps list lengths in the answer (output length drives latency).
+  maxItemsPerList: number;
 }
 
 // Agent 6 (PRD section 7, Bid Reviewer). Reads the draft against the
@@ -20,7 +22,7 @@ export class ReviewerAgent extends BaseAgent<ReviewerAgentInput, ReviewReport> {
   protected readonly agentName = 'reviewer';
   protected readonly agentRole = 'Bid Reviewer Agent';
   protected readonly taskName = 'review';
-  protected readonly promptVersion = 'reviewer-v1';
+  protected readonly promptVersion = 'reviewer-v2';
   protected readonly outputSchema = ReviewReportSchema;
 
   public constructor(metaModel: MetaModelService) {
@@ -54,6 +56,7 @@ export class ReviewerAgent extends BaseAgent<ReviewerAgentInput, ReviewReport> {
       '- contradictions: quantities, dates or specs that disagree with the',
       '  tender or between sections.',
       '- recommendedFixes: concrete corrections, one per problem.',
+      `- Report at most ${input.maxItemsPerList} entries per list, most important first.`,
       '- verdict: pass only with no omitted mandatory ids, no unsupported',
       '  claims and no contradictions; blocked when the compliance verdict is',
       '  no_go or a structural blocker makes the bid inadmissible; otherwise',

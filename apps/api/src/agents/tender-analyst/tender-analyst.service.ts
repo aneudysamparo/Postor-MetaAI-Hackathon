@@ -1,4 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   AnalystWindowOutput,
   RequirementDraft,
@@ -11,6 +13,8 @@ import { TENDER_SOURCE, TenderFileRef, TenderSource } from '../../documents/tend
 import { PrismaService } from '../../prisma/prisma.service';
 import { AgentCallTrace } from '../base/base-agent';
 import { mapWithConcurrency } from '../base/concurrency';
+import { resolveDataDir } from '../../documents/bid-documents.service';
+import { parseDossier, toLiteRequirements } from './lite-dossier';
 import { AnalystPageInput, TenderAnalystAgent } from './tender-analyst.agent';
 
 export interface PageWindow {
@@ -56,6 +60,8 @@ const ANALYST_WINDOW_OVERLAP = 2;
 const UNKNOWN_QUALITY = 'unknown';
 // Window calls in flight at once (see mapWithConcurrency).
 const ANALYST_CONCURRENCY = 4;
+const LITE_DIR = 'lite';
+const LITE_DOSSIER_FILE = 'dossier-simplificado.md';
 // Full attempts per window (each already includes MetaModelService's own
 // schema-correction retry).
 const WINDOW_ATTEMPTS = 2;
@@ -253,6 +259,30 @@ export class TenderAnalystService {
       }
     }
     return { result: null, error: lastError };
+  }
+
+  // Lite mode: requirements come from the curated dossier (oracle columns
+  // stripped by parseDossier), each still citing the original file + page.
+  // No model call: the dossier is already structured, so this step is
+  // deterministic and takes milliseconds.
+  public async analyzeLite(caseKey: string, opportunityId: string): Promise<MergedAnalysis> {
+    const tender = await this.tenderSource.getTender(caseKey);
+    const rows = await this.prisma.tenderDocument.findMany({ where: { opportunityId } });
+    const pliego = rows.find((row) => row.fileName === tender.pliego.fileName);
+    if (pliego === undefined) {
+      throw new Error(`Ingested pliego missing for ${caseKey}; ingest the tender first.`);
+    }
+    const dossierPath = join(resolveDataDir(), LITE_DIR, 'tenders', caseKey, LITE_DOSSIER_FILE);
+    const dossierRows = parseDossier(readFileSync(dossierPath, 'utf8'));
+    const requirements = toLiteRequirements(dossierRows, rows, pliego);
+    return {
+      requirements,
+      contradictions: [],
+      windowsRun: 0,
+      traces: [],
+      windowOutputs: [],
+      failedWindows: [],
+    };
   }
 
   private async fullPageTexts(file: TenderFileRef): Promise<string[]> {

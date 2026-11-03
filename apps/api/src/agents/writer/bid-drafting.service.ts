@@ -22,6 +22,29 @@ export interface DraftingInput {
   facts: StructuredFact[];
 }
 
+// Draft budgets. Full mode follows the PRD section index; lite (demo) mode
+// keeps the draft short and skips the correction round to fit a live demo.
+export interface DraftingOptions {
+  maxSections: number;
+  maxBodyChars: number;
+  maxReviewItems: number;
+  allowCorrectionRound: boolean;
+}
+
+export const FULL_DRAFTING: DraftingOptions = {
+  maxSections: 13,
+  maxBodyChars: 1200,
+  maxReviewItems: 20,
+  allowCorrectionRound: true,
+};
+
+export const LITE_DRAFTING: DraftingOptions = {
+  maxSections: 5,
+  maxBodyChars: 450,
+  maxReviewItems: 5,
+  allowCorrectionRound: false,
+};
+
 export interface DraftingRound {
   draft: DraftOffer;
   review: ReviewReport;
@@ -184,7 +207,10 @@ export class BidDraftingService {
     private readonly reviewer: ReviewerAgent,
   ) {}
 
-  public async draftAndReview(input: DraftingInput): Promise<DraftingResult> {
+  public async draftAndReview(
+    input: DraftingInput,
+    options: DraftingOptions = FULL_DRAFTING,
+  ): Promise<DraftingResult> {
     const shared = {
       tenderHeader: renderTenderHeader(input.tender),
       requirementsText: renderRequirements(input.requirements),
@@ -194,6 +220,8 @@ export class BidDraftingService {
     const writerBase = {
       ...shared,
       verdictText: renderVerdict(input.verdict),
+      maxSections: options.maxSections,
+      maxBodyChars: options.maxBodyChars,
       companyFactsText: input.facts
         .map((fact) => `- ${fact.label}: ${fact.value} [${fact.source}]`)
         .join('\n'),
@@ -204,10 +232,11 @@ export class BidDraftingService {
 
     const firstDraft = await this.writer.run(writerBase);
     writerTraces.push(firstDraft.trace);
-    const firstRound = await this.review(firstDraft.data, input, shared, reviewerTraces);
+    const firstRound = await this.review(firstDraft.data, input, shared, reviewerTraces, options);
     rounds.push(firstRound);
 
-    const needsCorrection = firstRound.review.verdict === 'needs_revision';
+    const needsCorrection =
+      options.allowCorrectionRound && firstRound.review.verdict === 'needs_revision';
     if (needsCorrection) {
       const corrected = await this.writer.run({
         ...writerBase,
@@ -215,7 +244,7 @@ export class BidDraftingService {
         previousDraftJson: JSON.stringify(firstDraft.data),
       });
       writerTraces.push(corrected.trace);
-      rounds.push(await this.review(corrected.data, input, shared, reviewerTraces));
+      rounds.push(await this.review(corrected.data, input, shared, reviewerTraces, options));
     }
     const last = rounds[rounds.length - 1] ?? firstRound;
     return {
@@ -237,8 +266,13 @@ export class BidDraftingService {
       pricingText: string;
     },
     traces: AgentCallTrace[],
+    options: DraftingOptions,
   ): Promise<DraftingRound> {
-    const result = await this.reviewer.run({ ...shared, draftJson: JSON.stringify(draft) });
+    const result = await this.reviewer.run({
+      ...shared,
+      draftJson: JSON.stringify(draft),
+      maxItemsPerList: options.maxReviewItems,
+    });
     traces.push(result.trace);
     const merged = mergeCoverage(result.data, draft, input.requirements, input.verdict);
     return { draft, review: merged.review, deterministicOmissions: merged.deterministicOmissions };

@@ -8,6 +8,8 @@ import { StructuredFact, buildStructuredFacts } from './structured-facts';
 
 export interface RetrievalFilters {
   documentTypes?: string[];
+  // Lite mode: only these DOC codes (the lite manifest) are searchable.
+  documentCodes?: string[];
   excludeExpired?: boolean;
   projectIds?: string[];
 }
@@ -191,6 +193,12 @@ export class CompanyBrainRetrieval {
       if (
         filters.documentTypes !== undefined &&
         !filters.documentTypes.includes(chunk.documentType)
+      ) {
+        return false;
+      }
+      if (
+        filters.documentCodes !== undefined &&
+        !filters.documentCodes.includes(this.docCodeOf(chunk.fileName))
       ) {
         return false;
       }

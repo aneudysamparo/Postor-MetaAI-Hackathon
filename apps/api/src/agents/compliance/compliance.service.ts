@@ -10,6 +10,7 @@ import { AgentContextBuilder, BuiltAgentContext } from '../../brain/agent-contex
 import {
   CompanyBrainRetrieval,
   CompanyContextResult,
+  RetrievalFilters,
   extractDocCode,
 } from '../../brain/company-brain-retrieval.service';
 import { NormalizedTender } from '../../documents/tender-source';
@@ -30,6 +31,9 @@ export interface ComplianceEvaluationInput {
   opportunityId: string;
   companyId: string;
   tender: NormalizedTender;
+  // Lite mode: restricts retrieval to the decisive Brain documents and uses
+  // smaller batches so the few requirements run as parallel calls.
+  lite?: { documentCodes: string[] };
 }
 
 export interface ComplianceEvaluation {
@@ -50,6 +54,8 @@ const COMPLIANCE_BATCH_SIZE = 8;
 const CORRECTION_RETRIES = 1;
 // Batch calls in flight at once (see mapWithConcurrency).
 const COMPLIANCE_CONCURRENCY = 4;
+// Lite runs ~9 requirements: batches of 3 give 3 parallel short calls.
+const LITE_BATCH_SIZE = 3;
 // Compliance needs facts AND verbatim excerpts: the default budget fits the
 // ~5.8k-char fact block but starves excerpts to zero (seen live), so the
 // model would judge from facts alone. 12k chars holds both.
@@ -98,7 +104,13 @@ export class ComplianceService {
     const traces: AgentCallTrace[] = [];
     const batchFindings: ComplianceFinding[][] = [];
     const retrievalTraceIds: string[] = [];
-    const batches = chunkArray(requirements, COMPLIANCE_BATCH_SIZE);
+    let batchSize = COMPLIANCE_BATCH_SIZE;
+    let filters: RetrievalFilters | undefined;
+    if (input.lite !== undefined) {
+      batchSize = LITE_BATCH_SIZE;
+      filters = { documentCodes: input.lite.documentCodes };
+    }
+    const batches = chunkArray(requirements, batchSize);
     // Batches are independent: a bounded pool runs them concurrently and
     // returns results in batch order, so findings keep requirement order.
     const results = await mapWithConcurrency(batches, COMPLIANCE_CONCURRENCY, async (batch) => {
@@ -107,6 +119,7 @@ export class ComplianceService {
         query: this.batchQuery(batch),
         taskType: 'compliance',
         requestor: 'compliance.evaluate',
+        filters,
         workflowId: input.workflowId,
         agentRunId: input.agentRunId,
       });

@@ -13,7 +13,16 @@ import {
 import { Prisma } from '@prisma/client';
 import { AgentCallTrace } from '../agents/base/base-agent';
 import { ComplianceService } from '../agents/compliance/compliance.service';
-import { BidDraftingService } from '../agents/writer/bid-drafting.service';
+import {
+  BidDraftingService,
+  DraftingOptions,
+  FULL_DRAFTING,
+  LITE_DRAFTING,
+} from '../agents/writer/bid-drafting.service';
+import { liteDocCodes } from '../agents/tender-analyst/lite-dossier';
+import { resolveDataDir } from '../documents/bid-documents.service';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { PricingService } from '../agents/pricing/pricing.service';
 import { OpportunityAgent, OpportunityInput } from '../agents/opportunity/opportunity.agent';
 import { TenderAnalystService } from '../agents/tender-analyst/tender-analyst.service';
@@ -29,14 +38,17 @@ import {
   PENDING_STEPS,
   WORKFLOW_EVENT,
   WORKFLOW_STATUS,
+  WorkflowMode,
   WorkflowStatus,
   assertTransition,
+  resolveWorkflowMode,
   evidenceRowId,
 } from './workflow-state';
 
 export interface StartWorkflowInput {
   opportunityId: string;
   companyId?: string;
+  mode?: string;
 }
 
 interface LoadedContext {
@@ -49,6 +61,12 @@ interface LoadedContext {
 }
 
 const SINGLE_COMPANY_COUNT = 1;
+
+// The lite Company Brain: DOC codes listed as decisive in the lite manifest.
+function loadLiteDocCodes(): string[] {
+  const manifestPath = join(resolveDataDir(), 'lite', 'lite-manifest.json');
+  return liteDocCodes(JSON.parse(readFileSync(manifestPath, 'utf8')));
+}
 const FIRST_ATTEMPT = 1;
 const COST_SUMMARY_DECIMALS = 6;
 const INTERRUPTED_REASON = 'Interrupted: the API process stopped while this run was executing.';
@@ -98,14 +116,16 @@ export class WorkflowRunner {
         status: WORKFLOW_STATUS.QUEUED,
       },
     });
+    const mode = resolveWorkflowMode(input.mode, process.env.POSTOR_MODE);
     await this.emit(run.id, WORKFLOW_EVENT.CREATED, null, null, {
       opportunityId: opportunity.id,
       companyId: company.id,
+      mode,
     });
     // Fire-and-forget by design (see class comment). The last-resort catch
     // only logs: execute() already funnels every expected failure into the
     // run status, so reaching here means persistence itself broke.
-    void this.execute(run.id).catch((error: unknown) => {
+    void this.execute(run.id, mode).catch((error: unknown) => {
       this.logger.error(`Workflow ${run.id} crashed outside the state machine: ${String(error)}`);
     });
     return run;
@@ -207,10 +227,13 @@ export class WorkflowRunner {
     };
   }
 
-  private async execute(runId: string): Promise<void> {
+  private async execute(runId: string, mode: WorkflowMode): Promise<void> {
+    if (mode === 'lite') {
+      return this.executeLite(runId);
+    }
     try {
       await this.transition(runId, WORKFLOW_STATUS.RUNNING);
-      await this.emit(runId, WORKFLOW_EVENT.STARTED, null, null, {});
+      await this.emit(runId, WORKFLOW_EVENT.STARTED, null, null, { mode });
       const context = await this.loadContext(runId);
       const outcomes = await Promise.allSettled([
         this.runOpportunity(runId, context),
@@ -291,23 +314,94 @@ export class WorkflowRunner {
           failures.push('documents');
         }
       }
-      if (failures.length > 0) {
-        await this.transition(runId, WORKFLOW_STATUS.NEEDS_REVIEW);
-        await this.emit(runId, WORKFLOW_EVENT.NEEDS_REVIEW, null, null, {
-          failedAgents: failures,
-          reason: 'One or more agents failed; surviving outputs are preserved.',
-        });
-        return;
-      }
-      await this.transition(runId, WORKFLOW_STATUS.COMPLETED);
-      await this.emit(runId, WORKFLOW_EVENT.COMPLETED, null, null, {
-        pendingSteps: [...PENDING_STEPS],
-      });
+      await this.finish(runId, failures);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await this.transition(runId, WORKFLOW_STATUS.FAILED);
       await this.emit(runId, WORKFLOW_EVENT.FAILED, null, null, { error: message });
     }
+  }
+
+  // Lite pipeline (demo path, target < 3 min). Same agents, same
+  // persistence and trace; it only changes what is read and how much is
+  // written, and runs every independent step in parallel:
+  //   load_context -> dossier analyst (deterministic, ms) -> consolidate
+  //   -> [opportunity | compliance (lite Brain) | pricing] in parallel
+  //   -> writer -> reviewer (no correction round) -> documents.
+  // Visual reading is skipped: the dossier is already text.
+  private async executeLite(runId: string): Promise<void> {
+    try {
+      await this.transition(runId, WORKFLOW_STATUS.RUNNING);
+      await this.emit(runId, WORKFLOW_EVENT.STARTED, null, null, { mode: 'lite' });
+      const context = await this.loadContext(runId);
+      const failures: string[] = [];
+      try {
+        await this.runAnalyst(runId, context, 'lite');
+      } catch {
+        failures.push('tender_analyst');
+      }
+      const analystFailed = failures.includes('tender_analyst');
+      if (analystFailed) {
+        await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'orchestrator', null, {
+          step: 'consolidate',
+          skipped: true,
+          reason: 'tender_analyst failed; nothing to consolidate.',
+        });
+      } else {
+        await this.consolidate(runId);
+      }
+      await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'orchestrator', null, {
+        step: 'visual.read',
+        skipped: true,
+        reason: 'lite mode: the key-requirements dossier is already text.',
+      });
+      const liteCodes = loadLiteDocCodes();
+      const parallelAgents = ['opportunity', 'compliance', 'pricing'];
+      const parallelSteps: Promise<unknown>[] = [this.runOpportunity(runId, context)];
+      if (!analystFailed) {
+        parallelSteps.push(this.runCompliance(runId, context, { documentCodes: liteCodes }));
+        parallelSteps.push(this.runPricing(runId, context));
+      }
+      const outcomes = await Promise.allSettled(parallelSteps);
+      outcomes.forEach((outcome, index) => {
+        const agent = parallelAgents[index];
+        if (outcome.status === 'rejected' && agent !== undefined) {
+          failures.push(agent);
+        }
+      });
+      if (!analystFailed) {
+        try {
+          await this.runDrafting(runId, context, LITE_DRAFTING);
+        } catch {
+          failures.push('writer');
+        }
+        try {
+          await this.runDocuments(runId, context);
+        } catch {
+          failures.push('documents');
+        }
+      }
+      await this.finish(runId, failures);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await this.transition(runId, WORKFLOW_STATUS.FAILED);
+      await this.emit(runId, WORKFLOW_EVENT.FAILED, null, null, { error: message });
+    }
+  }
+
+  private async finish(runId: string, failures: string[]): Promise<void> {
+    if (failures.length > 0) {
+      await this.transition(runId, WORKFLOW_STATUS.NEEDS_REVIEW);
+      await this.emit(runId, WORKFLOW_EVENT.NEEDS_REVIEW, null, null, {
+        failedAgents: failures,
+        reason: 'One or more agents failed; surviving outputs are preserved.',
+      });
+      return;
+    }
+    await this.transition(runId, WORKFLOW_STATUS.COMPLETED);
+    await this.emit(runId, WORKFLOW_EVENT.COMPLETED, null, null, {
+      pendingSteps: [...PENDING_STEPS],
+    });
   }
 
   // Step 1 (TECH section 8): company + opportunity + documents. Ingestion is
@@ -385,18 +479,26 @@ export class WorkflowRunner {
 
   // Step 2b: pliego + amendments to structured requirements with doc+page
   // evidence. Runs in parallel with the opportunity agent.
-  private async runAnalyst(runId: string, context: LoadedContext): Promise<number> {
-    const agentRun = await this.startAgentRun(
-      runId,
-      'tender_analyst',
-      'extract',
-      context.documentIds,
-    );
+  private async runAnalyst(
+    runId: string,
+    context: LoadedContext,
+    mode: WorkflowMode = 'full',
+  ): Promise<number> {
+    let task = 'extract';
+    if (mode === 'lite') {
+      task = 'dossier';
+    }
+    const agentRun = await this.startAgentRun(runId, 'tender_analyst', task, context.documentIds);
     await this.emit(runId, WORKFLOW_EVENT.STEP_STARTED, 'tender_analyst', agentRun.id, {
       step: 'tender_analyst.extract',
     });
     try {
-      const analysis = await this.analyst.analyzeCase(context.caseKey, context.opportunityId);
+      let analysis;
+      if (mode === 'lite') {
+        analysis = await this.analyst.analyzeLite(context.caseKey, context.opportunityId);
+      } else {
+        analysis = await this.analyst.analyzeCase(context.caseKey, context.opportunityId);
+      }
       for (let index = 0; index < analysis.traces.length; index += 1) {
         const trace = analysis.traces[index];
         const windowOutput = analysis.windowOutputs[index];
@@ -414,6 +516,7 @@ export class WorkflowRunner {
             contradictions: analysis.contradictions,
             windowsRun: analysis.windowsRun,
             failedWindows: analysis.failedWindows,
+            mode,
           } as unknown as Prisma.InputJsonValue,
         },
       });
@@ -443,7 +546,11 @@ export class WorkflowRunner {
   // verdict. Compliance findings cite requirement ids and company DOC codes;
   // they need no new evidence rows because requirement evidence already
   // lives on the requirements artifact (reusing those ids would collide).
-  private async runCompliance(runId: string, context: LoadedContext): Promise<void> {
+  private async runCompliance(
+    runId: string,
+    context: LoadedContext,
+    lite?: { documentCodes: string[] },
+  ): Promise<void> {
     const agentRun = await this.startAgentRun(runId, 'compliance', 'evaluate', context.documentIds);
     await this.emit(runId, WORKFLOW_EVENT.STEP_STARTED, 'compliance', agentRun.id, {
       step: 'compliance.evaluate',
@@ -455,6 +562,7 @@ export class WorkflowRunner {
         opportunityId: context.opportunityId,
         companyId: context.companyId,
         tender: context.tender,
+        lite,
       });
       for (let index = 0; index < evaluation.traces.length; index += 1) {
         const trace = evaluation.traces[index];
@@ -589,7 +697,11 @@ export class WorkflowRunner {
   // Steps 6-7 (PRD section 7 Agents 5-6): the drafting service runs writer
   // -> reviewer -> (one correction) -> reviewer. Writer and reviewer get
   // their own AgentRun rows so the trace shows each call under its agent.
-  private async runDrafting(runId: string, context: LoadedContext): Promise<void> {
+  private async runDrafting(
+    runId: string,
+    context: LoadedContext,
+    options: DraftingOptions = FULL_DRAFTING,
+  ): Promise<void> {
     const writerRun = await this.startAgentRun(runId, 'writer', 'draft', []);
     const reviewerRun = await this.startAgentRun(runId, 'reviewer', 'review', []);
     await this.emit(runId, WORKFLOW_EVENT.STEP_STARTED, 'writer', writerRun.id, {
@@ -597,14 +709,17 @@ export class WorkflowRunner {
     });
     try {
       const compliance = await this.loadCompliance(runId);
-      const result = await this.drafting.draftAndReview({
-        tender: context.tender,
-        requirements: await this.loadRequirements(runId),
-        findings: compliance.findings,
-        verdict: compliance.verdict,
-        pricing: await this.loadPricing(runId),
-        facts: context.facts,
-      });
+      const result = await this.drafting.draftAndReview(
+        {
+          tender: context.tender,
+          requirements: await this.loadRequirements(runId),
+          findings: compliance.findings,
+          verdict: compliance.verdict,
+          pricing: await this.loadPricing(runId),
+          facts: context.facts,
+        },
+        options,
+      );
       for (let index = 0; index < result.writerTraces.length; index += 1) {
         const trace = result.writerTraces[index];
         const round = result.rounds[index];

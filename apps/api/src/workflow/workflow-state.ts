@@ -87,3 +87,25 @@ export function assertTransition(from: WorkflowStatus, to: WorkflowStatus): void
     throw new Error(`Illegal workflow transition: ${from} -> ${to}.`);
   }
 }
+
+// Analysis depth per run. "full" reads every pliego page (10-20 min live);
+// "lite" reads the curated key-requirements dossier and the decisive Brain
+// documents with short outputs (demo path, target under 3 min).
+export const WORKFLOW_MODES = ['lite', 'full'] as const;
+export type WorkflowMode = (typeof WORKFLOW_MODES)[number];
+const DEFAULT_MODE: WorkflowMode = 'lite';
+
+export function resolveWorkflowMode(
+  requested: string | undefined,
+  envValue: string | undefined,
+): WorkflowMode {
+  const candidates = [requested, envValue];
+  for (const candidate of candidates) {
+    const normalized = (candidate ?? '').trim().toLowerCase();
+    const match = WORKFLOW_MODES.find((mode) => mode === normalized);
+    if (match !== undefined) {
+      return match;
+    }
+  }
+  return DEFAULT_MODE;
+}

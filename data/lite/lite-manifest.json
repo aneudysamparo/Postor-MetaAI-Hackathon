@@ -1,0 +1,94 @@
+{
+  "company_profile": "company/company-profile.json (always load in full)",
+  "description": "Corpus reducido del Company Brain para el MODO LITE: solo los documentos DECISIVOS para los 4 veredictos de diseño (GO / GO_WITH_CONDITIONS / NO_GO / NEEDS_REVIEW). company-profile.json se carga SIEMPRE completo (es pequeño). Los 41 documentos originales siguen en company/docs/ como evidencia/trazabilidad.",
+  "design_verdicts_unchanged": "Los veredictos esperados NO cambian: expected-results/scenarios.json intacto.",
+  "documents": [
+    {
+      "doc_id": "DOC-CV-004",
+      "rationale": "Carla (Desarrolladora Full-Stack): experiencia Azure DevOps/CI/CD — decisivo para el GO del caso A."
+    },
+    {
+      "doc_id": "DOC-CERT-003",
+      "rationale": "Azure Administrator vigente de Carla — refuerza el requisito Azure/Nube/DevOps del caso A."
+    },
+    {
+      "doc_id": "DOC-CV-001",
+      "rationale": "Laura (Gerente de Proyectos) — caso B requiere gerente con PMP."
+    },
+    {
+      "doc_id": "DOC-CERT-002",
+      "rationale": "PMP vigente de Laura (al 2027-01-31) — decisivo para el requisito PMP del caso B (met)."
+    },
+    {
+      "doc_id": "DOC-CV-005",
+      "rationale": "Carlos (Ing. Infraestructura) — caso B: ingeniero en nómina, pero sin certificación de cableado."
+    },
+    {
+      "doc_id": "DOC-CERT-EXP-001",
+      "rationale": "CCNA VENCIDA de Carlos (2025-06-30) — brecha deliberada; sostiene la CONDICIÓN 1 del caso B."
+    },
+    {
+      "doc_id": "DOC-LEGAL-006",
+      "rationale": "Constancia RPE 882145 — admisibilidad en los 4 casos."
+    },
+    {
+      "doc_id": "DOC-LEGAL-004",
+      "rationale": "Certificación DGII (vig. 19/11/2026) — admisibilidad en los 4 casos."
+    },
+    {
+      "doc_id": "DOC-LEGAL-005",
+      "rationale": "Certificación TSS (vig. 04/12/2026) — admisibilidad en los 4 casos."
+    },
+    {
+      "doc_id": "DOC-REF-001",
+      "rationale": "Carta de referencia de cliente 1 (sistema documental, 2024) — decisiva para el GO del caso A."
+    },
+    {
+      "doc_id": "DOC-REF-002",
+      "rationale": "Carta de referencia de cliente 2 (app móvil, 2025) — decisiva para el GO del caso A."
+    },
+    {
+      "doc_id": "DOC-CONTRACT-004",
+      "rationale": "Contrato PROJECT-004: 14 AP Wi-Fi 6 instalados (2022) — decisivo para la experiencia Wi-Fi del caso B."
+    },
+    {
+      "doc_id": "DOC-INVOICE-004",
+      "rationale": "Factura PROJECT-004 — cadena de evidencia (contrato→factura→acta) del caso B."
+    },
+    {
+      "doc_id": "DOC-ACCEPTANCE-004",
+      "rationale": "Acta de recepción PROJECT-004 — cierra la cadena de evidencia del caso B."
+    },
+    {
+      "doc_id": "DOC-CONTRACT-005",
+      "rationale": "Contrato PROJECT-005: soporte 12 meses (2025) — requisito de operación/soporte del caso B."
+    },
+    {
+      "doc_id": "DOC-FIN-2024",
+      "rationale": "Estados financieros 2024 — base de los índices del caso D."
+    },
+    {
+      "doc_id": "DOC-FIN-2025",
+      "rationale": "Estados financieros 2025 (facturación RD$10.2M) — índices + PUNTO DE REVISIÓN del caso D (86%)."
+    },
+    {
+      "doc_id": "DOC-QUOT-002",
+      "rationale": "Cotización Wi-Fi VENCIDA de SUP-002 (Redes y Conectividad RD) — textura del caso B: hay cotización pero NO carta de fabricante."
+    },
+    {
+      "doc_id": "DOC-QUOT-003",
+      "rationale": "Cotización Microsoft 365 VENCIDA (LSE) — textura del caso C: precio ≠ acreditación de fabricante."
+    },
+    {
+      "doc_id": "DOC-CORP-001",
+      "rationale": "Ficha corporativa — línea base de la empresa."
+    },
+    {
+      "doc_id": "DOC-TEAM-001",
+      "rationale": "Listado de personal — antigüedad en nómina (Carlos desde 2021) para el requisito TSS del caso B."
+    }
+  ],
+  "excluded": "Los 20 documentos restantes de company/docs/ son textura/decorativos para el modo full (registro mercantil, RNC —ambos documentados en company-profile.json compliance—, otros contratos, facturas, CVs, cotizaciones, DOC-LEGAL-003 estatutos, DOC-QUOT-001, DOC-QUOT-004). Se indexan solo en modo full.",
+  "fictional": true,
+  "mode": "lite"
+}
