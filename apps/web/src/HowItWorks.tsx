@@ -1,7 +1,7 @@
 import type { JSX } from 'react';
 
-// "Cómo funciona": the pipeline drawn as lanes, each step tagged with the
-// Meta model that does the work (or "código" when it is deterministic), so
+// "How it works": the pipeline drawn as lanes, each step tagged with the
+// Meta model that does the work (or "code" when it is deterministic), so
 // judges and viewers see where every model acts without reading code.
 
 type ModelKey = 'spark' | 'wonder' | 'sam' | 'voice' | 'code';
@@ -16,27 +16,27 @@ const MODELS: Record<ModelKey, ModelInfo> = {
   spark: {
     name: 'Muse Spark',
     id: 'muse-spark-1.3',
-    role: 'Lee el pliego, contrasta con el Company Brain, investiga precios y redacta. También lee páginas escaneadas (visión) y juzga los fragmentos sospechosos de la guardia de documentos.',
+    role: 'Reads the pliego, checks it against the Company Brain, researches prices and drafts. Also reads scanned pages (vision) and judges the suspicious fragments flagged by the document guard.',
   },
   wonder: {
     name: 'Muse Wonder',
     id: 'muse-wonder-1.0',
-    role: 'Razonamiento profundo: audita el borrador que escribió Muse Spark (omisiones, afirmaciones sin respaldo, contradicciones).',
+    role: 'Deep reasoning: audits the draft Muse Spark wrote (omissions, unsupported claims, contradictions).',
   },
   sam: {
     name: 'SAM 3.1',
     id: 'sam-3.1',
-    role: 'Localiza firmas, rúbricas y logos institucionales en páginas escaneadas y devuelve sus coordenadas.',
+    role: 'Locates signatures, initials and institutional logos on scanned pages and returns their coordinates.',
   },
   voice: {
     name: 'Muse Voice Transcribe',
     id: 'muse-voice-transcribe-1.0',
-    role: 'Transcribe la nota de voz con la que el gerente responde los [PENDING] del borrador; Muse Spark la asigna a cada pendiente.',
+    role: 'Transcribes the voice note in which the manager answers the draft’s [PENDING] items; Muse Spark maps it to each pending item.',
   },
   code: {
-    name: 'Código determinista',
-    id: 'sin modelo',
-    role: 'Veredicto, ratios financieros, concentración, validación de precios, cobertura de requisitos y llenado de formularios.',
+    name: 'Deterministic code',
+    id: 'no model',
+    role: 'Verdict, financial ratios, concentration, price validation, requirement coverage and form filling.',
   },
 };
 
@@ -49,77 +49,79 @@ interface Step {
 // Lanes run left to right; steps inside a lane run in parallel.
 const LANES: { label: string; steps: Step[] }[] = [
   {
-    label: '1 · Entrada',
+    label: '1 · Input',
     steps: [
       {
-        title: 'Expediente real DGCP',
-        detail: 'Pliego, enmiendas y formularios originales, sin modificar.',
+        title: 'Real DGCP tender file',
+        detail: 'Original pliego, amendments and forms, unmodified.',
         models: ['code'],
       },
       {
-        title: 'Guardia de documentos',
-        detail: 'Una criba busca texto dirigido a una IA; Muse Spark juzga lo sospechoso.',
+        title: 'Document guard',
+        detail: 'A screen looks for text aimed at an AI; Muse Spark judges what is suspicious.',
         models: ['code', 'spark'],
       },
     ],
   },
   {
-    label: '2 · Lectura',
+    label: '2 · Reading',
     steps: [
       {
-        title: 'Analista del pliego',
-        detail: 'Requisitos con su página exacta como evidencia.',
+        title: 'Tender analyst',
+        detail: 'Requirements with their exact page as evidence.',
         models: ['spark'],
       },
       {
-        title: 'Lectura visual',
-        detail: 'Páginas escaneadas: marcas oficiales + texto.',
+        title: 'Visual reading',
+        detail: 'Scanned pages: official marks + text.',
         models: ['sam', 'spark'],
       },
       {
-        title: 'Ajuste de oportunidad',
-        detail: 'Encaje preliminar empresa ↔ licitación.',
+        title: 'Opportunity fit',
+        detail: 'Preliminary company ↔ tender fit.',
         models: ['spark'],
       },
     ],
   },
   {
-    label: '3 · Decisión',
+    label: '3 · Decision',
     steps: [
       {
-        title: 'Cumplimiento',
-        detail: 'Cada requisito contra el Company Brain: cumple / no cumple / por verificar.',
+        title: 'Compliance',
+        detail: 'Every requirement against the Company Brain: met / not met / to verify.',
         models: ['spark'],
       },
       {
-        title: 'Veredicto',
-        detail: 'GO · GO CON CONDICIONES · NO GO · REVISIÓN, con ratios y concentración.',
+        title: 'Verdict',
+        detail: 'GO · GO WITH CONDITIONS · NO GO · REVIEW, with ratios and concentration.',
         models: ['code'],
       },
       {
-        title: 'Precios',
-        detail: 'Solo precios impresos en cotizaciones vigentes.',
+        title: 'Prices',
+        detail: 'Costs only from valid store catalogs and the company’s rates.',
         models: ['spark', 'code'],
       },
     ],
   },
   {
-    label: '4 · Oferta',
+    label: '4 · Offer',
     steps: [
       {
-        title: 'Redactor',
-        detail: 'Borrador técnico en el orden del pliego, con [PENDING].',
+        title: 'Writer',
+        detail: 'Technical draft in the pliego’s order, with [PENDING].',
         models: ['spark'],
       },
-      { title: 'Revisor', detail: 'Otro modelo audita el borrador.', models: ['wonder'] },
+      { title: 'Reviewer', detail: 'Another model audits the draft.', models: ['wonder'] },
       {
-        title: 'Pendientes por voz',
-        detail: 'El gerente dicta lo que sabe; queda como declaración, no como evidencia.',
+        title: 'Voice answers',
+        detail:
+          'The manager says what they know; it is recorded as a declaration, not as evidence.',
         models: ['voice', 'spark'],
       },
       {
-        title: 'Formularios + F.033',
-        detail: 'SNCC y el F.033 oficial pre-llenados; firma y precio quedan para una persona.',
+        title: 'Forms + F.033',
+        detail:
+          'SNCC forms and a priced official F.033; signature and final approval stay with a person.',
         models: ['code'],
       },
     ],
@@ -133,11 +135,11 @@ function ModelTag({ model }: { model: ModelKey }): JSX.Element {
 export function HowItWorks(): JSX.Element {
   return (
     <div>
-      <p className="kicker">Cómo funciona</p>
-      <h2>Cuatro modelos de Meta, cada uno con un trabajo</h2>
+      <p className="kicker">How it works</p>
+      <h2>Four Meta models, each with one job</h2>
       <p className="sub">
-        De la licitación real a un veredicto honesto y un borrador de oferta. Todo lo que hace cada
-        modelo queda en la pestaña Traza de cada análisis.
+        From the real tender to an honest verdict and an offer draft. Everything each model does is
+        recorded in the Trace tab of each analysis.
       </p>
       <div className="lanes">
         {LANES.map((lane) => (
@@ -158,7 +160,7 @@ export function HowItWorks(): JSX.Element {
         ))}
       </div>
       <section className="panel">
-        <h3 className="panel-title">Los modelos</h3>
+        <h3 className="panel-title">The models</h3>
         <div className="model-grid">
           {(Object.keys(MODELS) as ModelKey[]).map((key) => (
             <div key={key} className={`model-card model-card-${key}`}>

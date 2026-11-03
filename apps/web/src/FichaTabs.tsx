@@ -34,13 +34,13 @@ const RUN_COST_DECIMALS = 4;
 // ---- Resumen ----
 
 const RECOMMENDATION_LABELS: Record<string, { label: string; tone: Tone }> = {
-  go: { label: 'Preliminar: competir', tone: 'ok' },
-  no_go: { label: 'Preliminar: no competir', tone: 'bad' },
-  needs_review: { label: 'Preliminar: revisar', tone: 'warn' },
+  go: { label: 'Preliminary: bid', tone: 'ok' },
+  no_go: { label: 'Preliminary: don’t bid', tone: 'bad' },
+  needs_review: { label: 'Preliminary: review', tone: 'warn' },
 };
 
 // A whole entry wrapped as "[PENDING: ...]" reads better without the wrapper
-// inside the amber "Falta información" card.
+// inside the amber "Missing information" card.
 function unwrapPending(text: string): string {
   const match = /^\[PENDING:\s*([\s\S]*)\]$/.exec(text.trim());
   return match?.[1] ?? text;
@@ -97,8 +97,8 @@ export function SummaryTab({
   }
   return (
     <div>
-      <Section title="Vista previa">
-        {assessment === null && <p className="muted">Sin evaluación de oportunidad.</p>}
+      <Section title="Preview">
+        {assessment === null && <p className="muted">No opportunity assessment.</p>}
         {assessment !== null && (
           <div>
             <p className="chips-row">
@@ -108,14 +108,14 @@ export function SummaryTab({
               )}
               <VerdictChip verdict={artifacts.verdict?.verdict ?? null} />
               <span className="muted">
-                El veredicto final lo da Cumplimiento tras leer el pliego.
+                The final verdict comes from Compliance after reading the pliego.
               </span>
             </p>
             <p className="lead">
               <RichText text={assessment.summary} />
             </p>
             <details>
-              <summary>¿Por qué este ajuste?</summary>
+              <summary>Why this fit?</summary>
               <p className="muted">
                 <RichText text={assessment.justification} />
               </p>
@@ -125,36 +125,36 @@ export function SummaryTab({
       </Section>
       {assessment !== null && (
         <section className="panel">
-          <h3 className="panel-title">Ajuste con la empresa</h3>
+          <h3 className="panel-title">Fit with the company</h3>
           <div className="fit-grid">
             <FitCard
-              title="Capacidades relevantes"
+              title="Relevant capabilities"
               tone="ok"
               items={assessment.relevantCapabilities}
-              empty="Ninguna identificada."
+              empty="None identified."
             />
             <FitCard
-              title="Incompatibilidades"
+              title="Conflicts"
               tone="bad"
               items={assessment.incompatibilities}
-              empty="Ninguna detectada."
+              empty="None detected."
             />
             <FitCard
-              title="Falta información"
+              title="Missing information"
               tone="warn"
               items={assessment.missingInformation}
-              empty="Nada pendiente."
+              empty="Nothing pending."
               unwrap
             />
           </div>
         </section>
       )}
       <div className="grid2">
-        <Section title={`Ítems (${artifacts.pricing.length})`}>
+        <Section title={`Items (${artifacts.pricing.length})`}>
           <table>
             <thead>
               <tr>
-                <th>Descripción</th>
+                <th>Description</th>
                 <th>Cant.</th>
               </tr>
             </thead>
@@ -168,10 +168,10 @@ export function SummaryTab({
             </tbody>
           </table>
         </Section>
-        <Section title="Cronograma">
+        <Section title="Schedule">
           <ul className="kv">
             <li>
-              <b>Cierre de ofertas:</b> {formatRdLocal(opportunity.closeDateRd)}
+              <b>Bids close:</b> {formatRdLocal(opportunity.closeDateRd)}
             </li>
             {dated.map((requirement) => (
               <li key={requirement.id}>
@@ -192,45 +192,44 @@ export function AnalysisTab({ artifacts }: { artifacts: RunArtifacts }): JSX.Ele
   const verdict = artifacts.verdict;
   const financials = artifacts.financials;
   if (verdict === null) {
-    return <p className="muted">El veredicto aparece cuando termina el agente de cumplimiento.</p>;
+    return <p className="muted">The verdict appears when the compliance agent finishes.</p>;
   }
   const blockers = artifacts.findings.filter((finding) => finding.status === 'not_met');
   return (
     <div>
-      <Section title="Veredicto">
+      <Section title="Verdict">
         <p>
           <VerdictChip verdict={verdict.verdict} />
         </p>
         <p>{verdict.rationale}</p>
         <p className="muted">
-          {verdict.counts.met} cumple · {verdict.counts.not_met} no cumple ·{' '}
-          {verdict.counts.unknown} por verificar · {verdict.counts.not_applicable} no aplica (total{' '}
-          {verdict.counts.total})
+          {verdict.counts.met} met · {verdict.counts.not_met} not met · {verdict.counts.unknown} to
+          verify · {verdict.counts.not_applicable} not applicable (total {verdict.counts.total})
         </p>
       </Section>
-      <Section title={`Condiciones (${verdict.conditions.length})`}>
+      <Section title={`Conditions (${verdict.conditions.length})`}>
         <ul className="checks">
           {verdict.conditions.map((condition) => (
             <li key={`${condition.requirementId}-${condition.description}`}>
               <span className="box">☐</span> {condition.description}{' '}
               <span className="muted">
-                · responsable {condition.owner} · antes de {formatRdLocal(condition.deadline)}
+                · owner {condition.owner} · before {formatRdLocal(condition.deadline)}
               </span>
             </li>
           ))}
-          {verdict.conditions.length === 0 && <li className="muted">Sin condiciones abiertas.</li>}
+          {verdict.conditions.length === 0 && <li className="muted">No open conditions.</li>}
         </ul>
       </Section>
       {blockers.length > 0 && (
-        <Section title="Requisitos no cumplidos">
+        <Section title="Requirements not met">
           <ul>
             {blockers.map((finding) => (
               <li key={finding.requirementId}>
                 <b>{finding.requirementId}</b>{' '}
                 {Boolean(finding.blocker) && finding.blockerBasis !== 'disputed' && (
-                  <Chip tone="bad">bloqueante</Chip>
+                  <Chip tone="bad">blocker</Chip>
                 )}
-                {finding.blockerBasis === 'disputed' && <Chip tone="warn">bloqueante dudoso</Chip>}{' '}
+                {finding.blockerBasis === 'disputed' && <Chip tone="warn">disputed blocker</Chip>}{' '}
                 {finding.reason}
               </li>
             ))}
@@ -238,38 +237,38 @@ export function AnalysisTab({ artifacts }: { artifacts: RunArtifacts }): JSX.Ele
         </Section>
       )}
       {financials !== null && (
-        <Section title="Capacidad financiera (calculada del perfil)">
+        <Section title="Financial capacity (computed from the profile)">
           <ul className="kv">
             <li>
-              <b>Solvencia:</b> {financials.solvency ?? '—'} · <b>Liquidez:</b>{' '}
-              {financials.liquidity ?? '—'} · <b>Endeudamiento:</b> {financials.debt ?? '—'}
+              <b>Solvency:</b> {financials.solvency ?? '—'} · <b>Liquidity:</b>{' '}
+              {financials.liquidity ?? '—'} · <b>Debt ratio:</b> {financials.debt ?? '—'}
             </li>
             {financials.concentrationRatio !== null && (
               <li>
-                <b>Contrato vs facturación anual:</b>{' '}
-                {Math.round(financials.concentrationRatio * PERCENT_SCALE)}% de RD${' '}
+                <b>Contract vs annual revenue:</b>{' '}
+                {Math.round(financials.concentrationRatio * PERCENT_SCALE)}% of RD${' '}
                 {formatMoney(financials.annualRevenueDop)}
               </li>
             )}
           </ul>
         </Section>
       )}
-      <Section title="Seguridad de los documentos">
+      <Section title="Document safety">
         {artifacts.guard === null && (
-          <p className="muted">La guardia de documentos no corrió en este análisis.</p>
+          <p className="muted">The document guard did not run in this analysis.</p>
         )}
         {artifacts.guard !== null && (
           <div>
             <p>
               {artifacts.guard.flagged.length === 0 && (
-                <Chip tone="ok">sin instrucciones incrustadas</Chip>
+                <Chip tone="ok">no embedded instructions</Chip>
               )}
               {artifacts.guard.flagged.length > 0 && (
                 <Chip tone="bad">{artifacts.guard.flagged.length} fragmento(s) sospechosos</Chip>
               )}{' '}
               <span className="muted">
-                <GuardSummary guard={artifacts.guard} /> Los documentos se tratan siempre como
-                datos, nunca como instrucciones.
+                <GuardSummary guard={artifacts.guard} /> Documents are always treated as data, never
+                as instructions.
               </span>
             </p>
             <ul className="checks">
@@ -290,7 +289,7 @@ export function AnalysisTab({ artifacts }: { artifacts: RunArtifacts }): JSX.Ele
         )}
       </Section>
       {artifacts.contradictions.length > 0 && (
-        <Section title="Contradicciones detectadas en el expediente">
+        <Section title="Contradictions detected in the tender file">
           <ul>
             {artifacts.contradictions.map((contradiction) => (
               <li key={contradiction}>{contradiction}</li>
@@ -308,16 +307,15 @@ function GuardSummary({ guard }: { guard: DocumentGuardResult }): JSX.Element {
   if (guard.backend === 'muse_spark') {
     return (
       <>
-        {guard.scannedChunks} fragmentos del pliego y enmiendas cribados;{' '}
-        {guard.escalatedChunks ?? 0} con lenguaje dirigido a una IA juzgados por{' '}
-        <code>{guard.model}</code> (umbral {guard.threshold}).
+        {guard.scannedChunks} pliego and amendment fragments screened; {guard.escalatedChunks ?? 0}{' '}
+        with AI-directed language judged by <code>{guard.model}</code> (umbral {guard.threshold}).
       </>
     );
   }
   return (
     <>
-      {guard.scannedChunks} fragmentos del pliego y enmiendas revisados con{' '}
-      <code>{guard.model}</code> (umbral {guard.threshold}).
+      {guard.scannedChunks} pliego and amendment fragments checked with <code>{guard.model}</code>{' '}
+      (umbral {guard.threshold}).
     </>
   );
 }
@@ -325,10 +323,10 @@ function GuardSummary({ guard }: { guard: DocumentGuardResult }): JSX.Element {
 // ---- Requisitos ----
 
 const CATEGORY_LABELS: Record<string, string> = {
-  administrative: 'administrativo',
+  administrative: 'administrative',
   legal: 'legal',
-  technical: 'técnico',
-  economic: 'económico',
+  technical: 'technical',
+  economic: 'economic',
 };
 
 export function RequirementsTab({
@@ -345,25 +343,24 @@ export function RequirementsTab({
     <>
       {artifacts.failedWindows.length > 0 && (
         <p className="banner">
-          Páginas no leídas por el analista (el modelo no devolvió un resultado válido tras
-          reintentar):{' '}
+          Pages not read by the analyst (the model returned no valid result after reintentar):{' '}
           {artifacts.failedWindows
             .map((window) => `${window.fileName} pp. ${window.startPage}–${window.endPage}`)
             .join('; ')}
-          . Revísalas a mano: que no aparezcan requisitos ahí no significa que no existan.
+          . Review them by hand: no requirements listed there does not mean there are none.
         </p>
       )}
       <Section
-        title={`${artifacts.requirements.length} requisitos extraídos del pliego y enmiendas`}
+        title={`${artifacts.requirements.length} requirements extracted from the pliego and amendments`}
       >
         <table>
           <thead>
             <tr>
-              <th>Requisito</th>
+              <th>Requirement</th>
               <th>Tipo</th>
-              <th>Estado</th>
-              <th>Fuente</th>
-              <th>Nota</th>
+              <th>Status</th>
+              <th>Source</th>
+              <th>Note</th>
             </tr>
           </thead>
           <tbody>
@@ -381,7 +378,7 @@ export function RequirementsTab({
                     {finding !== undefined ? (
                       <StatusChip status={finding.status} />
                     ) : (
-                      <Chip tone="neutral">sin evaluar</Chip>
+                      <Chip tone="neutral">not assessed</Chip>
                     )}
                   </td>
                   <td>
@@ -431,14 +428,14 @@ export function ProductsTab({
 }): JSX.Element {
   return (
     <div>
-      <Section title="Ítems del pliego × cotizaciones de proveedores (Company Brain)">
+      <Section title="Pliego items × supplier quotations (Company Brain)">
         <table>
           <thead>
             <tr>
-              <th>Ítem</th>
-              <th>Especificación</th>
-              <th>Estado</th>
-              <th>Fuente</th>
+              <th>Item</th>
+              <th>Specification</th>
+              <th>Status</th>
+              <th>Source</th>
               <th>Notas</th>
             </tr>
           </thead>
@@ -455,7 +452,7 @@ export function ProductsTab({
                     <code>{item.sourceDocCode}</code>
                   )}
                   {item.validUntil !== null && item.validUntil !== undefined && (
-                    <div className="muted">válida hasta {formatRdLocal(item.validUntil)}</div>
+                    <div className="muted">valid until {formatRdLocal(item.validUntil)}</div>
                   )}
                 </td>
                 <td className="muted">{item.assumptions.join(' · ')}</td>
@@ -464,19 +461,19 @@ export function ProductsTab({
           </tbody>
         </table>
         <p className="muted">
-          Solo se usan precios impresos en cotizaciones del Company Brain; cada precio se verifica
-          contra el texto de la cotización y su vigencia. Lo demás queda como [PENDING].
+          Only prices printed in Company Brain quotations are used; every price is checked against
+          the quotation text and its validity. Everything else stays [PENDING].
         </p>
       </Section>
-      <Section title={`Lectura visual: SAM 3.1 + Muse Spark (${artifacts.visual.length})`}>
+      <Section title={`Visual reading: SAM 3.1 + Muse Spark (${artifacts.visual.length})`}>
         <p className="muted">
-          SAM 3.1 localiza marcas oficiales (firmas, rúbricas, logos) y Muse Spark lee la página
-          escaneada. Abre una página para ver las regiones sobre el original.
+          SAM 3.1 locates official marks (signatures, initials, logos) and Muse Spark reads the
+          scanned page. Open a page to see the regions over the original.
         </p>
         {artifacts.samGap !== null && (
           <p className="banner">
-            SAM 3.1 no respondió en esta corrida; la página se leyó completa con Muse Spark y se
-            cita por número de página. Detalle: {artifacts.samGap}
+            SAM 3.1 did not answer in this run; the page was read whole by Muse Spark and is cited
+            by page number. Detail: {artifacts.samGap}
           </p>
         )}
         <ul className="checks">
@@ -486,14 +483,14 @@ export function ProductsTab({
                 {item.fileName} · p{item.page}
               </button>{' '}
               {item.regions.length > 0 && (
-                <Chip tone="info">SAM: {item.regions.length} región(es)</Chip>
+                <Chip tone="info">SAM: {item.regions.length} region(s)</Chip>
               )}{' '}
-              {item.requiresHumanReview && <Chip tone="warn">revisión humana</Chip>}{' '}
+              {item.requiresHumanReview && <Chip tone="warn">human review</Chip>}{' '}
               <span className="muted">{item.reading?.summary ?? item.note}</span>
             </li>
           ))}
           {artifacts.visual.length === 0 && (
-            <li className="muted">Esta corrida no revisó páginas escaneadas.</li>
+            <li className="muted">This run did not review scanned pages.</li>
           )}
         </ul>
       </Section>
@@ -513,13 +510,13 @@ export function CostsTab({
   const totals = artifacts.pricingTotals;
   return (
     <div className="grid2">
-      <Section title="Hoja de costos (RD$, cotizaciones vigentes)">
+      <Section title="Cost sheet (RD$, valid quotations)">
         <table>
           <thead>
             <tr>
-              <th>Ítem</th>
+              <th>Item</th>
               <th>Cant.</th>
-              <th>Costo unit.</th>
+              <th>Unit cost</th>
               <th>Subtotal</th>
             </tr>
           </thead>
@@ -546,25 +543,24 @@ export function CostsTab({
           </tbody>
         </table>
       </Section>
-      <Section title="Oferta (RD$)">
+      <Section title="Offer (RD$)">
         <ul className="kv">
           <li>
-            <b>Referencial del pliego:</b> {formatMoney(opportunity.amount)}
+            <b>Pliego reference amount:</b> {formatMoney(opportunity.amount)}
           </li>
           <li>
-            <b>Costo cotizado (ítems con precio):</b>{' '}
-            {formatMoney(totals?.quotedSubtotalDop ?? null)}
+            <b>Quoted cost (priced items):</b> {formatMoney(totals?.quotedSubtotalDop ?? null)}
           </li>
           <li>
-            <b>Ítems sin precio fiable:</b> {totals?.pendingItems ?? 0}
+            <b>Items without a reliable price:</b> {totals?.pendingItems ?? 0}
           </li>
           <li>
-            <b>Precio de oferta:</b> [PENDING: margen y precio final los decide la empresa]
+            <b>Offer price:</b> [PENDING: margin and final price are decided by the company]
           </li>
         </ul>
         <p className="muted">
-          Postor no inventa precios ni márgenes: el costo sale de cotizaciones vigentes y el precio
-          final lo fija una persona en el F.033.
+          Postor never invents prices or margins: cost comes from valid quotations and a person sets
+          the final price in the F.033.
         </p>
       </Section>
     </div>
@@ -588,25 +584,25 @@ function CallDetails({ call, index }: { call: ModelCall; index: number }): JSX.E
   return (
     <div>
       <span className="muted">
-        llamada {index + 1} · <code>{call.modelReturned ?? call.modelRequested}</code> · prompt{' '}
+        call {index + 1} · <code>{call.modelReturned ?? call.modelRequested}</code> · prompt{' '}
         <code>{call.promptVersion ?? '—'}</code> · {call.tokensIn ?? 0} → {call.tokensOut ?? 0}{' '}
         tokens · {seconds(call.durationMs)} · US${' '}
-        {(call.estimatedCostUsd ?? 0).toFixed(COST_DECIMALS)} (estimado)
+        {(call.estimatedCostUsd ?? 0).toFixed(COST_DECIMALS)} (estimate)
       </span>
       <details>
-        <summary>insumos (prompt enviado)</summary>
+        <summary>inputs (prompt sent)</summary>
         <pre>{call.promptSystem}</pre>
         <pre>{call.promptTask}</pre>
       </details>
       <details>
-        <summary>respuesta recibida</summary>
+        <summary>response received</summary>
         <pre>{prettyJson(call.responseNorm ?? call.responseRaw)}</pre>
       </details>
     </div>
   );
 }
 
-// Model family for the color legend shared with "Cómo funciona".
+// Model family for the color legend shared with "How it works".
 function modelFamily(model: string): string {
   const lower = model.toLowerCase();
   if (lower.includes('wonder')) {
@@ -651,24 +647,21 @@ export function TraceTab({ trace }: { trace: TraceResponse }): JSX.Element {
   const summary = trace.costSummary;
   return (
     <div>
-      <Section title="Resumen de la corrida">
+      <Section title="Run summary">
         <p>
-          <StatusChip status={trace.status} /> inició {formatDateTime(trace.startedAt)} · terminó{' '}
+          <StatusChip status={trace.status} /> started {formatDateTime(trace.startedAt)} · finished{' '}
           {formatDateTime(trace.finishedAt)}
         </p>
         <p className="muted">
-          {summary.tokensIn.toLocaleString()} tokens de entrada ·{' '}
-          {summary.tokensOut.toLocaleString()} de salida · tiempo de modelo{' '}
-          {seconds(summary.modelDurationMs)} · costo estimado US${' '}
-          {summary.estimatedCostUsd.toFixed(RUN_COST_DECIMALS)} (tokens × tarifas{' '}
-          {summary.rates.inputUsdPerMillionTokens}/{summary.rates.outputUsdPerMillionTokens} US$ por
-          millón
-          {summary.rates.source === 'placeholder' &&
-            ', tarifas de referencia — configúralas en .env'}
-          )
+          {summary.tokensIn.toLocaleString()} tokens in · {summary.tokensOut.toLocaleString()} out ·
+          model time {seconds(summary.modelDurationMs)} · estimated cost US${' '}
+          {summary.estimatedCostUsd.toFixed(RUN_COST_DECIMALS)} (tokens × rates{' '}
+          {summary.rates.inputUsdPerMillionTokens}/{summary.rates.outputUsdPerMillionTokens} US$ per
+          million
+          {summary.rates.source === 'placeholder' && ', reference rates — configure them in .env'})
         </p>
       </Section>
-      <Section title="Modelos que actuaron en esta corrida">
+      <Section title="Models that acted in this run">
         <div className="lane-tags">
           {modelUsage(trace).map((usage) => (
             <span key={usage.model} className={`model-tag model-${usage.family}`}>
@@ -677,7 +670,7 @@ export function TraceTab({ trace }: { trace: TraceResponse }): JSX.Element {
           ))}
         </div>
       </Section>
-      <Section title="Pasos del pipeline (agente, hora, modelo)">
+      <Section title="Pipeline steps (agent, time, model)">
         <ol className="trace">
           {trace.agentRuns.map((agentRun) => {
             let duration: number | null = null;
@@ -690,7 +683,7 @@ export function TraceTab({ trace }: { trace: TraceResponse }): JSX.Element {
                 <b>{agentRun.agent}</b> <StatusChip status={agentRunStatus(agentRun.status)} />{' '}
                 <span className="muted">
                   · {formatDateTime(agentRun.startedAt)} · {seconds(duration)} ·{' '}
-                  {agentRun.modelCalls.length} llamadas
+                  {agentRun.modelCalls.length} calls
                 </span>
                 {agentRun.error !== null && <p className="error">{agentRun.error}</p>}
                 {agentRun.modelCalls.map((call, index) => (
@@ -701,9 +694,9 @@ export function TraceTab({ trace }: { trace: TraceResponse }): JSX.Element {
           })}
         </ol>
       </Section>
-      <Section title={`Eventos (${trace.events.length})`}>
+      <Section title={`Events (${trace.events.length})`}>
         <details>
-          <summary>ver eventos workflow.*</summary>
+          <summary>see workflow.* events</summary>
           <pre>
             {trace.events
               .map(
@@ -767,15 +760,15 @@ export function FormsTab({
     <div>
       {artifacts.offer !== null && <OfferTable offer={artifacts.offer} />}
       {artifacts.offer === null && (
-        <Section title={`SNCC.F.033 — Oferta económica (${artifacts.pricing.length} líneas)`}>
+        <Section title={`SNCC.F.033 — Economic offer (${artifacts.pricing.length} lines)`}>
           <table>
             <thead>
               <tr>
-                <th>Ítem</th>
-                <th>Descripción</th>
-                <th>Unidad</th>
+                <th>Item</th>
+                <th>Description</th>
+                <th>Unit</th>
                 <th>Cant.</th>
-                <th>Precio unitario</th>
+                <th>Unit price</th>
                 <th>ITBIS</th>
                 <th>Final</th>
               </tr>
@@ -788,10 +781,10 @@ export function FormsTab({
                   <td>{item.unit ?? '[PENDING]'}</td>
                   <td>{item.quantity ?? '[PENDING]'}</td>
                   <td className="muted">
-                    [PENDING: precio de oferta]
+                    [PENDING: offer price]
                     {item.status === 'ok' &&
                       item.unitPrice !== null &&
-                      ` costo ref. RD$ ${formatMoney(item.unitPrice)}`}
+                      ` ref. cost RD$ ${formatMoney(item.unitPrice)}`}
                   </td>
                   <td className="muted">[PENDING]</td>
                   <td className="muted">[PENDING]</td>
@@ -802,50 +795,50 @@ export function FormsTab({
         </Section>
       )}
       {review !== null && (
-        <Section title="Revisión automática del borrador">
+        <Section title="Automatic draft review">
           <p>
             <StatusChip status={review.verdict} />{' '}
             <span className="muted">
-              {artifacts.reviewRounds.length} ronda(s) · {review.covered.length} requisitos
-              cubiertos · {review.omitted.length} omitidos
+              {artifacts.reviewRounds.length} round(s) · {review.covered.length} requirements
+              covered · {review.omitted.length} omitted
             </span>
           </p>
           {artifacts.reviewRounds.length > 1 && (
             <p className="muted">
-              Primera revisión: {artifacts.reviewRounds[0]?.review.verdict} con{' '}
-              {artifacts.reviewRounds[0]?.review.omitted.length ?? 0} omisiones y{' '}
-              {artifacts.reviewRounds[0]?.review.unsupportedClaims.length ?? 0} afirmaciones sin
-              respaldo → el redactor corrigió una vez.
+              First review: {artifacts.reviewRounds[0]?.review.verdict} with{' '}
+              {artifacts.reviewRounds[0]?.review.omitted.length ?? 0} omissions and{' '}
+              {artifacts.reviewRounds[0]?.review.unsupportedClaims.length ?? 0} unsupported claims →
+              the writer corrected once.
             </p>
           )}
           <ul className="checks">
             {review.unsupportedClaims.map((claim) => (
               <li key={claim.claim}>
-                <Chip tone="bad">sin respaldo</Chip> {claim.claim}{' '}
+                <Chip tone="bad">unsupported</Chip> {claim.claim}{' '}
                 <span className="muted">— {claim.reason}</span>
               </li>
             ))}
             {review.contradictions.map((contradiction) => (
               <li key={contradiction}>
-                <Chip tone="warn">contradicción</Chip> {contradiction}
+                <Chip tone="warn">contradiction</Chip> {contradiction}
               </li>
             ))}
             {review.recommendedFixes.map((fix) => (
               <li key={fix}>
-                <Chip tone="neutral">corregir</Chip> {fix}
+                <Chip tone="neutral">fix</Chip> {fix}
               </li>
             ))}
           </ul>
         </Section>
       )}
-      <Section title="Validación humana (desbloquea las descargas)">
+      <Section title="Human validation (unlocks downloads)">
         <label className="check">
           <input
             type="checkbox"
             checked={validation.f033}
             onChange={(event) => setValidation({ ...validation, f033: event.target.checked })}
           />
-          Revisé el F.033 y fijaré los precios de oferta yo mismo
+          I reviewed the F.033 and will set the offer prices myself
         </label>
         <label className="check">
           <input
@@ -853,14 +846,14 @@ export function FormsTab({
             checked={validation.draft}
             onChange={(event) => setValidation({ ...validation, draft: event.target.checked })}
           />
-          Revisé el borrador y los [PENDING] antes de firmar y sellar
+          I reviewed the draft and the [PENDING] items before signing and stamping
         </label>
         {validation.f033 && validation.draft ? (
           <p>
-            <Chip tone="ok">Validado — descargas habilitadas</Chip>
+            <Chip tone="ok">Validated — downloads enabled</Chip>
           </p>
         ) : (
-          <p className="muted">Sin validación humana no hay descarga.</p>
+          <p className="muted">No download without human validation.</p>
         )}
       </Section>
     </div>
@@ -890,7 +883,7 @@ export function DocumentsTab({
   const unlocked = validation.f033 && validation.draft;
   return (
     <div>
-      <Section title={`Borrador de oferta generado (${artifacts.files.length} archivos editables)`}>
+      <Section title={`Generated offer draft (${artifacts.files.length} editable files)`}>
         <ul className="files">
           {artifacts.files.map((file) => (
             <li key={file.fileName}>
@@ -905,23 +898,21 @@ export function DocumentsTab({
             </li>
           ))}
         </ul>
-        {!unlocked && (
-          <p className="muted">Descargas bloqueadas: valida en la pestaña Formularios.</p>
-        )}
+        {!unlocked && <p className="muted">Downloads locked: validate in the Forms tab.</p>}
         <p className="banner">
-          Postor no envía, firma ni presenta nada. La empresa revisa, completa los [PENDING], firma,
-          sella y presenta por su cuenta en el portal de compras.
+          Postor never submits, signs or sends anything. The company reviews, completes the
+          [PENDING] items, signs, stamps and submits on its own through the procurement portal.
         </p>
       </Section>
       <VoicePending runId={runId} artifacts={artifacts} metaKey={metaKey} onAdded={onVoiceNote} />
-      <Section title={`Expediente original (${originals.length} documentos, sin modificar)`}>
+      <Section title={`Original tender file (${originals.length} documents, unmodified)`}>
         <ul className="files">
           {originals.map((document) => (
             <li key={document.id}>
               <a href={documentFileUrl(document.id, null)} target="_blank" rel="noreferrer">
                 {document.fileName}
               </a>{' '}
-              <span className="muted">· {document.pageCount} págs.</span>
+              <span className="muted">· {document.pageCount} pages</span>
             </li>
           ))}
         </ul>

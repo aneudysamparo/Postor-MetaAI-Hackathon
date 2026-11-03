@@ -57,7 +57,7 @@ async-local context and never stores, logs or returns it.
 
 ## Reset between judges
 
-The feed has **↺ Reiniciar demo**: it hides earlier analyses (nothing is
+The feed has **↺ Reset demo**: it hides earlier analyses (nothing is
 deleted) so each judge can run a tender from a clean card.
 
 ## Document guard

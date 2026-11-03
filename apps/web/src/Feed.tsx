@@ -10,7 +10,7 @@ const PREVIEW_MAX_CHARS = 260;
 function previewOf(opportunity: Opportunity): string {
   const summary = opportunity.latestRun?.summary ?? null;
   if (summary === null) {
-    return 'Aún sin análisis: abre la ficha y corre el análisis en vivo.';
+    return 'No analysis yet: open the opportunity and run the live analysis.';
   }
   return summary.slice(0, PREVIEW_MAX_CHARS);
 }
@@ -33,7 +33,7 @@ export function Feed(): JSX.Element {
   // (only hidden), so traces are never lost.
   async function onResetAll(): Promise<void> {
     const confirmed = window.confirm(
-      '¿Reiniciar la demo? Las 4 oportunidades quedarán sin análisis (el historial se conserva).',
+      'Reset the demo? The 4 opportunities will show no analysis (history is kept).',
     );
     if (!confirmed) {
       return;
@@ -53,24 +53,22 @@ export function Feed(): JSX.Element {
     return <p className="error">No se pudo cargar el feed: {error}</p>;
   }
   if (opportunities === null) {
-    return <p>Cargando oportunidades…</p>;
+    return <p>Loading opportunities…</p>;
   }
   return (
     <div>
-      <p className="kicker">
-        Procesos publicados en el portal DGCP · expedientes originales sin modificar
-      </p>
+      <p className="kicker">Processes published on the DGCP portal · original files, unmodified</p>
       <div className="feed-head">
-        <h2>Oportunidades</h2>
+        <h2>Opportunities</h2>
         <span className="count">
-          <b>{opportunities.length}</b> procesos
+          <b>{opportunities.length}</b> processes
         </span>
         <button
           className="btn btn-ghost reset"
           onClick={() => void onResetAll()}
           disabled={resetting}
         >
-          ↺ Reiniciar demo
+          ↺ Reset demo
         </button>
       </div>
       <div className="cards">
@@ -84,7 +82,7 @@ export function Feed(): JSX.Element {
                 {opportunity.latestRun !== null && opportunity.latestRun.status !== 'completed' && (
                   <StatusChip status={opportunity.latestRun.status} />
                 )}
-                <Chip tone="neutral">{opportunity.documentCount} documentos</Chip>
+                <Chip tone="neutral">{opportunity.documentCount} documents</Chip>
               </div>
               <div className="card-money">
                 <div className="money">RD$ {formatMoney(opportunity.amount)}</div>
@@ -96,14 +94,14 @@ export function Feed(): JSX.Element {
               {opportunity.entity} · {opportunity.code}
             </p>
             <p className="preview">
-              <b>Vista previa:</b> {previewOf(opportunity)}
+              <b>Preview:</b> {previewOf(opportunity)}
             </p>
             <div className="card-actions">
               <button
                 className="btn"
-                onClick={() => void navigate(`/oportunidades/${opportunity.code}`)}
+                onClick={() => void navigate(`/opportunities/${opportunity.code}`)}
               >
-                Ver ficha →
+                Open →
               </button>
               {opportunity.portalUrl !== null && (
                 <a

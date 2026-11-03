@@ -42,24 +42,24 @@ pages, and **Muse Voice Transcribe** lets the bid manager answer open
    only, never stored).
 2. **Follow the 3-minute walkthrough** below.
 3. **See how each Meta model is used** in the map and table below (also in the
-   app: **Cómo funciona**).
+   app: **How it works**).
 4. **Run it yourself** (optional): see [Run it](#run-it) — Node, or one
    `docker compose` command.
 
 ### 3-minute walkthrough
 
-| #   | Where                                                                  | What to look at                                                                                                                                                             |
-| --- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Oportunidades**                                                      | 4 real DGCP tenders with verdict, match level, amount and close date.                                                                                                       |
-| 2   | **Company Brain**                                                      | The fictional bidder: certifications with expiry dates, projects, finances, known gaps.                                                                                     |
-| 3   | Case A → **Ver ficha** → modo _Rápido_ → **▶ Correr análisis en vivo** | Live progress per step and a clock (≈1.5–2.5 min).                                                                                                                          |
-| 4   | **Análisis**                                                           | Verdict, conditions with owner + deadline, financial ratios, document safety (injection guard).                                                                             |
-| 5   | **Requisitos** → click any `pliego pN`                                 | The cited page of the ORIGINAL PDF, rendered, with the requirement text.                                                                                                    |
-| 6   | **Productos** → open a scanned page                                    | SAM 3.1 boxes over the original page + Muse Spark's reading.                                                                                                                |
-| 7   | **Traza**                                                              | Every model call: model, prompt sent, response, tokens, duration, estimated cost.                                                                                           |
-| 8   | **Formularios** → F.033 · **Tiendas (DEMO)**                           | The economic offer: cost from fictional stores or NovaTech's hourly rates, one markup to ~97% of the budget, ITBIS, total and amount in words. Signature stays `[PENDING]`. |
-| 9   | **Documentos** → 🎙 Grabar respuesta                                    | Answer a `[PENDING]` by voice: Muse Voice Transcribe + Muse Spark map it, shown as "declarado", never as proof.                                                             |
-| 10  | Cases C and D → **Análisis**                                           | Same system, different verdicts: NO GO (manufacturer authorization) and NEEDS REVIEW (contract ≈ 86% of revenue).                                                           |
+| #   | Where                                                     | What to look at                                                                                                                                                             |
+| --- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Opportunities**                                         | 4 real DGCP tenders with verdict, match level, amount and close date.                                                                                                       |
+| 2   | **Company Brain**                                         | The fictional bidder: certifications with expiry dates, projects, finances, known gaps.                                                                                     |
+| 3   | Case A → **Open** → _Fast_ mode → **▶ Run live analysis** | Live progress per step and a clock (≈1.5–2.5 min).                                                                                                                          |
+| 4   | **Analysis**                                              | Verdict, conditions with owner + deadline, financial ratios, document safety (injection guard).                                                                             |
+| 5   | **Requirements** → click any `pliego pN`                  | The cited page of the ORIGINAL PDF, rendered, with the requirement text.                                                                                                    |
+| 6   | **Products** → open a scanned page                        | SAM 3.1 boxes over the original page + Muse Spark's reading.                                                                                                                |
+| 7   | **Trace**                                                 | Every model call: model, prompt sent, response, tokens, duration, estimated cost.                                                                                           |
+| 8   | **Forms** → F.033 · **Stores (DEMO)**                     | The economic offer: cost from fictional stores or NovaTech's hourly rates, one markup to ~97% of the budget, ITBIS, total and amount in words. Signature stays `[PENDING]`. |
+| 9   | **Documents** → 🎙 Record answer                           | Answer a `[PENDING]` by voice: Muse Voice Transcribe + Muse Spark map it, shown as "declared", never as proof.                                                              |
+| 10  | Cases C and D → **Analysis**                              | Same system, different verdicts: NO GO (manufacturer authorization) and NEEDS REVIEW (contract ≈ 86% of revenue).                                                           |
 
 ### Meta models we use — and where they run
 
@@ -125,7 +125,7 @@ verdict on its own.
 from the pliego with their page (`data/tenders/*/items.json`). The pricing
 agent (Muse Spark, `pricing-v2`) picks the cheapest valid product for each
 good from five fictional stores (`data/suppliers/tiendas-DEMO.json`, also
-shown in the app under **Tiendas (DEMO)**) and, for services, only estimates
+shown in the app under **Stores (DEMO)**) and, for services, only estimates
 hours per role. Code then checks every cost literally against the catalog,
 computes services as hours × NovaTech's rate card, and applies the company's
 pricing policy (`data/company-brain/pricing-policy.json`): total with ITBIS at
@@ -199,7 +199,7 @@ response received, tokens, duration, and cost estimate. No black boxes.
 ## Run it
 
 You need a Meta Model API key for live analyses (`META_API_KEY`). Without
-one, everything except **▶ Correr análisis en vivo** still works on the four
+one, everything except **▶ Run live analysis** still works on the four
 recorded runs.
 
 ### Option A — Node (development)
@@ -239,15 +239,14 @@ e.g. `docker run --rm -p 3000:3000 --env-file .env -v postor-storage:/app/storag
 
 ### Using it
 
-**Oportunidades** → pick a case → **Ver ficha** → **▶ Correr análisis en
-vivo** (mode **Rápido**: the key-requirements dossier, ~1.5–2.5 min;
-**Completo**: the whole pliego, 10–20 min) and watch each agent step complete
-(real 2 s polling, no fake animations). Then walk the tabs: Análisis (verdict,
-conditions with owner + deadline, document safety), Requisitos (click any
-`pliego pN` to open the cited page of the original PDF), Productos/Costos,
-**Traza** (every model call: prompt sent, response, tokens, duration,
-estimated cost), **Formularios** (the priced F.033 and the SNCC forms) and
-Documentos (editable files after human validation; answer `[PENDING]` items by
+**Opportunities** → pick a case → **Open** → **▶ Run live analysis** (mode **Fast**: the key-requirements dossier, ~1.5–2.5 min;
+**Full**: the whole pliego, 10–20 min) and watch each agent step complete
+(real 2 s polling, no fake animations). Then walk the tabs: Analysis (verdict,
+conditions with owner + deadline, document safety), Requirements (click any
+`pliego pN` to open the cited page of the original PDF), Products/Costs,
+**Trace** (every model call: prompt sent, response, tokens, duration,
+estimated cost), **Forms** (the priced F.033 and the SNCC forms) and
+Documents (editable files after human validation; answer `[PENDING]` items by
 voice).
 
 ## Deploy on Dokploy

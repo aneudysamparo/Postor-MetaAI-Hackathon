@@ -8,14 +8,14 @@ import { HowItWorks } from './HowItWorks';
 import { StoresView } from './StoresView';
 
 // Routes (Spanish, like the UI labels):
-//   /oportunidades                      feed
-//   /oportunidades/:code/:tab?          ficha of one tender, tab in the URL
+//   /opportunities                      feed
+//   /opportunities/:code/:tab?          ficha of one tender, tab in the URL
 //   /company-brain                      company profile
 //   /como-funciona                      the pipeline and its Meta models
-export const OPPORTUNITIES_PATH = '/oportunidades';
+export const OPPORTUNITIES_PATH = '/opportunities';
 export const COMPANY_BRAIN_PATH = '/company-brain';
-export const HOW_IT_WORKS_PATH = '/como-funciona';
-export const STORES_PATH = '/tiendas';
+export const HOW_IT_WORKS_PATH = '/how-it-works';
+export const STORES_PATH = '/stores';
 
 function navClass({ isActive }: { isActive: boolean }): string {
   if (isActive) {
@@ -33,24 +33,24 @@ function Shell({ userKeyRequired }: { userKeyRequired: boolean }): JSX.Element {
     <div className="shell">
       <aside className="side">
         <h1 className="brand">Postor Bids</h1>
-        <p className="brand-sub">Del pliego a tu oferta completa</p>
+        <p className="brand-sub">From the tender to your complete offer</p>
         <nav>
           <NavLink to={OPPORTUNITIES_PATH} className={navClass}>
-            Oportunidades
+            Opportunities
           </NavLink>
           <NavLink to={COMPANY_BRAIN_PATH} className={navClass}>
             Company Brain
           </NavLink>
           <NavLink to={STORES_PATH} className={navClass}>
-            Tiendas (DEMO)
+            Stores (DEMO)
           </NavLink>
           <NavLink to={HOW_IT_WORKS_PATH} className={navClass}>
-            Cómo funciona
+            How it works
           </NavLink>
         </nav>
         <p className="side-foot">
-          Licitaciones reales del portal DGCP · empresa ficticia (NovaTech, DEMO) · la oferta la
-          revisa, firma y presenta una persona.
+          Real tenders from the DGCP portal · fictional company (NovaTech, DEMO) · a person reviews,
+          signs and submits the offer.
         </p>
       </aside>
       <main className="main">

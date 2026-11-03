@@ -3,7 +3,7 @@
 Postor turns a real public tender into an evidence-backed bid decision with
 **four Meta models**, each with a single, well-defined job. Every model call
 is validated, guarded by deterministic code where a mistake would be costly,
-and recorded in the **Traza** (trace) view with its prompt, response, tokens,
+and recorded in the **Trace** (trace) view with its prompt, response, tokens,
 duration and estimated cost.
 
 | Model                                                 | Hosted on                          | Job in Postor                                                                                                                                         |
@@ -171,8 +171,7 @@ two layers ([`document-guard.service.ts`](apps/api/src/models/document-guard.ser
 Measured live: the DEMO trap is flagged at 99% with the reason "contains a
 note addressed to the AI that orders it to ignore instructions…"; across the
 4 real tenders 1 of 566 chunks was escalated (a circular on ISFODOSU) and
-Muse Spark cleared it. Flagged chunks appear in **Análisis → Seguridad de los
-documentos** with page, reason and excerpt; agents keep treating them as data.
+Muse Spark cleared it. Flagged chunks appear in **Analysis → Document safety** with page, reason and excerpt; agents keep treating them as data.
 The step never blocks an analysis, and a failure is shown, never a silent
 pass.
 
@@ -186,8 +185,7 @@ Try it: `npm run guard:check -- data/guard-fixtures/pliego-trampa-DEMO.txt`.
 
 ## 7. Muse Voice Transcribe — answering [PENDING] by voice
 
-The draft leaves anything unproven as `[PENDING: ...]`. In **Documentos →
-Completar pendientes por voz**, the bid manager records (or uploads) a short
+The draft leaves anything unproven as `[PENDING: ...]`. In **Documents → Answer pending items by voice**, the bid manager records (or uploads) a short
 note: "los equipos serán Ubiquiti UniFi 6; la carta del distribuidor la
 pedimos el lunes".
 
@@ -205,7 +203,7 @@ The browser converts any recording to 16 kHz mono WAV
 pending items are sent as recognition keywords. Muse Spark (`voice-note-v1`)
 then maps each statement to the pending item it answers, using only what was
 said, and names the document that would prove it. Statements that answer
-nothing stay visible as "unmatched". Answers are shown as **declarado** (a
+nothing stay visible as "unmatched". Answers are shown as **declared** (a
 user declaration), never as evidence, and the generated bid files are not
 rewritten. Measured live: a 12.7 s note transcribed in ~2.4 s; about 28 s
 end to end with the mapping.
@@ -223,7 +221,7 @@ Each call is stored as a `ModelCall` linked to its agent run and workflow:
 | timing           | duration in ms                                                                             |
 | cost             | tokens × configured USD rates, always labeled as an estimate                               |
 
-The **Traza** tab shows the models that acted in the run with their call
+The **Trace** tab shows the models that acted in the run with their call
 counts, then every agent with its calls; each call has "insumos" (prompt
 sent) and "respuesta" (response received) expanders.
 

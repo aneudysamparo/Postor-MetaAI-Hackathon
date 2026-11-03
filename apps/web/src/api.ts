@@ -358,7 +358,7 @@ export async function grantAccess(token: string): Promise<void> {
     body: JSON.stringify({ token }),
   });
   if (!response.ok) {
-    throw new Error('Token de acceso inválido.');
+    throw new Error('Invalid access token.');
   }
 }
 

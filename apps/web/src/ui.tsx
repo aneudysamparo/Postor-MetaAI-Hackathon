@@ -149,7 +149,7 @@ const VERDICT_LABELS: Record<Verdict, { label: string; tone: Tone }> = {
 
 export function VerdictChip({ verdict }: { verdict: Verdict | null }): JSX.Element {
   if (verdict === null) {
-    return <Chip tone="neutral">Sin análisis</Chip>;
+    return <Chip tone="neutral">No analysis</Chip>;
   }
   const entry = VERDICT_LABELS[verdict];
   return <Chip tone={entry.tone}>{entry.label}</Chip>;
@@ -174,21 +174,21 @@ const STATUS_TONES: Record<string, Tone> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  met: 'cumple',
-  not_met: 'no cumple',
-  unknown: 'por verificar',
-  not_applicable: 'no aplica',
-  ok: 'cotizado',
-  insufficient_data: 'sin dato fiable',
-  no_reliable_match: 'no cumple spec',
-  pass: 'aprobado',
-  needs_revision: 'requiere revisión',
-  blocked: 'bloqueado',
-  completed: 'completado',
-  needs_review: 'revisión humana',
-  failed: 'falló',
-  running: 'en curso',
-  queued: 'en cola',
+  met: 'met',
+  not_met: 'not met',
+  unknown: 'to verify',
+  not_applicable: 'not applicable',
+  ok: 'quoted',
+  insufficient_data: 'no reliable data',
+  no_reliable_match: 'spec not met',
+  pass: 'approved',
+  needs_revision: 'needs revision',
+  blocked: 'blocked',
+  completed: 'completed',
+  needs_review: 'human review',
+  failed: 'failed',
+  running: 'running',
+  queued: 'queued',
 };
 
 export function StatusChip({ status }: { status: string }): JSX.Element {
@@ -196,9 +196,9 @@ export function StatusChip({ status }: { status: string }): JSX.Element {
 }
 
 const MATCH_LABELS: Record<string, { label: string; tone: Tone }> = {
-  high: { label: 'Match alto', tone: 'ok' },
-  medium: { label: 'Match medio', tone: 'warn' },
-  low: { label: 'Match bajo', tone: 'bad' },
+  high: { label: 'High match', tone: 'ok' },
+  medium: { label: 'Medium match', tone: 'warn' },
+  low: { label: 'Low match', tone: 'bad' },
 };
 
 export function MatchChip({ level }: { level: string | null }): JSX.Element | null {
@@ -230,12 +230,12 @@ export function RichText({ text }: { text: string }): JSX.Element {
     if (inner.startsWith(PENDING_PREFIX)) {
       parts.push(
         <span key={index} className="chip chip-warn pending">
-          pendiente: {inner.slice(PENDING_PREFIX.length).trim()}
+          pending: {inner.slice(PENDING_PREFIX.length).trim()}
         </span>,
       );
     } else {
       parts.push(
-        <span key={index} className="src" title="Fuente en el Company Brain o el expediente">
+        <span key={index} className="src" title="Source in the Company Brain or the tender file">
           {inner}
         </span>,
       );

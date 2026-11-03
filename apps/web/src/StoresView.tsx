@@ -4,7 +4,7 @@ import { fetchStores } from './api';
 import type { StoresResponse } from './api';
 import { Chip, Section } from './ui';
 
-// "Tiendas (DEMO)": the fictional supplier catalogs and the company's
+// "Stores (DEMO)": the fictional supplier catalogs and the company's
 // pricing policy — the only sources the economic offer (F.033) prices from.
 
 function money(amount: number): string {
@@ -26,29 +26,29 @@ export function StoresView(): JSX.Element {
     return <p className="error">{error}</p>;
   }
   if (data === null) {
-    return <p className="muted">Cargando tiendas…</p>;
+    return <p className="muted">Loading stores…</p>;
   }
   const policy = data.policy;
   return (
     <div>
-      <p className="kicker">Tiendas (DEMO)</p>
-      <h2>De dónde salen los precios de la oferta</h2>
+      <p className="kicker">Stores (DEMO)</p>
+      <h2>Where the offer prices come from</h2>
       <p className="sub">
-        Tiendas y precios ficticios (sin ITBIS). El agente de precios elige el producto vigente más
-        barato que cumple cada ítem del pliego; el código verifica que el precio exista en el
-        catálogo y calcula la oferta con la política de la empresa.
+        Fictional stores and prices (without ITBIS). The pricing agent picks the cheapest valid
+        product that meets each pliego item; code checks the price exists in the catalog and
+        computes the offer with the company’s policy.
       </p>
-      <Section title="Política de precios de NovaTech (DEMO)">
+      <Section title="NovaTech pricing policy (DEMO)">
         <p>{policy.rationale}</p>
         <p className="muted">
-          ITBIS {policy.itbis_pct}% · objetivo {policy.offer_target_pct_of_budget}% del presupuesto
-          · banda {policy.offer_band_pct_of_budget.min}–{policy.offer_band_pct_of_budget.max}% ·
-          margen mínimo {policy.min_margin_pct}%
+          ITBIS {policy.itbis_pct}% · target {policy.offer_target_pct_of_budget}% of the budget ·
+          band {policy.offer_band_pct_of_budget.min}–{policy.offer_band_pct_of_budget.max}% ·
+          minimum margin {policy.min_margin_pct}%
         </p>
         <ul className="checks">
           {policy.service_rates.map((rate) => (
             <li key={rate.role}>
-              <b>{rate.role}:</b> {money(rate.rate_dop_per_hour)} por hora
+              <b>{rate.role}:</b> {money(rate.rate_dop_per_hour)} per hour
             </li>
           ))}
         </ul>
@@ -58,17 +58,17 @@ export function StoresView(): JSX.Element {
           <p>
             <Chip tone="neutral">{store.line}</Chip>{' '}
             <span className="muted">
-              vigente hasta {store.valid_until} · {store.notes}
+              valid until {store.valid_until} · {store.notes}
             </span>
           </p>
           <table>
             <thead>
               <tr>
                 <th>SKU</th>
-                <th>Producto</th>
-                <th>Unidad</th>
-                <th>Precio (sin ITBIS)</th>
-                <th>Existencia</th>
+                <th>Product</th>
+                <th>Unit</th>
+                <th>Price (without ITBIS)</th>
+                <th>Stock</th>
               </tr>
             </thead>
             <tbody>

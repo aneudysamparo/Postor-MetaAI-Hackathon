@@ -17,9 +17,9 @@ export type EvidenceTarget =
   | { kind: 'visual'; item: VisualEvidence };
 
 const METHOD_LABELS: Record<string, string> = {
-  text: 'capa de texto',
-  vision: 'lectura visual (Muse Spark)',
-  sam_region: 'región SAM 3.1 + lectura visual',
+  text: 'text layer',
+  vision: 'visual reading (Muse Spark)',
+  sam_region: 'SAM 3.1 region + visual reading',
 };
 
 // Opens a citation: which original document, which page, how it was read,
@@ -47,18 +47,18 @@ export function EvidenceModal({
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={(event) => event.stopPropagation()}>
         <button className="link" onClick={onClose}>
-          ✕ Cerrar
+          ✕ Close
         </button>
         {target.kind === 'requirement' && (
           <div>
             <h3 className="panel-title">{target.title}</h3>
-            <p className="muted">Texto del requisito, tal como aparece en el pliego:</p>
+            <p className="muted">Requirement text, exactly as it appears in the pliego:</p>
             <pre>{target.originalText}</pre>
             {error !== null && <p className="error">{error}</p>}
             {detail !== null && (
               <div>
                 <p>
-                  <b>{detail.document.fileName}</b> · página {detail.evidence.page} de{' '}
+                  <b>{detail.document.fileName}</b> · page {detail.evidence.page} of{' '}
                   {detail.document.pageCount}{' '}
                   <Chip>{METHOD_LABELS[detail.evidence.method] ?? detail.evidence.method}</Chip>{' '}
                   {detail.pagePreview !== null && (
@@ -67,7 +67,7 @@ export function EvidenceModal({
                 </p>
                 {detail.pagePreview !== null && (
                   <div>
-                    <p className="muted">Inicio de la página extraída:</p>
+                    <p className="muted">Start of the extracted page:</p>
                     <pre>{detail.pagePreview.text}</pre>
                   </div>
                 )}
@@ -78,7 +78,7 @@ export function EvidenceModal({
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Abrir original en la página {detail.evidence.page}
+                  Open the original at page {detail.evidence.page}
                 </a>
               </div>
             )}
@@ -87,12 +87,12 @@ export function EvidenceModal({
         {target.kind === 'visual' && (
           <div>
             <h3 className="panel-title">
-              {target.item.fileName} · página {target.item.page}
+              {target.item.fileName} · page {target.item.page}
             </h3>
             <p>
               <Chip>{METHOD_LABELS[target.item.method] ?? target.item.method}</Chip>{' '}
               <Chip tone="neutral">calidad {target.item.pageQuality}</Chip>{' '}
-              {target.item.requiresHumanReview && <Chip tone="warn">requiere revisión humana</Chip>}
+              {target.item.requiresHumanReview && <Chip tone="warn">needs human review</Chip>}
             </p>
             <p className="muted">{target.item.note}</p>
             {target.item.reading !== null && (
@@ -116,7 +116,7 @@ export function EvidenceModal({
               target="_blank"
               rel="noreferrer"
             >
-              Abrir original en la página {target.item.page}
+              Open the original at page {target.item.page}
             </a>
           </div>
         )}

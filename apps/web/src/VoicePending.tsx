@@ -6,7 +6,7 @@ import { Chip, Section } from './ui';
 import { startVoiceRecording, toWav16kMono, voiceRecordingSupported } from './voice';
 import type { VoiceRecorder } from './voice';
 
-// "Completar pendientes por voz": the bid manager answers the draft's
+// "Answer pending items by voice": the bid manager answers the draft's
 // [PENDING] items by speaking. Muse Voice Transcribe writes down what was
 // said and Muse Spark maps it to the pending items. Answers are shown as
 // the user's declarations (never verified evidence), with the document that
@@ -68,7 +68,7 @@ export function VoicePending({
       recorder.current = await startVoiceRecording();
       setPhase('recording');
     } catch {
-      setError('No se pudo usar el micrófono. Puedes subir un archivo de audio.');
+      setError('Could not use the microphone. You can upload an audio file.');
     }
   };
 
@@ -82,30 +82,30 @@ export function VoicePending({
     try {
       await send(await toWav16kMono(file));
     } catch {
-      setError('No se pudo leer ese archivo de audio.');
+      setError('Could not read that audio file.');
     }
   };
 
-  let recordLabel = '🎙 Grabar respuesta';
+  let recordLabel = '🎙 Record answer';
   if (phase === 'recording') {
-    recordLabel = '■ Detener y enviar';
+    recordLabel = '■ Stop and send';
   }
   if (phase === 'sending') {
-    recordLabel = 'Transcribiendo…';
+    recordLabel = 'Transcribing…';
   }
 
   return (
-    <Section title={`Completar pendientes por voz (${pending.length} [PENDING] en el borrador)`}>
+    <Section title={`Answer pending items by voice (${pending.length} [PENDING] in the draft)`}>
       <p className="muted">
-        Di en voz alta lo que sabes, por ejemplo: «los equipos serán Ubiquiti UniFi 6; la carta del
-        distribuidor la pedimos el lunes». <b>Muse Voice Transcribe</b> lo transcribe y{' '}
-        <b>Muse Spark</b> lo asigna a cada pendiente. Queda como declaración tuya, no como
-        evidencia.
+        Say what you know out loud, for example: «the equipment will be Ubiquiti UniFi 6; we’ll
+        request the distributor letter on Monday». <b>Muse Voice Transcribe</b> transcribes it and{' '}
+        <b>Muse Spark</b> maps it to each pending item. It is recorded as your declaration, not as
+        evidence.
       </p>
       <ul className="checks">
         {pending.map((item) => (
           <li key={item}>
-            <span className="chip chip-warn pending">pendiente: {item}</span>
+            <span className="chip chip-warn pending">pending: {item}</span>
           </li>
         ))}
       </ul>
@@ -121,7 +121,7 @@ export function VoicePending({
           </button>
         )}{' '}
         <label className="muted">
-          o sube un audio{' '}
+          or upload audio{' '}
           <input
             type="file"
             accept="audio/*"
@@ -134,7 +134,7 @@ export function VoicePending({
       {[...artifacts.voiceNotes].reverse().map((note, noteIndex) => (
         <div key={`${noteIndex}-${note.transcript}`} className="panel">
           <p>
-            <Chip tone="neutral">nota de voz</Chip>{' '}
+            <Chip tone="neutral">voice note</Chip>{' '}
             {note.audioDurationMs !== null && (
               <span className="muted">{Math.round(note.audioDurationMs / MS_PER_SECOND)} s · </span>
             )}
@@ -143,7 +143,7 @@ export function VoicePending({
           <ul className="checks">
             {note.answers.map((answer) => (
               <li key={`${answer.pendingIndex}-${answer.answer}`}>
-                <Chip tone="warn">declarado</Chip> <b>{answer.pending}:</b> {answer.answer}
+                <Chip tone="warn">declared</Chip> <b>{answer.pending}:</b> {answer.answer}
                 {answer.proofNeeded !== undefined && answer.proofNeeded !== null && (
                   <span className="muted"> · falta adjuntar: {answer.proofNeeded}</span>
                 )}
@@ -151,7 +151,7 @@ export function VoicePending({
             ))}
             {note.unmatched.map((statement) => (
               <li key={statement} className="muted">
-                Sin pendiente asociado: «{statement}»
+                No matching pending item: «{statement}»
               </li>
             ))}
           </ul>

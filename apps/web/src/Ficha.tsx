@@ -25,19 +25,19 @@ import {
 } from './FichaTabs';
 import { Chip, Stat, StatusChip, VerdictChip, formatMoney, formatRdLocal } from './ui';
 
-// Tab label + URL slug (/oportunidades/:code/:tab).
+// Tab label + URL slug (/opportunities/:code/:tab).
 const TABS = [
-  { label: 'Resumen', slug: 'resumen' },
-  { label: 'Análisis', slug: 'analisis' },
-  { label: 'Requisitos', slug: 'requisitos' },
-  { label: 'Productos', slug: 'productos' },
-  { label: 'Costos', slug: 'costos' },
-  { label: 'Traza', slug: 'traza' },
-  { label: 'Formularios', slug: 'formularios' },
-  { label: 'Documentos', slug: 'documentos' },
+  { label: 'Summary', slug: 'summary' },
+  { label: 'Analysis', slug: 'analysis' },
+  { label: 'Requirements', slug: 'requirements' },
+  { label: 'Products', slug: 'products' },
+  { label: 'Costs', slug: 'costs' },
+  { label: 'Trace', slug: 'trace' },
+  { label: 'Forms', slug: 'forms' },
+  { label: 'Documents', slug: 'documents' },
 ] as const;
 type TabSlug = (typeof TABS)[number]['slug'];
-const DEFAULT_TAB: TabSlug = 'resumen';
+const DEFAULT_TAB: TabSlug = 'summary';
 
 function tabFromParam(param: string | undefined): TabSlug {
   const match = TABS.find((entry) => entry.slug === param);
@@ -45,8 +45,8 @@ function tabFromParam(param: string | undefined): TabSlug {
 }
 
 const MODE_LABELS: Record<RunMode, string> = {
-  lite: 'modo rápido',
-  full: 'modo completo',
+  lite: 'fast mode',
+  full: 'full mode',
 };
 const SECONDS_PER_MINUTE = 60;
 const MILLISECONDS_PER_SECOND = 1000;
@@ -86,17 +86,17 @@ const TERMINAL_STATUSES = new Set(['completed', 'needs_review', 'failed']);
 
 // Steps in pipeline order, with their Spanish labels for the live list.
 const PIPELINE_STEPS: { step: string; label: string }[] = [
-  { step: 'load_context', label: 'Cargar expediente y empresa' },
-  { step: 'guard.scan', label: 'Guardia de documentos (Muse Spark)' },
-  { step: 'opportunity.evaluate', label: 'Agente de Oportunidad' },
-  { step: 'tender_analyst.extract', label: 'Analista del pliego' },
-  { step: 'consolidate', label: 'Consolidar requisitos' },
-  { step: 'visual.read', label: 'Lectura visual (páginas escaneadas)' },
-  { step: 'compliance.evaluate', label: 'Cumplimiento + veredicto' },
-  { step: 'pricing.research', label: 'Investigación de precios' },
-  { step: 'writer.draft', label: 'Redactor de la oferta' },
-  { step: 'reviewer.review', label: 'Revisor de la oferta' },
-  { step: 'documents.generate', label: 'Formularios y F.033' },
+  { step: 'load_context', label: 'Load tender file and company' },
+  { step: 'guard.scan', label: 'Document guard (Muse Spark)' },
+  { step: 'opportunity.evaluate', label: 'Opportunity agent' },
+  { step: 'tender_analyst.extract', label: 'Tender analyst' },
+  { step: 'consolidate', label: 'Consolidate requirements' },
+  { step: 'visual.read', label: 'Visual reading (scanned pages)' },
+  { step: 'compliance.evaluate', label: 'Compliance + verdict' },
+  { step: 'pricing.research', label: 'Price research' },
+  { step: 'writer.draft', label: 'Offer writer' },
+  { step: 'reviewer.review', label: 'Offer reviewer' },
+  { step: 'documents.generate', label: 'Forms and F.033' },
 ];
 
 type StepState = 'pending' | 'running' | 'done' | 'failed' | 'skipped';
@@ -128,11 +128,11 @@ function stepStates(trace: TraceResponse | null): Map<string, StepState> {
 }
 
 const STEP_CHIPS: Record<StepState, { label: string; tone: 'ok' | 'info' | 'bad' | 'neutral' }> = {
-  pending: { label: 'pendiente', tone: 'neutral' },
-  running: { label: 'en curso', tone: 'info' },
-  done: { label: 'listo', tone: 'ok' },
-  failed: { label: 'falló', tone: 'bad' },
-  skipped: { label: 'omitido', tone: 'neutral' },
+  pending: { label: 'pending', tone: 'neutral' },
+  running: { label: 'running', tone: 'info' },
+  done: { label: 'done', tone: 'ok' },
+  failed: { label: 'failed', tone: 'bad' },
+  skipped: { label: 'skipped', tone: 'neutral' },
 };
 
 export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.Element {
@@ -155,7 +155,7 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
       .then((all) => {
         const match = all.find((entry) => entry.code === code) ?? null;
         if (match === null) {
-          setError(`No existe la oportunidad ${code}.`);
+          setError(`Opportunity ${code} does not exist.`);
         }
         setOpportunity(match);
         setRunId(match?.latestRun?.id ?? null);
@@ -164,7 +164,7 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
   }, [code]);
 
   const goToTab = (slug: TabSlug): void => {
-    void navigate(`/oportunidades/${code}/${slug}`);
+    void navigate(`/opportunities/${code}/${slug}`);
   };
 
   const refresh = useCallback(async (id: string): Promise<TraceResponse> => {
@@ -224,7 +224,7 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
       return;
     }
     const confirmed = window.confirm(
-      `¿Reiniciar el análisis de ${opportunity.code}? El historial se conserva, solo se oculta.`,
+      `Reset the analysis of ${opportunity.code}? History is kept, only hidden.`,
     );
     if (!confirmed) {
       return;
@@ -242,7 +242,7 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
     if (error !== null) {
       return <p className="error">{error}</p>;
     }
-    return <p>Cargando ficha…</p>;
+    return <p>Loading…</p>;
   }
   const artifacts = readArtifacts(trace?.artifacts ?? []);
   const running = trace !== null && !TERMINAL_STATUSES.has(trace.status);
@@ -260,18 +260,17 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
 
   let keyHint: string | undefined;
   if (userKeyRequired && metaKey.trim().length === 0) {
-    keyHint =
-      'El análisis en vivo usa tu propia Meta API key; las corridas grabadas no la necesitan.';
+    keyHint = 'Live analysis uses your own Meta API key; recorded runs don’t need it.';
   }
-  let runButtonLabel = '▶ Correr análisis en vivo';
+  let runButtonLabel = '▶ Run live analysis';
   if (trace !== null) {
-    runButtonLabel = '↺ Re-correr análisis en vivo';
+    runButtonLabel = '↺ Re-run live analysis';
   }
 
   return (
     <div>
-      <Link className="link" to="/oportunidades">
-        ← Oportunidades
+      <Link className="link" to="/opportunities">
+        ← Opportunities
       </Link>
       <p className="kicker">{opportunity.code}</p>
       <h2>{opportunity.title}</h2>
@@ -281,9 +280,9 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
 
       <div className="meta-strip">
         <span>
-          <b>Motor de esta corrida:</b>
+          <b>Engine of this run:</b>
         </span>
-        {trace === null && <Chip tone="neutral">sin corrida</Chip>}
+        {trace === null && <Chip tone="neutral">no run</Chip>}
         {trace !== null && <StatusChip status={trace.status} />}
         {trace !== null && <Chip tone="neutral">{MODE_LABELS[modeOf(trace)]}</Chip>}
         {trace !== null && <Chip tone="info">⏱ {elapsedLabel(trace, now)}</Chip>}
@@ -292,17 +291,17 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
         ))}
         {trace !== null && (
           <span className="muted">
-            {modelCalls} llamadas al modelo · {trace.costSummary.tokensIn.toLocaleString()} tokens
-            entrada / {trace.costSummary.tokensOut.toLocaleString()} salida · costo estimado US${' '}
+            {modelCalls} model calls · {trace.costSummary.tokensIn.toLocaleString()} tokens in /{' '}
+            {trace.costSummary.tokensOut.toLocaleString()} out · estimated cost US${' '}
             {trace.costSummary.estimatedCostUsd.toFixed(COST_DECIMALS)}
-            {trace.costSummary.rates.source === 'placeholder' && ' (tarifas de referencia)'}
+            {trace.costSummary.rates.source === 'placeholder' && ' (reference rates)'}
           </span>
         )}
       </div>
       <div className="meta-strip">
         {running ? (
           <button className="btn" disabled>
-            Analizando…
+            Analyzing…
           </button>
         ) : (
           <button
@@ -316,11 +315,11 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
         )}
         {userKeyRequired && (
           <label className="muted">
-            Tu Meta API key{' '}
+            Your Meta API key{' '}
             <input
               type="password"
               value={metaKey}
-              placeholder="solo para esta pestaña"
+              placeholder="only for this tab"
               onChange={(event) => {
                 setMetaKey(event.target.value);
                 storeMetaKey(event.target.value);
@@ -335,25 +334,25 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
             onChange={(event) => setMode(event.target.value as RunMode)}
             disabled={running}
           >
-            <option value="lite">Rápido · requisitos clave (~2-3 min)</option>
-            <option value="full">Completo · pliego entero (10-20 min)</option>
+            <option value="lite">Fast · key requirements (~2-3 min)</option>
+            <option value="full">Full · entire pliego (10-20 min)</option>
           </select>
         </label>
         {trace !== null && !running && (
           <button className="btn btn-ghost" onClick={() => void onReset()}>
-            Reiniciar análisis
+            Reset analysis
           </button>
         )}
         <span className="muted">
-          6 agentes sobre el expediente real con Muse Spark; veredicto y precios pasan por reglas
-          deterministas auditables.
+          6 agents on the real tender file with Muse Spark; verdict and prices pass auditable
+          deterministic rules.
         </span>
         {error !== null && <span className="error">{error}</span>}
       </div>
 
       {trace !== null && (running || trace.status !== 'completed') && (
         <section className="panel">
-          <h3 className="panel-title">Progreso de la corrida</h3>
+          <h3 className="panel-title">Run progress</h3>
           <ul className="steps">
             {PIPELINE_STEPS.map((entry) => {
               const state = states.get(entry.step) ?? 'pending';
@@ -369,13 +368,13 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
       )}
 
       <div className="stats">
-        <Stat label="Referencial" value={`RD$ ${formatMoney(opportunity.amount)}`} />
-        <Stat label="Cierre ofertas" value={formatRdLocal(opportunity.closeDateRd)} />
+        <Stat label="Reference amount" value={`RD$ ${formatMoney(opportunity.amount)}`} />
+        <Stat label="Bids close" value={formatRdLocal(opportunity.closeDateRd)} />
         <Stat
-          label="Veredicto"
+          label="Verdict"
           value={<VerdictChip verdict={artifacts.verdict?.verdict ?? null} />}
         />
-        <Stat label="Expediente" value={`${opportunity.documentCount} documentos originales`} />
+        <Stat label="Tender file" value={`${opportunity.documentCount} original documents`} />
       </div>
 
       <nav className="tabs">
@@ -394,27 +393,27 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
 
       {trace === null && (
         <p className="muted">
-          Esta oportunidad aún no tiene análisis. Corre el análisis en vivo para llenarla.
+          This opportunity has no analysis yet. Run the live analysis to fill it.
         </p>
       )}
-      {trace !== null && tab === 'resumen' && (
+      {trace !== null && tab === 'summary' && (
         <SummaryTab opportunity={opportunity} artifacts={artifacts} />
       )}
-      {trace !== null && tab === 'analisis' && <AnalysisTab artifacts={artifacts} />}
-      {trace !== null && tab === 'requisitos' && (
+      {trace !== null && tab === 'analysis' && <AnalysisTab artifacts={artifacts} />}
+      {trace !== null && tab === 'requirements' && (
         <RequirementsTab artifacts={artifacts} onOpenEvidence={openEvidence} />
       )}
-      {trace !== null && tab === 'productos' && (
+      {trace !== null && tab === 'products' && (
         <ProductsTab artifacts={artifacts} onOpenEvidence={openEvidence} />
       )}
-      {trace !== null && tab === 'costos' && (
+      {trace !== null && tab === 'costs' && (
         <CostsTab opportunity={opportunity} artifacts={artifacts} />
       )}
-      {trace !== null && tab === 'traza' && <TraceTab trace={trace} />}
-      {trace !== null && tab === 'formularios' && (
+      {trace !== null && tab === 'trace' && <TraceTab trace={trace} />}
+      {trace !== null && tab === 'forms' && (
         <FormsTab runId={trace.id} artifacts={artifacts} opportunityId={opportunity.id} />
       )}
-      {trace !== null && tab === 'documentos' && (
+      {trace !== null && tab === 'documents' && (
         <DocumentsTab
           runId={trace.id}
           artifacts={artifacts}

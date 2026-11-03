@@ -9,11 +9,11 @@ import type { Tone } from './ui';
 // proposal: a person validates it before signing.
 
 const STATUS_LABELS: Record<EconomicOffer['status'], { label: string; tone: Tone }> = {
-  in_band: { label: 'dentro de la banda objetivo', tone: 'ok' },
-  margin_floor: { label: 'margen mínimo aplicado', tone: 'warn' },
-  over_budget: { label: 'supera el presupuesto', tone: 'bad' },
-  incomplete: { label: 'faltan costos', tone: 'warn' },
-  no_budget: { label: 'sin presupuesto publicado', tone: 'neutral' },
+  in_band: { label: 'within the target band', tone: 'ok' },
+  margin_floor: { label: 'minimum margin applied', tone: 'warn' },
+  over_budget: { label: 'over budget', tone: 'bad' },
+  incomplete: { label: 'missing costs', tone: 'warn' },
+  no_budget: { label: 'no published budget', tone: 'neutral' },
 };
 
 const PENDING = '[PENDING]';
@@ -31,12 +31,13 @@ function money(amount: number | null): string {
 export function OfferTable({ offer }: { offer: EconomicOffer }): JSX.Element {
   const status = STATUS_LABELS[offer.status];
   return (
-    <Section title={`SNCC.F.033 — Oferta económica propuesta (${offer.lines.length} líneas)`}>
+    <Section title={`SNCC.F.033 — Proposed economic offer (${offer.lines.length} lines)`}>
       <p>
         <Chip tone={status.tone}>{status.label}</Chip>{' '}
         <span className="muted">
-          Objetivo: {offer.targetPctOfBudget}% del presupuesto (banda {offer.bandPctOfBudget.min}–
-          {offer.bandPctOfBudget.max}%), margen mínimo {offer.minMarginPct}%, ITBIS {offer.itbisPct}
+          Target: {offer.targetPctOfBudget}% of the budget (band {offer.bandPctOfBudget.min}–
+          {offer.bandPctOfBudget.max}%), minimum margin {offer.minMarginPct}%, ITBIS{' '}
+          {offer.itbisPct}
           %.
         </span>
       </p>
@@ -44,14 +45,14 @@ export function OfferTable({ offer }: { offer: EconomicOffer }): JSX.Element {
         <table>
           <thead>
             <tr>
-              <th>Ítem</th>
-              <th>Descripción</th>
-              <th>Unidad</th>
+              <th>Item</th>
+              <th>Description</th>
+              <th>Unit</th>
               <th>Cant.</th>
-              <th>Costo (fuente)</th>
-              <th>Precio unitario</th>
+              <th>Cost (source)</th>
+              <th>Unit price</th>
               <th>ITBIS</th>
-              <th>Precio unitario final</th>
+              <th>Final unit price</th>
               <th>Total</th>
             </tr>
           </thead>
@@ -67,7 +68,7 @@ export function OfferTable({ offer }: { offer: EconomicOffer }): JSX.Element {
                   {line.estimatedUnitPriceDop !== null && (
                     <span className="muted">
                       {' '}
-                      · estimado entidad {money(line.estimatedUnitPriceDop)}
+                      · entity estimate {money(line.estimatedUnitPriceDop)}
                     </span>
                   )}
                 </td>
@@ -90,21 +91,21 @@ export function OfferTable({ offer }: { offer: EconomicOffer }): JSX.Element {
       </div>
       <ul className="checks">
         <li>
-          <b>Valor total de la oferta:</b> {money(offer.offerTotalDop)}
+          <b>Total offer value:</b> {money(offer.offerTotalDop)}
           {offer.pctOfBudget !== null && offer.budgetDop !== null && (
             <span className="muted">
               {' '}
-              · {offer.pctOfBudget}% del presupuesto de {money(offer.budgetDop)}
+              · {offer.pctOfBudget}% of the {money(offer.budgetDop)} budget
             </span>
           )}
         </li>
         <li>
-          <b>En letras:</b> {offer.amountInWords}
+          <b>In words:</b> {offer.amountInWords}
         </li>
         <li>
-          <b>Costo total:</b> {money(offer.costTotalDop)}
+          <b>Total cost:</b> {money(offer.costTotalDop)}
           {offer.marginPct !== null && (
-            <span className="muted"> · margen sobre costo {offer.marginPct}%</span>
+            <span className="muted"> · margin over cost {offer.marginPct}%</span>
           )}
         </li>
         {offer.notes.map((note) => (
@@ -114,8 +115,8 @@ export function OfferTable({ offer }: { offer: EconomicOffer }): JSX.Element {
         ))}
       </ul>
       <p className="banner">
-        Precio propuesto por Postor con la política de precios de la empresa (DEMO). Los costos
-        vienen de tiendas ficticias y tarifas por hora; una persona valida, firma y sella el F.033.
+        Price proposed by Postor with the company’s pricing policy (DEMO). Costs come from fictional
+        stores and hourly rates; a person validates, signs and stamps the F.033.
       </p>
     </Section>
   );

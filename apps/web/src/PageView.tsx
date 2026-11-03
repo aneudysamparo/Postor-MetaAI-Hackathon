@@ -7,8 +7,8 @@ const PERCENT = 100;
 
 // One label per SAM concept, in Spanish for the UI.
 const CONCEPT_LABELS: Record<string, string> = {
-  'handwritten signature': 'firma / rúbrica',
-  logo: 'logo institucional',
+  'handwritten signature': 'signature / initials',
+  logo: 'institutional logo',
 };
 
 function percent(value: number, total: number): string {
@@ -37,7 +37,7 @@ export function PageView({
       <div className="page-view">
         <img
           src={pageImageUrl(documentId, page)}
-          alt={`Página ${page} del documento original`}
+          alt={`Page ${page} of the original document`}
           onError={() => setFailed(true)}
         />
         {regions.map((region, index) => (
@@ -56,9 +56,9 @@ export function PageView({
       </div>
       {regions.length > 0 && (
         <p className="muted">
-          SAM 3.1 localizó {regions.length} región(es):{' '}
-          {labels.map((label) => CONCEPT_LABELS[label] ?? label).join(', ')}. Coordenadas en píxeles
-          de la página renderizada; pasa el cursor sobre cada caja.
+          SAM 3.1 located {regions.length} region(s):{' '}
+          {labels.map((label) => CONCEPT_LABELS[label] ?? label).join(', ')}. Pixel coordinates of
+          the rendered page; hover over each box.
         </p>
       )}
     </div>

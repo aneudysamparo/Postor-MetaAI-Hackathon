@@ -30,7 +30,7 @@ function text(value: unknown): string {
 }
 
 function certificationTone(status: unknown): Tone {
-  const current = status === 'vigente';
+  const current = status === 'valid';
   if (current) {
     return 'ok';
   }
@@ -53,7 +53,7 @@ export function CompanyBrainView(): JSX.Element {
     return <p className="error">{error}</p>;
   }
   if (company === null) {
-    return <p>Cargando Company Brain…</p>;
+    return <p>Loading Company Brain…</p>;
   }
   const profile = company.profile;
   const identity = record(profile.company);
@@ -65,54 +65,54 @@ export function CompanyBrainView(): JSX.Element {
     : [];
   return (
     <div>
-      <p className="kicker">Company Brain · RAG privado por empresa</p>
+      <p className="kicker">Company Brain · private RAG per company</p>
       <h2>{company.name}</h2>
       <p className="sub">
-        <Chip tone="warn">EMPRESA FICTICIA · DEMO</Chip> {text(identity.address)}
+        <Chip tone="warn">FICTIONAL COMPANY · DEMO</Chip> {text(identity.address)}
       </p>
       <div className="grid2">
-        <Section title="Identidad">
+        <Section title="Identity">
           <ul className="kv">
             <li>
-              <b>RNC (ficticio):</b> {text(identity.rnc_fictional)}
+              <b>RNC (fictional):</b> {text(identity.rnc_fictional)}
             </li>
             <li>
-              <b>RPE (ficticio):</b> {text(identity.rpe_fictional)}
+              <b>RPE (fictional):</b> {text(identity.rpe_fictional)}
             </li>
             <li>
               <b>Fundada:</b> {formatRdLocal(text(identity.founded))} ·{' '}
-              {text(identity.employee_count)} empleados
+              {text(identity.employee_count)} employees
             </li>
             <li>
-              <b>Representante:</b> {text(record(profile.legal_representative).name)}
+              <b>Representative:</b> {text(record(profile.legal_representative).name)}
             </li>
           </ul>
         </Section>
-        <Section title="Finanzas">
+        <Section title="Finances">
           <ul className="kv">
             {Object.entries(revenue).map(([year, amount]) => (
               <li key={year}>
-                <b>Facturación {year}:</b> RD$ {formatMoney(Number(amount))}
+                <b>Revenue {year}:</b> RD$ {formatMoney(Number(amount))}
               </li>
             ))}
             <li>
-              <b>Activos / Pasivos:</b> RD$ {formatMoney(Number(financial.total_assets))} / RD${' '}
+              <b>Assets / Liabilities:</b> RD$ {formatMoney(Number(financial.total_assets))} / RD${' '}
               {formatMoney(Number(financial.total_liabilities))}
             </li>
             <li>
-              <b>Liquidez corriente:</b> {text(financial.current_liquidity)}
+              <b>Current liquidity:</b> {text(financial.current_liquidity)}
             </li>
           </ul>
         </Section>
       </div>
-      <Section title={`Certificaciones individuales (${certifications.length})`}>
+      <Section title={`Individual certifications (${certifications.length})`}>
         <table>
           <thead>
             <tr>
-              <th>Certificación</th>
+              <th>Certification</th>
               <th>Titular</th>
-              <th>Vence</th>
-              <th>Fuente</th>
+              <th>Expires</th>
+              <th>Source</th>
             </tr>
           </thead>
           <tbody>
@@ -132,21 +132,21 @@ export function CompanyBrainView(): JSX.Element {
           </tbody>
         </table>
       </Section>
-      <Section title="Brechas conocidas">
+      <Section title="Known gaps">
         <ul>
           {gaps.map((gap) => (
             <li key={gap}>{gap}</li>
           ))}
         </ul>
       </Section>
-      <Section title={`Documentos indexados (${company.documents.length})`}>
+      <Section title={`Indexed documents (${company.documents.length})`}>
         <table>
           <thead>
             <tr>
-              <th>Documento</th>
+              <th>Document</th>
               <th>Tipo</th>
-              <th>Vence</th>
-              <th>Verificación</th>
+              <th>Expires</th>
+              <th>Verification</th>
             </tr>
           </thead>
           <tbody>

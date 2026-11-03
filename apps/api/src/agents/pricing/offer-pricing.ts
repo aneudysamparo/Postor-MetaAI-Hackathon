@@ -67,7 +67,7 @@ export function buildEconomicOffer(input: OfferInput): EconomicOffer {
   if (input.budgetDop === null) {
     status = 'no_budget';
     notes.push(
-      `La licitación no publica presupuesto: se aplica el margen mínimo (${policy.min_margin_pct}%).`,
+      `The tender publishes no budget: the minimum margin (${policy.min_margin_pct}%) applies.`,
     );
   } else if (costWithTax > 0) {
     const target = input.budgetDop * pct(policy.offer_target_pct_of_budget);
@@ -76,7 +76,7 @@ export function buildEconomicOffer(input: OfferInput): EconomicOffer {
       markup = minMarkup;
       status = 'margin_floor';
       notes.push(
-        `Al ${policy.offer_target_pct_of_budget}% del presupuesto el margen sería menor al mínimo (${policy.min_margin_pct}%): se sube al mínimo.`,
+        `At ${policy.offer_target_pct_of_budget}% of the budget the margin would be under the minimum (${policy.min_margin_pct}%): raised to the minimum.`,
       );
     }
   }
@@ -104,7 +104,7 @@ export function buildEconomicOffer(input: OfferInput): EconomicOffer {
     const estimated = item.estimated_unit_price_dop;
     if (estimated !== null && unitFinal > estimated) {
       notes.push(
-        `${item.id}: precio final RD$ ${unitFinal} supera el estimado unitario de la entidad (RD$ ${estimated}, pliego p${item.page}).`,
+        `${item.id}: final price RD$ ${unitFinal} exceeds the entity's unit estimate (RD$ ${estimated}, pliego p${item.page}).`,
       );
     }
     return {
@@ -127,13 +127,13 @@ export function buildEconomicOffer(input: OfferInput): EconomicOffer {
     pctOfBudget = round2((offerTotal / input.budgetDop) * PERCENT);
     if (pctOfBudget > PERCENT) {
       status = 'over_budget';
-      notes.push('La oferta supera el presupuesto de referencia: no es competitiva así.');
+      notes.push('The offer exceeds the reference budget: not competitive as is.');
     }
   }
   if (missing.length > 0) {
     status = 'incomplete';
     notes.push(
-      `Sin costo fiable para: ${missing.map((entry) => entry.item.id).join(', ')}. El total no está completo.`,
+      `No reliable cost for: ${missing.map((entry) => entry.item.id).join(', ')}. The total is incomplete.`,
     );
   }
   let marginPct: number | null = null;
@@ -141,7 +141,7 @@ export function buildEconomicOffer(input: OfferInput): EconomicOffer {
     marginPct = round2(((offerBeforeTax - costTotal) / costTotal) * PERCENT);
     if (marginPct > HIGH_MARGIN_REVIEW_PCT) {
       notes.push(
-        `Margen alto (${marginPct}%): verifica que el costo estimado cubra todo el alcance antes de ofertar.`,
+        `High margin (${marginPct}%): check that the estimated cost covers the full scope before bidding.`,
       );
     }
   }
