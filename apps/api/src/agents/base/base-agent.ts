@@ -20,6 +20,7 @@ export interface AgentCallTrace {
   modelReturned: string | null;
   usage: ChatUsage;
   durationMs: number;
+  rawResponse: string | null;
 }
 
 export interface AgentResult<TOutput> {
@@ -58,6 +59,7 @@ export abstract class BaseAgent<TInput, TOutput> {
         modelReturned: completion.modelReturned,
         usage: completion.usage,
         durationMs: completion.durationMs,
+        rawResponse: completion.rawResponse,
       },
     };
   }

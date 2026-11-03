@@ -124,3 +124,84 @@ export const HealthResponseSchema = z.object({
   status: z.literal('ok'),
 });
 export type HealthResponse = z.infer<typeof HealthResponseSchema>;
+
+// ---- T3: opportunity assessment + analyst drafts ----
+
+export const MatchLevelSchema = z.enum(['high', 'medium', 'low']);
+export type MatchLevel = z.infer<typeof MatchLevelSchema>;
+
+export const InitialRecommendationSchema = z.enum(['go', 'no_go', 'needs_review']);
+export type InitialRecommendation = z.infer<typeof InitialRecommendationSchema>;
+
+export const OpportunityAssessmentSchema = z.object({
+  summary: z.string().min(1),
+  matchLevel: MatchLevelSchema,
+  recommendation: InitialRecommendationSchema,
+  justification: z.string().min(1),
+  relevantCapabilities: z.array(z.string()),
+  incompatibilities: z.array(z.string()),
+  missingInformation: z.array(z.string()),
+});
+export type OpportunityAssessment = z.infer<typeof OpportunityAssessmentSchema>;
+
+// What the analyst model returns per window: no ids (the service mints them),
+// page as cited (the mapper validates it against the real page count).
+export const RequirementDraftSchema = z.object({
+  title: z.string().min(1),
+  originalText: z.string().min(1),
+  plainExplanation: z.string().min(1),
+  category: RequirementCategorySchema,
+  mandatory: z.boolean(),
+  page: z.number().int(),
+  section: z.string().optional(),
+  consequence: z.string().optional(),
+  deadline: z.string().optional(),
+  confidence: z.number().min(MIN_CONFIDENCE).max(MAX_CONFIDENCE),
+});
+export type RequirementDraft = z.infer<typeof RequirementDraftSchema>;
+
+export const AnalystWindowOutputSchema = z.object({
+  requirements: z.array(RequirementDraftSchema),
+  contradictions: z.array(z.string()),
+});
+export type AnalystWindowOutput = z.infer<typeof AnalystWindowOutputSchema>;
+
+export interface RequirementEvidenceContext {
+  documentId: string;
+  pageCount: number;
+  method: z.infer<typeof EvidenceMethodSchema>;
+}
+
+// Page policy (documented, reversible): a citation inside [1, pageCount] is
+// structurally verified; anything else keeps its cited page when positive
+// (so reviewers see what the model claimed) with status unknown. Pages below
+// 1 are stored as 1 because the contract requires positive pages — the
+// unknown status carries the invalidity, never the location.
+export function toTenderRequirement(
+  draft: RequirementDraft,
+  context: RequirementEvidenceContext,
+  index: number,
+): TenderRequirement {
+  const pageValid = draft.page >= 1 && draft.page <= context.pageCount;
+  const page = Math.max(draft.page, 1);
+  const stem = `${context.documentId}-p${page}-${index}`;
+  return TenderRequirementSchema.parse({
+    id: stem,
+    category: draft.category,
+    title: draft.title,
+    originalText: draft.originalText,
+    plainExplanation: draft.plainExplanation,
+    mandatory: draft.mandatory,
+    source: {
+      documentId: context.documentId,
+      page,
+      section: draft.section,
+      evidenceId: `${stem}-ev`,
+      method: context.method,
+    },
+    consequence: draft.consequence,
+    deadline: draft.deadline,
+    confidence: draft.confidence,
+    status: pageValid ? 'verified' : 'unknown',
+  });
+}

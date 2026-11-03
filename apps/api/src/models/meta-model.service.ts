@@ -25,6 +25,7 @@ export interface JsonCompletion<T> {
   modelRequested: string;
   modelReturned: string | null;
   durationMs: number;
+  rawResponse: string | null;
 }
 
 export interface ImageAnalysis {
@@ -219,6 +220,7 @@ export class MetaModelService {
       modelRequested: model,
       modelReturned: toNullableString(raw.model),
       durationMs: Date.now() - startedAt,
+      rawResponse: this.readFirstChoiceText(raw),
     };
   }
 
