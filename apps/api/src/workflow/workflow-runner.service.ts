@@ -187,6 +187,16 @@ export class WorkflowRunner {
         this.runAnalyst(runId, context),
       ]);
       const failures = this.collectFailures(outcomes);
+      // Analyst windows that never validated leave pages unread: the run
+      // still completes every step, but must land on needs_review.
+      const analystOutcome = outcomes[1];
+      const unreadWindows =
+        analystOutcome !== undefined &&
+        analystOutcome.status === 'fulfilled' &&
+        analystOutcome.value > 0;
+      if (unreadWindows) {
+        failures.push('tender_analyst_partial');
+      }
       // A crashed analyst leaves no requirements artifact: consolidation is
       // skipped (not failed) so the run lands on needs_review with the
       // surviving outputs preserved, per the TECH section 8 failure rule.
@@ -344,7 +354,7 @@ export class WorkflowRunner {
 
   // Step 2b: pliego + amendments to structured requirements with doc+page
   // evidence. Runs in parallel with the opportunity agent.
-  private async runAnalyst(runId: string, context: LoadedContext): Promise<void> {
+  private async runAnalyst(runId: string, context: LoadedContext): Promise<number> {
     const agentRun = await this.startAgentRun(
       runId,
       'tender_analyst',
@@ -372,6 +382,7 @@ export class WorkflowRunner {
             requirements: analysis.requirements,
             contradictions: analysis.contradictions,
             windowsRun: analysis.windowsRun,
+            failedWindows: analysis.failedWindows,
           } as unknown as Prisma.InputJsonValue,
         },
       });
@@ -382,7 +393,9 @@ export class WorkflowRunner {
         requirements: analysis.requirements.length,
         contradictions: analysis.contradictions.length,
         windowsRun: analysis.windowsRun,
+        failedWindows: analysis.failedWindows.length,
       });
+      return analysis.failedWindows.length;
     } catch (error) {
       await this.failAgentRun(
         runId,
@@ -875,7 +888,7 @@ export class WorkflowRunner {
     }
   }
 
-  private collectFailures(outcomes: PromiseSettledResult<void>[]): string[] {
+  private collectFailures(outcomes: PromiseSettledResult<unknown>[]): string[] {
     const failures: string[] = [];
     const agents = ['opportunity', 'tender_analyst'];
     for (let index = 0; index < outcomes.length; index += 1) {

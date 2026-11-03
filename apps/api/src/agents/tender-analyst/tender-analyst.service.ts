@@ -33,6 +33,17 @@ export interface MergedAnalysis {
   // Parallel to traces: the validated output of each window call, so the
   // orchestrator can persist the exact normalized response per ModelCall.
   windowOutputs: AnalystWindowOutput[];
+  // Windows whose model output never validated (after the in-call
+  // correction AND one more attempt). Their pages were not analyzed: the UI
+  // and the reviewer must treat them as unread, never as "no requirements".
+  failedWindows: FailedWindow[];
+}
+
+export interface FailedWindow {
+  fileName: string;
+  startPage: number;
+  endPage: number;
+  error: string;
 }
 
 interface StoredPageQuality {
@@ -45,6 +56,9 @@ const ANALYST_WINDOW_OVERLAP = 2;
 const UNKNOWN_QUALITY = 'unknown';
 // Window calls in flight at once (see mapWithConcurrency).
 const ANALYST_CONCURRENCY = 4;
+// Full attempts per window (each already includes MetaModelService's own
+// schema-correction retry).
+const WINDOW_ATTEMPTS = 2;
 
 type AnalystWindowJobInput = Parameters<TenderAnalystAgent['run']>[0];
 
@@ -170,15 +184,30 @@ export class TenderAnalystService {
         });
       }
     }
-    const results = await mapWithConcurrency(jobs, ANALYST_CONCURRENCY, (job) =>
-      this.agent.run(job.input),
+    // One bad window must not sink the whole tender (seen live on cases B
+    // and D: a single window emitted requirements without originalText).
+    // Each window gets one more full attempt; if it still fails, its page
+    // range is recorded as failed and the other windows survive.
+    const outcomes = await mapWithConcurrency(jobs, ANALYST_CONCURRENCY, (job) =>
+      this.runWindowWithRetry(job.input),
     );
+    const failedWindows: FailedWindow[] = [];
     let order = 0;
-    results.forEach((result, index) => {
+    outcomes.forEach((outcome, index) => {
       const job = jobs[index];
       if (job === undefined) {
         return;
       }
+      if (outcome.result === null) {
+        failedWindows.push({
+          fileName: job.input.fileName,
+          startPage: job.input.startPage,
+          endPage: job.input.endPage,
+          error: outcome.error,
+        });
+        return;
+      }
+      const result = outcome.result;
       traces.push(result.trace);
       windowOutputs.push(result.data);
       for (const draft of result.data.requirements) {
@@ -188,6 +217,11 @@ export class TenderAnalystService {
       contradictionLists.push(result.data.contradictions);
     });
     const windowsRun = jobs.length;
+    if (failedWindows.length === jobs.length) {
+      throw new Error(
+        `Every analyst window failed; first error: ${failedWindows[0]?.error ?? 'unknown'}`,
+      );
+    }
     const merged = mergeDrafts(tagged);
     const requirements = merged.map((entry, index) =>
       toTenderRequirement(
@@ -203,7 +237,22 @@ export class TenderAnalystService {
       windowsRun,
       traces,
       windowOutputs,
+      failedWindows,
     };
+  }
+
+  private async runWindowWithRetry(
+    input: AnalystWindowJobInput,
+  ): Promise<{ result: Awaited<ReturnType<TenderAnalystAgent['run']>> | null; error: string }> {
+    let lastError = '';
+    for (let attempt = 0; attempt < WINDOW_ATTEMPTS; attempt += 1) {
+      try {
+        return { result: await this.agent.run(input), error: '' };
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : String(error);
+      }
+    }
+    return { result: null, error: lastError };
   }
 
   private async fullPageTexts(file: TenderFileRef): Promise<string[]> {
