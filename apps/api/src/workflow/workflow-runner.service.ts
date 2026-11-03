@@ -21,6 +21,7 @@ import { StructuredFact, buildStructuredFacts } from '../brain/structured-facts'
 import { BidDocumentsService } from '../documents/bid-documents.service';
 import { DocumentIngestionService } from '../documents/document-ingestion.service';
 import { NormalizedTender, TENDER_SOURCE, TenderSource } from '../documents/tender-source';
+import { estimateCallCost, loadCostRates } from '../observability/cost-estimate';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AGENT_RUN_STATUS,
@@ -48,6 +49,7 @@ interface LoadedContext {
 
 const SINGLE_COMPANY_COUNT = 1;
 const FIRST_ATTEMPT = 1;
+const COST_SUMMARY_DECIMALS = 6;
 
 // BidOrchestrator (TECH section 8): runs the agent pipeline for one tender,
 // persists every step as AgentRun/ModelCall/Artifact/Evidence rows, and emits
@@ -134,6 +136,9 @@ export class WorkflowRunner {
     return { run, artifacts, failedAgents, pendingSteps: [...PENDING_STEPS] };
   }
 
+  // Agent Trace (T7.1, PRD section 21): every agent run with its model calls
+  // (prompt sent, raw response, tokens, duration) plus an estimated cost per
+  // call and per run. Costs are labeled estimates (see cost-estimate.ts).
   public async getTrace(runId: string) {
     const run = await this.getRun(runId);
     const artifacts = await this.prisma.artifact.findMany({
@@ -141,7 +146,35 @@ export class WorkflowRunner {
       include: { evidence: true },
       orderBy: { createdAt: 'asc' },
     });
-    return { ...run, artifacts };
+    const rates = loadCostRates();
+    let totalIn = 0;
+    let totalOut = 0;
+    let totalCost = 0;
+    let totalModelMs = 0;
+    const agentRuns = run.agentRuns.map((agentRun) => ({
+      ...agentRun,
+      modelCalls: agentRun.modelCalls.map((call) => {
+        const cost = estimateCallCost(call.tokensIn, call.tokensOut, rates);
+        totalIn += cost.tokensIn;
+        totalOut += cost.tokensOut;
+        totalCost += cost.estimatedCostUsd;
+        totalModelMs += call.durationMs ?? 0;
+        return { ...call, estimatedCostUsd: cost.estimatedCostUsd };
+      }),
+    }));
+    return {
+      ...run,
+      agentRuns,
+      artifacts,
+      costSummary: {
+        rates,
+        tokensIn: totalIn,
+        tokensOut: totalOut,
+        modelDurationMs: totalModelMs,
+        estimatedCostUsd: Number(totalCost.toFixed(COST_SUMMARY_DECIMALS)),
+        label: 'estimate: tokens x configured rates',
+      },
+    };
   }
 
   private async execute(runId: string): Promise<void> {
