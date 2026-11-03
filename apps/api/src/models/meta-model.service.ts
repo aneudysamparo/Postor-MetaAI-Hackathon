@@ -61,10 +61,70 @@ export interface SegmentRegionsRequest {
 export interface VisualRegion {
   label: string;
   box: { x: number; y: number; width: number; height: number };
+  // Pixel size of the image the box refers to (as reported by sam-3.1).
+  imageWidth: number;
+  imageHeight: number;
   confidence: number | null;
 }
 
 const CHAT_COMPLETIONS_PATH = '/chat/completions';
+const RESPONSES_PATH = '/responses';
+const DEFAULT_SAM_MODEL = 'sam-3.1';
+const SAM_BOX_PATTERN = /<\|box;x1=(\d+);y1=(\d+);x2=(\d+);y2=(\d+);w=(\d+);h=(\d+)\|>/g;
+
+export interface SegmentationResult {
+  regions: VisualRegion[];
+  modelRequested: string;
+  modelReturned: string | null;
+  durationMs: number;
+}
+
+// Pure parser for the sam-3.1 special-token lane (unit-tested). Boxes come
+// in pixels of the image that was sent, together with that image's size.
+export function parseSamBoxes(lane: string, label: string): VisualRegion[] {
+  const regions: VisualRegion[] = [];
+  for (const match of lane.matchAll(SAM_BOX_PATTERN)) {
+    const [x1, y1, x2, y2, width, height] = match.slice(1).map(Number);
+    if (
+      [x1, y1, x2, y2, width, height].some((value) => value === undefined || Number.isNaN(value))
+    ) {
+      continue;
+    }
+    regions.push({
+      label,
+      box: {
+        x: x1 as number,
+        y: y1 as number,
+        width: (x2 as number) - (x1 as number),
+        height: (y2 as number) - (y1 as number),
+      },
+      imageWidth: width as number,
+      imageHeight: height as number,
+      confidence: null,
+    });
+  }
+  return regions;
+}
+
+// Responses API: output[] -> content[] -> output_text.text, concatenated.
+function readResponsesText(raw: Record<string, unknown>): string {
+  const output = raw.output;
+  if (!Array.isArray(output)) {
+    return '';
+  }
+  const texts: string[] = [];
+  for (const item of output) {
+    if (!isRecord(item) || !Array.isArray(item.content)) {
+      continue;
+    }
+    for (const part of item.content as unknown[]) {
+      if (isRecord(part) && typeof part.text === 'string') {
+        texts.push(part.text);
+      }
+    }
+  }
+  return texts.join('');
+}
 const HTTP_TOO_MANY_REQUESTS = 429;
 const HTTP_SERVER_ERROR_FLOOR = 500;
 const JSON_MIME_TYPE = 'application/json';
@@ -156,14 +216,37 @@ export class MetaModelService {
     };
   }
 
-  public segmentRegions(_request: SegmentRegionsRequest): Promise<VisualRegion[]> {
-    // Fail closed until the sam-3.1 wire format is verified against the live
-    // account (roadmap T5). The interface is stable; only this body changes.
-    return Promise.reject(
-      new MetaResponseError(
-        'sam-3.1 endpoint not verified yet: run the live endpoint check (T0.1) before the visual route.',
-      ),
-    );
+  // sam-3.1 localizes regions ONLY (it never reads text). It is called
+  // through the Responses API with ONE short concept phrase ("handwritten
+  // signature", "logo") plus the image. Verified live 2026-11-03: the answer
+  // is a special-token lane in output_text, one
+  // `<|box;x1=..;y1=..;x2=..;y2=..;w=..;h=..|><|mask;...|>` group per
+  // instance (pixel coordinates of the image sent). An empty lane means "no
+  // instance of that concept", never an error. Masks are ignored: Postor
+  // cites boxes.
+  public async segmentRegions(request: SegmentRegionsRequest): Promise<SegmentationResult> {
+    const startedAt = Date.now();
+    const config = loadMetaModelsConfig();
+    const model = (process.env.META_MODEL_SAM ?? '').trim() || DEFAULT_SAM_MODEL;
+    const raw = await this.postWithRetry(config, RESPONSES_PATH, {
+      model,
+      input: [
+        {
+          role: 'user',
+          content: [
+            { type: 'input_text', text: request.hint.label },
+            { type: 'input_image', image_url: request.imageUrl },
+          ],
+        },
+      ],
+    });
+    const lane = readResponsesText(raw);
+    return {
+      regions: parseSamBoxes(lane, request.hint.label),
+      modelRequested: model,
+      modelReturned: toNullableString(raw.model),
+      durationMs: Date.now() - startedAt,
+    };
   }
 
   private buildChatRequest(
@@ -251,11 +334,21 @@ export class MetaModelService {
     config: ReturnType<typeof loadMetaModelsConfig>,
     body: Record<string, unknown>,
   ): Promise<ChatResponseBody> {
+    return this.postWithRetry(config, CHAT_COMPLETIONS_PATH, body) as Promise<ChatResponseBody>;
+  }
+
+  // Same transport rules for every endpoint: retry once on 429/5xx/network,
+  // never on 401/403, 120 s timeout per attempt.
+  private async postWithRetry(
+    config: ReturnType<typeof loadMetaModelsConfig>,
+    path: string,
+    body: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     let attempt = 0;
     for (;;) {
       attempt += 1;
       try {
-        return await this.postChatOnce(config, body);
+        return await this.postOnce(config, path, body);
       } catch (error) {
         if (this.isAuthError(error) || attempt >= config.maxAttempts) {
           throw error;
@@ -264,13 +357,14 @@ export class MetaModelService {
     }
   }
 
-  private async postChatOnce(
+  private async postOnce(
     config: ReturnType<typeof loadMetaModelsConfig>,
+    path: string,
     body: Record<string, unknown>,
-  ): Promise<ChatResponseBody> {
+  ): Promise<Record<string, unknown>> {
     let response: Response;
     try {
-      response = await this.httpFetch(`${config.baseUrl}${CHAT_COMPLETIONS_PATH}`, {
+      response = await this.httpFetch(`${config.baseUrl}${path}`, {
         method: 'POST',
         headers: {
           'Content-Type': JSON_MIME_TYPE,
@@ -300,7 +394,7 @@ export class MetaModelService {
     if (!isRecord(decoded)) {
       throw new MetaResponseError('Meta returned a non-object payload.');
     }
-    return decoded as ChatResponseBody;
+    return decoded;
   }
 
   private isAuthError(error: unknown): boolean {

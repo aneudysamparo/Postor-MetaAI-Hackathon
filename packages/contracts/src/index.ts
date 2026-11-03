@@ -326,8 +326,8 @@ export const VisualPageReadingSchema = z.object({
 });
 export type VisualPageReading = z.infer<typeof VisualPageReadingSchema>;
 
-// sam-3.1 outcome per page: the segmentation contract is not verified on the
-// live account yet, so "unavailable" is the honest default (no fake boxes).
+// sam-3.1 outcome per page: regions found, no instance of the concepts, or
+// "unavailable" when the call itself failed (no fake boxes, ever).
 export const SamStatusSchema = z.enum(['unavailable', 'no_region', 'regions_found']);
 export type SamStatus = z.infer<typeof SamStatusSchema>;
 
@@ -337,6 +337,9 @@ export const VisualRegionBoxSchema = z.object({
   y: z.number(),
   width: z.number(),
   height: z.number(),
+  // Pixel size of the rendered page the box refers to.
+  imageWidth: z.number(),
+  imageHeight: z.number(),
 });
 export type VisualRegionBox = z.infer<typeof VisualRegionBoxSchema>;
 

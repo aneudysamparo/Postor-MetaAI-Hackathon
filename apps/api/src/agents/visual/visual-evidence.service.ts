@@ -44,7 +44,22 @@ const MAX_VISUAL_PAGES = 2;
 // scans garble most; they are read first.
 const PRIORITY_CATEGORIES = new Set(['technical', 'economic']);
 const VISION_PROMPT_VERSION = 'visual-reader-v1';
-const SAM_REGION_HINT = 'table';
+// Concepts sam-3.1 is asked to localize on scanned tender pages. Verified
+// live: "handwritten signature" finds the committee initials DGCP pliegos
+// carry on every page, "logo" finds institutional marks. Generic document
+// concepts ("table", "text") return no instances, so they are not used.
+const SAM_CONCEPTS = ['handwritten signature', 'logo'];
+const SAM_PROMPT_VERSION = 'sam-concepts-v1';
+const COVER_PAGE = 1;
+const LITE_VISUAL_PAGES = 1;
+
+export interface VisualOptions {
+  maxPages: number;
+  coverFallback: boolean;
+}
+
+export const FULL_VISUAL: VisualOptions = { maxPages: MAX_VISUAL_PAGES, coverFallback: false };
+export const LITE_VISUAL: VisualOptions = { maxPages: LITE_VISUAL_PAGES, coverFallback: true };
 const JSON_OBJECT_PATTERN = /\{[\s\S]*\}/;
 
 function pageKey(documentId: string, page: number): string {
@@ -122,8 +137,9 @@ export function parseVisualReading(text: string): VisualPageReading | null {
 }
 
 // Visual evidence route (T5, TECH section 6 step 4c): for the few pages the
-// text layer reads poorly, render the page, ask sam-3.1 to localize table
-// regions (localization ONLY), then ask muse-spark-1.3 to read the page.
+// text layer reads poorly, render the page, ask sam-3.1 to localize official
+// marks (signatures, logos: localization ONLY) and muse-spark-1.3 to read
+// the page, in parallel.
 @Injectable()
 export class VisualEvidenceService {
   private readonly logger = new Logger(VisualEvidenceService.name);
@@ -137,6 +153,7 @@ export class VisualEvidenceService {
   public async collect(
     tender: NormalizedTender,
     requirements: TenderRequirement[],
+    options: VisualOptions = FULL_VISUAL,
   ): Promise<VisualEvidenceRun> {
     const documentIds = [...new Set(requirements.map((item) => item.source.documentId))];
     const documents = await this.prisma.tenderDocument.findMany({
@@ -150,7 +167,24 @@ export class VisualEvidenceService {
         signals.set(pageKey(document.id, page.page), page);
       }
     }
-    const candidates = selectVisualPages(requirements, signals);
+    let candidates = selectVisualPages(requirements, signals, options.maxPages);
+    // Lite fallback: when no cited page is scanned, check the pliego cover
+    // for its official marks (institution logo, signatures), so the bidder
+    // knows the document carries them.
+    if (candidates.length === 0 && options.coverFallback) {
+      const pliegoRow = documents.find((document) => document.fileName === tender.pliego.fileName);
+      if (pliegoRow !== undefined) {
+        const coverSignal = signals.get(pageKey(pliegoRow.id, COVER_PAGE));
+        candidates = [
+          {
+            documentId: pliegoRow.id,
+            page: COVER_PAGE,
+            quality: coverSignal?.quality ?? 'text',
+            requirementIds: [],
+          },
+        ];
+      }
+    }
     const evidence: VisualEvidence[] = [];
     const traces: AgentCallTrace[] = [];
     const readings: (VisualPageReading | null)[] = [];
@@ -162,11 +196,18 @@ export class VisualEvidenceService {
         continue;
       }
       const rendered = await this.renderer.renderPage(file.absolutePath, candidate.page);
-      const sam = await this.trySegment(rendered.dataUrl);
+      // SAM localization and the vision read are independent: run together.
+      const [sam, read] = await Promise.all([
+        this.trySegment(rendered.dataUrl),
+        this.readPage(rendered.dataUrl, fileName, candidate.page),
+      ]);
       if (sam.gap !== null) {
         samGap = sam.gap;
       }
-      const read = await this.readPage(rendered.dataUrl, fileName, candidate.page);
+      for (const samTrace of sam.traces) {
+        traces.push(samTrace);
+        readings.push(null);
+      }
       traces.push(read.trace);
       readings.push(read.reading);
       evidence.push(this.toEvidence(candidate, fileName, sam, read.reading));
@@ -174,26 +215,45 @@ export class VisualEvidenceService {
     return { evidence, traces, readings, samGap };
   }
 
-  // sam-3.1 localizes regions only; it never reads text. Its wire contract is
-  // still unverified on the live account (roadmap T5 probe), so the model
-  // service fails closed and this route records the gap instead of inventing
-  // coordinates.
-  private async trySegment(
-    imageUrl: string,
-  ): Promise<{ regions: VisualRegionBox[]; gap: string | null }> {
-    try {
-      const regions = await this.metaModel.segmentRegions({
-        imageUrl,
-        hint: { label: SAM_REGION_HINT },
-      });
-      return {
-        regions: regions.map((region) => ({ label: region.label, ...region.box })),
-        gap: null,
-      };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      return { regions: [], gap: message };
+  // sam-3.1 localizes regions only; it never reads text. One call per
+  // concept; each call is traced like any model call (prompt = concept,
+  // response = the boxes found). A transport failure is recorded as a gap
+  // instead of inventing coordinates.
+  private async trySegment(imageUrl: string): Promise<{
+    regions: VisualRegionBox[];
+    gap: string | null;
+    traces: AgentCallTrace[];
+  }> {
+    const regions: VisualRegionBox[] = [];
+    const traces: AgentCallTrace[] = [];
+    let gap: string | null = null;
+    for (const concept of SAM_CONCEPTS) {
+      try {
+        const result = await this.metaModel.segmentRegions({ imageUrl, hint: { label: concept } });
+        const boxes = result.regions.map((region) => ({
+          label: region.label,
+          ...region.box,
+          imageWidth: region.imageWidth,
+          imageHeight: region.imageHeight,
+        }));
+        regions.push(...boxes);
+        traces.push({
+          agentName: 'visual_reader',
+          taskName: 'segment',
+          promptVersion: SAM_PROMPT_VERSION,
+          systemPrompt: '',
+          taskPrompt: concept,
+          modelRequested: result.modelRequested,
+          modelReturned: result.modelReturned,
+          usage: { inputTokens: null, outputTokens: null },
+          durationMs: result.durationMs,
+          rawResponse: JSON.stringify({ concept, boxes }),
+        });
+      } catch (error) {
+        gap = error instanceof Error ? error.message : String(error);
+      }
     }
+    return { regions, gap, traces };
   }
 
   private async readPage(
@@ -256,6 +316,10 @@ export class VisualEvidenceService {
     }
     const readable = reading !== null && reading.readable;
     let note = 'Page read by the vision model; cite it with the page number.';
+    if (regionsFound) {
+      const labels = [...new Set(sam.regions.map((region) => region.label))].join(', ');
+      note = `SAM 3.1 localized ${sam.regions.length} official mark(s) (${labels}) on this page; cited by coordinates. Text read by the vision model.`;
+    }
     if (!readable) {
       note = 'The page could not be read reliably: kept for human review.';
     }

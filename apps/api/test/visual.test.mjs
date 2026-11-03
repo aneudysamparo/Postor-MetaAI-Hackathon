@@ -78,3 +78,27 @@ describe('pdfjs assets', () => {
     assert.ok(existsSync(options.standardFontDataUrl));
   });
 });
+
+describe('sam-3.1 lane parser', async () => {
+  const { parseSamBoxes } = await import('../dist/models/meta-model.service.js');
+
+  it('reads every box with the image size it refers to (live sample)', () => {
+    // Shape captured live 2026-11-03 ("handwritten signature" on case D p10).
+    const lane =
+      '<0f>0<|box;x1=830;y1=708;x2=869;y2=795;w=918;h=1188|><|mask;x=0;y=0;data=88,40,~!!!*&|>' +
+      '<0f>1<|box;x1=860;y1=839;x2=888;y2=909;w=918;h=1188|><|mask;x=0;y=0;data=71,29,~!!|>';
+    const regions = parseSamBoxes(lane, 'handwritten signature');
+    assert.equal(regions.length, 2);
+    assert.deepEqual(regions[0], {
+      label: 'handwritten signature',
+      box: { x: 830, y: 708, width: 39, height: 87 },
+      imageWidth: 918,
+      imageHeight: 1188,
+      confidence: null,
+    });
+  });
+
+  it('treats an empty lane as "no instance", not an error', () => {
+    assert.deepEqual(parseSamBoxes('', 'table'), []);
+  });
+});

@@ -26,7 +26,12 @@ import { join } from 'node:path';
 import { PricingService } from '../agents/pricing/pricing.service';
 import { OpportunityAgent, OpportunityInput } from '../agents/opportunity/opportunity.agent';
 import { TenderAnalystService } from '../agents/tender-analyst/tender-analyst.service';
-import { VisualEvidenceService } from '../agents/visual/visual-evidence.service';
+import {
+  FULL_VISUAL,
+  LITE_VISUAL,
+  VisualEvidenceService,
+  VisualOptions,
+} from '../agents/visual/visual-evidence.service';
 import { StructuredFact, buildStructuredFacts } from '../brain/structured-facts';
 import { BidDocumentsService } from '../documents/bid-documents.service';
 import { DocumentIngestionService } from '../documents/document-ingestion.service';
@@ -345,9 +350,8 @@ export class WorkflowRunner {
   // written, and runs every independent step in parallel:
   //   load_context -> dossier analyst (deterministic, ms) -> consolidate
   //   -> lane 1: opportunity
-  //      lane 2: [compliance (lite Brain) | pricing] -> writer -> reviewer
-  //              (no correction round) -> documents.
-  // Visual reading is skipped: the dossier is already text.
+  //      lane 2: [compliance (lite Brain) | pricing | visual (SAM + vision,
+  //              1 page)] -> writer -> reviewer (no correction) -> documents.
   private async executeLite(runId: string): Promise<void> {
     try {
       await this.transition(runId, WORKFLOW_STATUS.RUNNING);
@@ -369,11 +373,6 @@ export class WorkflowRunner {
       } else {
         await this.consolidate(runId);
       }
-      await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'orchestrator', null, {
-        step: 'visual.read',
-        skipped: true,
-        reason: 'lite mode: the key-requirements dossier is already text.',
-      });
       // Two independent lanes. The opportunity agent (metadata fit) feeds
       // nothing downstream, so it runs beside the whole evidence lane
       // instead of holding the writer back.
@@ -398,14 +397,19 @@ export class WorkflowRunner {
     }
   }
 
-  // Lite evidence lane: compliance and pricing in parallel, then the short
+  // Lite evidence lane: compliance, pricing and the visual check (SAM 3.1 +
+  // vision on one scanned page or the pliego cover) in parallel, then the short
   // draft + review, then the bid documents. Returns the failed agents.
   private async runLiteEvidenceLane(runId: string, context: LoadedContext): Promise<string[]> {
     const failures: string[] = [];
-    const [compliance, pricing] = await Promise.allSettled([
+    const [compliance, pricing, visual] = await Promise.allSettled([
       this.runCompliance(runId, context, { documentCodes: loadLiteDocCodes() }),
       this.runPricing(runId, context),
+      this.runVisual(runId, context, LITE_VISUAL),
     ]);
+    if (visual.status === 'rejected') {
+      failures.push('visual_reader');
+    }
     if (compliance.status === 'rejected') {
       failures.push('compliance');
     }
@@ -638,18 +642,31 @@ export class WorkflowRunner {
   // stored quality is scanned/poor/mixed, records the sam-3.1 outcome, and
   // reads them with the vision model. Each page becomes an Evidence row with
   // method vision (or sam_region when sam returns boxes).
-  private async runVisual(runId: string, context: LoadedContext): Promise<void> {
+  private async runVisual(
+    runId: string,
+    context: LoadedContext,
+    options: VisualOptions = FULL_VISUAL,
+  ): Promise<void> {
     const agentRun = await this.startAgentRun(runId, 'visual_reader', 'read_page', []);
     await this.emit(runId, WORKFLOW_EVENT.STEP_STARTED, 'visual_reader', agentRun.id, {
       step: 'visual.read',
     });
     try {
       const requirements = await this.loadRequirements(runId);
-      const result = await this.visual.collect(context.tender, requirements);
+      const result = await this.visual.collect(context.tender, requirements, options);
       for (let index = 0; index < result.traces.length; index += 1) {
         const trace = result.traces[index];
         if (trace !== undefined) {
-          await this.saveModelCall(agentRun.id, trace, result.readings[index] ?? null);
+          // Vision reads persist the parsed reading; SAM calls persist the
+          // boxes they returned (their raw lane summary).
+          const reading = result.readings[index] ?? null;
+          let normalized: unknown = { unparsed: true };
+          if (reading !== null) {
+            normalized = reading;
+          } else if (trace.rawResponse !== null && trace.taskName === 'segment') {
+            normalized = JSON.parse(trace.rawResponse) as unknown;
+          }
+          await this.saveModelCall(agentRun.id, trace, normalized);
         }
       }
       const artifact = await this.prisma.artifact.create({
