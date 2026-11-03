@@ -48,9 +48,7 @@ async function main(): Promise<void> {
   await runner.runStep('client', async () => {
     const prismaBin = join(paths.root, 'node_modules', '.bin', 'prisma');
     const schema =
-      mode === 'sqlite'
-        ? 'apps/api/prisma/schema.sqlite.prisma'
-        : 'apps/api/prisma/schema.prisma';
+      mode === 'sqlite' ? 'apps/api/prisma/schema.sqlite.prisma' : 'apps/api/prisma/schema.prisma';
     if (mode === 'sqlite') {
       await runCommand('node', [join(paths.apiPrismaDir, 'derive-sqlite-schema.mjs')], {
         cwd: paths.root,
