@@ -118,7 +118,11 @@ export function AnalysisTab({ artifacts }: { artifacts: RunArtifacts }): JSX.Ele
             {blockers.map((finding) => (
               <li key={finding.requirementId}>
                 <b>{finding.requirementId}</b>{' '}
-                {Boolean(finding.blocker) && <Chip tone="bad">bloqueante</Chip>} {finding.reason}
+                {Boolean(finding.blocker) && finding.blockerBasis !== 'disputed' && (
+                  <Chip tone="bad">bloqueante</Chip>
+                )}
+                {finding.blockerBasis === 'disputed' && <Chip tone="warn">bloqueante dudoso</Chip>}{' '}
+                {finding.reason}
               </li>
             ))}
           </ul>
