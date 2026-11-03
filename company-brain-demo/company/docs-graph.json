@@ -1,0 +1,841 @@
+{
+ "fictional": true,
+ "note": "Grafo de relaciones del Company Brain v1. DOCUMENTO -> PROYECTO -> CAPACIDAD. Una factura sin proyecto no prueba experiencia; el grafo lo hace explicito.",
+ "nodes": [
+  {
+   "id": "COMPANY",
+   "type": "company",
+   "label": "NovaTech Solutions, SRL"
+  },
+  {
+   "id": "CAP-SOFTWARE_DEVELOPMENT",
+   "type": "capability",
+   "label": "Desarrollo de software",
+   "verification_level": "documented"
+  },
+  {
+   "id": "CAP-IT_CONSULTING",
+   "type": "capability",
+   "label": "Consultoria IT",
+   "verification_level": "self_asserted_demo"
+  },
+  {
+   "id": "CAP-SYSTEM_INTEGRATION",
+   "type": "capability",
+   "label": "Integracion de sistemas",
+   "verification_level": "documented"
+  },
+  {
+   "id": "CAP-MOBILE_DEVELOPMENT",
+   "type": "capability",
+   "label": "Desarrollo movil",
+   "verification_level": "documented"
+  },
+  {
+   "id": "CAP-NETWORK_INFRASTRUCTURE",
+   "type": "capability",
+   "label": "Infraestructura y redes",
+   "verification_level": "documented"
+  },
+  {
+   "id": "CAP-TECHNICAL_SUPPORT",
+   "type": "capability",
+   "label": "Soporte tecnico",
+   "verification_level": "partially_documented"
+  },
+  {
+   "id": "CAP-TECHNOLOGY_SUPPLY",
+   "type": "capability",
+   "label": "Suministro tecnologico (via distribuidores)",
+   "verification_level": "self_asserted_demo"
+  },
+  {
+   "id": "CAP-CLOUD_SERVICES",
+   "type": "capability",
+   "label": "Servicios cloud",
+   "verification_level": "self_asserted_demo"
+  },
+  {
+   "id": "CAP-TRAINING",
+   "type": "capability",
+   "label": "Capacitacion",
+   "verification_level": "self_asserted_demo"
+  },
+  {
+   "id": "PROJECT-001",
+   "type": "project",
+   "label": "Sistema de Gestion Documental Empresarial",
+   "value": 2450000
+  },
+  {
+   "id": "PROJECT-002",
+   "type": "project",
+   "label": "Plataforma de Gestion de Inventario",
+   "value": 1850000
+  },
+  {
+   "id": "PROJECT-003",
+   "type": "project",
+   "label": "Aplicacion Movil de Servicios",
+   "value": 1200000
+  },
+  {
+   "id": "PROJECT-004",
+   "type": "project",
+   "label": "Infraestructura y Redes",
+   "value": 980000
+  },
+  {
+   "id": "PROJECT-005",
+   "type": "project",
+   "label": "Soporte y Mantenimiento Tecnologico",
+   "value": 720000
+  },
+  {
+   "id": "DOC-LEGAL-001",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 1,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-LEGAL-002",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 1,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-LEGAL-003",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 1,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-LEGAL-004",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 1,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-LEGAL-005",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 1,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CORP-001",
+   "type": "document",
+   "kind": "md",
+   "batch": 1,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-TEAM-001",
+   "type": "document",
+   "kind": "csv",
+   "batch": 1,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-INV-001",
+   "type": "document",
+   "kind": "csv",
+   "batch": 3,
+   "status": "vigente",
+   "gap": "Inventario limitado: no hay stock de equipos para reventa a gran escala."
+  },
+  {
+   "id": "DOC-CONTRACT-001",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CONTRACT-002",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CONTRACT-003",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CONTRACT-004",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CONTRACT-005",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-INVOICE-001",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-INVOICE-002",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-INVOICE-003",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-INVOICE-004",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-INVOICE-005",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-INVOICE-006",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-ACCEPTANCE-001",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-ACCEPTANCE-003",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-ACCEPTANCE-004",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-REF-001",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-REF-002",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 2,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CERT-001",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 3,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CERT-002",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 3,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CERT-003",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 3,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CERT-EXP-001",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 3,
+   "status": "VENCIDA - brecha deliberada",
+   "gap": "Certificacion VENCIDA el 2025-06-30"
+  },
+  {
+   "id": "DOC-CV-001",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 3,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CV-002",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 3,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CV-003",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 3,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CV-004",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 3,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-CV-005",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 3,
+   "status": "vigente",
+   "gap": "CCNA vencida"
+  },
+  {
+   "id": "DOC-CV-006",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 3,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-FIN-2024",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 4,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-FIN-2025",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 4,
+   "status": "vigente",
+   "gap": "Solo se dispone de 2024 y 2025; sin historico adicional."
+  },
+  {
+   "id": "DOC-QUOT-001",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 5,
+   "status": "vigente",
+   "gap": null
+  },
+  {
+   "id": "DOC-QUOT-002",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 5,
+   "status": "VENCIDA",
+   "gap": "Cotizacion VENCIDA el 2026-06-30: precio historico, no vigente."
+  },
+  {
+   "id": "DOC-QUOT-003",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 5,
+   "status": "VENCIDA",
+   "gap": "Cotizacion VENCIDA el 2026-08-15. Ademas: una cotizacion NO equivale a autorizacion de fabricante."
+  },
+  {
+   "id": "DOC-QUOT-004",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 5,
+   "status": "vigente",
+   "gap": "Producto NO CUMPLE especificaciones minimas tipicas (4GB RAM < 8GB requeridos)."
+  },
+  {
+   "id": "DOC-LEGAL-006",
+   "type": "document",
+   "kind": "pdf",
+   "batch": 1,
+   "status": "vigente",
+   "gap": null
+  }
+ ],
+ "edges": [
+  {
+   "from": "PROJECT-001",
+   "to": "CAP-SOFTWARE_DEVELOPMENT",
+   "relation": "DEMONSTRATES"
+  },
+  {
+   "from": "PROJECT-001",
+   "to": "CAP-SYSTEM_INTEGRATION",
+   "relation": "DEMONSTRATES"
+  },
+  {
+   "from": "PROJECT-002",
+   "to": "CAP-SOFTWARE_DEVELOPMENT",
+   "relation": "DEMONSTRATES"
+  },
+  {
+   "from": "PROJECT-002",
+   "to": "CAP-SYSTEM_INTEGRATION",
+   "relation": "DEMONSTRATES"
+  },
+  {
+   "from": "PROJECT-003",
+   "to": "CAP-SOFTWARE_DEVELOPMENT",
+   "relation": "DEMONSTRATES"
+  },
+  {
+   "from": "PROJECT-003",
+   "to": "CAP-MOBILE_DEVELOPMENT",
+   "relation": "DEMONSTRATES"
+  },
+  {
+   "from": "PROJECT-004",
+   "to": "CAP-NETWORK_INFRASTRUCTURE",
+   "relation": "DEMONSTRATES"
+  },
+  {
+   "from": "PROJECT-004",
+   "to": "CAP-TECHNICAL_SUPPORT",
+   "relation": "DEMONSTRATES"
+  },
+  {
+   "from": "PROJECT-005",
+   "to": "CAP-TECHNICAL_SUPPORT",
+   "relation": "DEMONSTRATES"
+  },
+  {
+   "from": "DOC-LEGAL-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-LEGAL-002",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-LEGAL-003",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-LEGAL-004",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-LEGAL-005",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CORP-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-TEAM-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-INV-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CONTRACT-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CONTRACT-002",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CONTRACT-003",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CONTRACT-004",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CONTRACT-005",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-INVOICE-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-INVOICE-002",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-INVOICE-003",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-INVOICE-004",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-INVOICE-005",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-INVOICE-006",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-ACCEPTANCE-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-ACCEPTANCE-003",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-ACCEPTANCE-004",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-REF-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-REF-002",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CERT-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CERT-002",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CERT-003",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CERT-EXP-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CV-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CV-002",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CV-003",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CV-004",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CV-005",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CV-006",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-FIN-2024",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-FIN-2025",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-QUOT-001",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-QUOT-002",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-QUOT-003",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-QUOT-004",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  },
+  {
+   "from": "DOC-CONTRACT-001",
+   "to": "PROJECT-001",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-INVOICE-001",
+   "to": "PROJECT-001",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-INVOICE-002",
+   "to": "PROJECT-001",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-ACCEPTANCE-001",
+   "to": "PROJECT-001",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-REF-001",
+   "to": "PROJECT-001",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-CONTRACT-002",
+   "to": "PROJECT-002",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-INVOICE-003",
+   "to": "PROJECT-002",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-CONTRACT-003",
+   "to": "PROJECT-003",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-INVOICE-004",
+   "to": "PROJECT-003",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-ACCEPTANCE-003",
+   "to": "PROJECT-003",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-REF-002",
+   "to": "PROJECT-003",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-CONTRACT-004",
+   "to": "PROJECT-004",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-INVOICE-005",
+   "to": "PROJECT-004",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-ACCEPTANCE-004",
+   "to": "PROJECT-004",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-CONTRACT-005",
+   "to": "PROJECT-005",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-INVOICE-006",
+   "to": "PROJECT-005",
+   "relation": "EVIDENCES"
+  },
+  {
+   "from": "DOC-CERT-001",
+   "to": "COMPANY",
+   "relation": "CERTIFIES_PERSON",
+   "person": "Rafael Eduardo Castillo Nunez",
+   "status": "vigente"
+  },
+  {
+   "from": "DOC-CERT-002",
+   "to": "COMPANY",
+   "relation": "CERTIFIES_PERSON",
+   "person": "Laura Isabel Mendez Torres",
+   "status": "vigente"
+  },
+  {
+   "from": "DOC-CERT-003",
+   "to": "COMPANY",
+   "relation": "CERTIFIES_PERSON",
+   "person": "Carla Maria Rosario Diaz",
+   "status": "vigente"
+  },
+  {
+   "from": "DOC-CERT-EXP-001",
+   "to": "COMPANY",
+   "relation": "CERTIFIES_PERSON",
+   "person": "Carlos Daniel Reyes Santana",
+   "status": "VENCIDA - brecha deliberada"
+  },
+  {
+   "from": "DOC-QUOT-001",
+   "to": "SUP-001",
+   "relation": "ISSUED_BY",
+   "supplier": "TecnoSuministros del Caribe, SRL",
+   "status": "vigente"
+  },
+  {
+   "from": "DOC-QUOT-002",
+   "to": "SUP-002",
+   "relation": "ISSUED_BY",
+   "supplier": "Redes y Conectividad RD, SRL",
+   "status": "VENCIDA"
+  },
+  {
+   "from": "DOC-QUOT-003",
+   "to": "SUP-003",
+   "relation": "ISSUED_BY",
+   "supplier": "Licencias y Software Empresarial LSE, SRL",
+   "status": "VENCIDA"
+  },
+  {
+   "from": "DOC-QUOT-004",
+   "to": "SUP-004",
+   "relation": "ISSUED_BY",
+   "supplier": "Componentes y Perifericos CP, SRL",
+   "status": "vigente"
+  },
+  {
+   "from": "COMPANY",
+   "to": "CAP-SOFTWARE_DEVELOPMENT",
+   "relation": "HAS_CAPABILITY"
+  },
+  {
+   "from": "COMPANY",
+   "to": "CAP-SYSTEM_INTEGRATION",
+   "relation": "HAS_CAPABILITY"
+  },
+  {
+   "from": "COMPANY",
+   "to": "CAP-MOBILE_DEVELOPMENT",
+   "relation": "HAS_CAPABILITY"
+  },
+  {
+   "from": "COMPANY",
+   "to": "CAP-NETWORK_INFRASTRUCTURE",
+   "relation": "HAS_CAPABILITY"
+  },
+  {
+   "from": "COMPANY",
+   "to": "CAP-TECHNICAL_SUPPORT",
+   "relation": "HAS_CAPABILITY"
+  },
+  {
+   "from": "COMPANY",
+   "to": "CAP-TRAINING",
+   "relation": "HAS_CAPABILITY"
+  },
+  {
+   "from": "DOC-LEGAL-006",
+   "to": "COMPANY",
+   "relation": "BELONGS_TO"
+  }
+ ]
+}

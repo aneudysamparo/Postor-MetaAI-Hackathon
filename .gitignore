@@ -1,0 +1,20 @@
+# Internal-only: PRDs, plans, roadmap, reference material. Never published.
+docs/
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+.turbo/
+
+# Environment and secrets (never commit the real key)
+.env
+.env.*
+!.env.example
+
+# Generated local storage (created by `npm run seed`)
+storage/
+
+# Logs and OS artifacts
+*.log
+.DS_Store

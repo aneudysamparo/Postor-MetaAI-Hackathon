@@ -1,0 +1,14 @@
+{
+ "case": "C",
+ "code": "UAF-CCC-CP-2026-0007",
+ "institution": "Unidad de Analisis Financiero",
+ "title": "Renovacion de Microsoft 365 Business Premium (100 licencias, 3 anos, CSP) dirigido a MIPYMES",
+ "estimated_amount_dop": 5700000,
+ "close_date_rd": "2026-11-11 10:00",
+ "modality": "Comparacion de Precios",
+ "portal_url": "https://comunidad.comprasdominicana.gob.do/Public/Tendering/OpportunityDetail/Index?noticeUID=DO1.NTC.1793841",
+ "design_scenario": "NO_GO",
+ "source": "Portal DGCP (documentos originales, sin modificar)",
+ "file_count": 23,
+ "notes": "Caso NO-GO: exige carta de certificacion de fabrica (pliego p11, criterio CUMPLE/NO CUMPLE p19). Verificado en el pliego real."
+}

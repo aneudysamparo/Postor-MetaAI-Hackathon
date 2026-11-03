@@ -1,0 +1,496 @@
+{
+ "fictional": true,
+ "dataset": "novatech-v1",
+ "company": "NovaTech Solutions, SRL (empresa ficticia)",
+ "total_documents": 40,
+ "batches": [
+  {
+   "batch": 1,
+   "name": "Identidad empresarial",
+   "count": 8,
+   "documents": [
+    "DOC-LEGAL-001",
+    "DOC-LEGAL-002",
+    "DOC-LEGAL-003",
+    "DOC-LEGAL-004",
+    "DOC-LEGAL-005",
+    "DOC-CORP-001",
+    "DOC-TEAM-001",
+    "DOC-LEGAL-006"
+   ]
+  },
+  {
+   "batch": 2,
+   "name": "Experiencia",
+   "count": 16,
+   "documents": [
+    "DOC-CONTRACT-001",
+    "DOC-CONTRACT-002",
+    "DOC-CONTRACT-003",
+    "DOC-CONTRACT-004",
+    "DOC-CONTRACT-005",
+    "DOC-INVOICE-001",
+    "DOC-INVOICE-002",
+    "DOC-INVOICE-003",
+    "DOC-INVOICE-004",
+    "DOC-INVOICE-005",
+    "DOC-INVOICE-006",
+    "DOC-ACCEPTANCE-001",
+    "DOC-ACCEPTANCE-003",
+    "DOC-ACCEPTANCE-004",
+    "DOC-REF-001",
+    "DOC-REF-002"
+   ]
+  },
+  {
+   "batch": 3,
+   "name": "Capacidad tecnica",
+   "count": 11,
+   "documents": [
+    "DOC-INV-001",
+    "DOC-CERT-001",
+    "DOC-CERT-002",
+    "DOC-CERT-003",
+    "DOC-CERT-EXP-001",
+    "DOC-CV-001",
+    "DOC-CV-002",
+    "DOC-CV-003",
+    "DOC-CV-004",
+    "DOC-CV-005",
+    "DOC-CV-006"
+   ]
+  },
+  {
+   "batch": 4,
+   "name": "Capacidad financiera",
+   "count": 2,
+   "documents": [
+    "DOC-FIN-2024",
+    "DOC-FIN-2025"
+   ]
+  },
+  {
+   "batch": 5,
+   "name": "Proveedores",
+   "count": 4,
+   "documents": [
+    "DOC-QUOT-001",
+    "DOC-QUOT-002",
+    "DOC-QUOT-003",
+    "DOC-QUOT-004"
+   ]
+  }
+ ],
+ "inventory": [
+  {
+   "doc_id": "DOC-LEGAL-001",
+   "file": "DOC-LEGAL-001.pdf",
+   "batch": 1,
+   "kind": "pdf",
+   "purpose": "Acredita existencia legal de la empresa (ficticia).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-LEGAL-002",
+   "file": "DOC-LEGAL-002.pdf",
+   "batch": 1,
+   "kind": "pdf",
+   "purpose": "Identidad fiscal de la empresa (ficticia).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-LEGAL-003",
+   "file": "DOC-LEGAL-003.pdf",
+   "batch": 1,
+   "kind": "pdf",
+   "purpose": "Estatutos sociales ficticios.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-LEGAL-004",
+   "file": "DOC-LEGAL-004.pdf",
+   "batch": 1,
+   "kind": "pdf",
+   "purpose": "Certificacion fiscal ficticia, vigente al 19/11/2026.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-LEGAL-005",
+   "file": "DOC-LEGAL-005.pdf",
+   "batch": 1,
+   "kind": "pdf",
+   "purpose": "Certificacion TSS ficticia, vigente al 04/12/2026.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CORP-001",
+   "file": "DOC-CORP-001.md",
+   "batch": 1,
+   "kind": "md",
+   "purpose": "Perfil corporativo: capacidades, limites y experiencia resumida.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-TEAM-001",
+   "file": "DOC-TEAM-001.csv",
+   "batch": 1,
+   "kind": "csv",
+   "purpose": "Listado de los 12 integrantes del equipo.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-INV-001",
+   "file": "DOC-INV-001.csv",
+   "batch": 3,
+   "kind": "csv",
+   "purpose": "Inventario de equipos y capacidad operativa (ficticio).",
+   "status": "vigente",
+   "gap": "Inventario limitado: no hay stock de equipos para reventa a gran escala.",
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CONTRACT-001",
+   "file": "DOC-CONTRACT-001.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Contrato del PROJECT-001 (Grupo Empresarial del Caribe, ficticio).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CONTRACT-002",
+   "file": "DOC-CONTRACT-002.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Contrato del PROJECT-002 (Distribuidora Nacional del Este, ficticio).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CONTRACT-003",
+   "file": "DOC-CONTRACT-003.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Contrato del PROJECT-003 (Servicios Integrados del Cibao, ficticio).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CONTRACT-004",
+   "file": "DOC-CONTRACT-004.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Contrato del PROJECT-004 (Centro Empresarial del Norte, ficticio).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CONTRACT-005",
+   "file": "DOC-CONTRACT-005.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Contrato del PROJECT-005 (Soluciones Administrativas del Sur, ficticio).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-INVOICE-001",
+   "file": "DOC-INVOICE-001.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Factura de PROJECT-001 (RD$ 980,000.00).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-INVOICE-002",
+   "file": "DOC-INVOICE-002.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Factura de PROJECT-001 (RD$ 1,470,000.00).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-INVOICE-003",
+   "file": "DOC-INVOICE-003.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Factura de PROJECT-002 (RD$ 1,850,000.00).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-INVOICE-004",
+   "file": "DOC-INVOICE-004.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Factura de PROJECT-003 (RD$ 1,200,000.00).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-INVOICE-005",
+   "file": "DOC-INVOICE-005.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Factura de PROJECT-004 (RD$ 980,000.00).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-INVOICE-006",
+   "file": "DOC-INVOICE-006.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Factura de PROJECT-005 (RD$ 720,000.00).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-ACCEPTANCE-001",
+   "file": "DOC-ACCEPTANCE-001.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Acta de recepcion del PROJECT-002.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-ACCEPTANCE-003",
+   "file": "DOC-ACCEPTANCE-003.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Acta de recepcion del PROJECT-004.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-ACCEPTANCE-004",
+   "file": "DOC-ACCEPTANCE-004.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Acta de recepcion del PROJECT-005.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-REF-001",
+   "file": "DOC-REF-001.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Referencia comercial del PROJECT-001 (ficticia).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-REF-002",
+   "file": "DOC-REF-002.pdf",
+   "batch": 2,
+   "kind": "pdf",
+   "purpose": "Referencia comercial del PROJECT-003 (ficticia).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CERT-001",
+   "file": "DOC-CERT-001.pdf",
+   "batch": 3,
+   "kind": "pdf",
+   "purpose": "Certificacion individual ficticia: AWS Certified Solutions Architect - Associate.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CERT-002",
+   "file": "DOC-CERT-002.pdf",
+   "batch": 3,
+   "kind": "pdf",
+   "purpose": "Certificacion individual ficticia: Project Management Professional (PMP).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CERT-003",
+   "file": "DOC-CERT-003.pdf",
+   "batch": 3,
+   "kind": "pdf",
+   "purpose": "Certificacion individual ficticia: Microsoft Certified: Azure Administrator Associate.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CERT-EXP-001",
+   "file": "DOC-CERT-EXP-001.pdf",
+   "batch": 3,
+   "kind": "pdf",
+   "purpose": "Certificacion individual ficticia: Cisco Certified Network Associate (CCNA).",
+   "status": "VENCIDA - brecha deliberada",
+   "gap": "Certificacion VENCIDA el 2025-06-30",
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CV-001",
+   "file": "DOC-CV-001.pdf",
+   "batch": 3,
+   "kind": "pdf",
+   "purpose": "CV ficticio de Laura Isabel Mendez Torres.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CV-002",
+   "file": "DOC-CV-002.pdf",
+   "batch": 3,
+   "kind": "pdf",
+   "purpose": "CV ficticio de Rafael Eduardo Castillo Nunez.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CV-003",
+   "file": "DOC-CV-003.pdf",
+   "batch": 3,
+   "kind": "pdf",
+   "purpose": "CV ficticio de Jose Miguel Duarte Pena.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CV-004",
+   "file": "DOC-CV-004.pdf",
+   "batch": 3,
+   "kind": "pdf",
+   "purpose": "CV ficticio de Carla Maria Rosario Diaz.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CV-005",
+   "file": "DOC-CV-005.pdf",
+   "batch": 3,
+   "kind": "pdf",
+   "purpose": "CV ficticio de Carlos Daniel Reyes Santana.",
+   "status": "vigente",
+   "gap": "CCNA vencida",
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-CV-006",
+   "file": "DOC-CV-006.pdf",
+   "batch": 3,
+   "kind": "pdf",
+   "purpose": "CV ficticio de Yocasta Beltran Franco.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-FIN-2024",
+   "file": "DOC-FIN-2024.pdf",
+   "batch": 4,
+   "kind": "pdf",
+   "purpose": "Estados financieros ficticios del ejercicio 2024.",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-FIN-2025",
+   "file": "DOC-FIN-2025.pdf",
+   "batch": 4,
+   "kind": "pdf",
+   "purpose": "Estados financieros ficticios del ejercicio 2025.",
+   "status": "vigente",
+   "gap": "Solo se dispone de 2024 y 2025; sin historico adicional.",
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-QUOT-001",
+   "file": "DOC-QUOT-001.pdf",
+   "batch": 5,
+   "kind": "pdf",
+   "purpose": "Cotizacion de TecnoSuministros del Caribe, SRL (vigente).",
+   "status": "vigente",
+   "gap": null,
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-QUOT-002",
+   "file": "DOC-QUOT-002.pdf",
+   "batch": 5,
+   "kind": "pdf",
+   "purpose": "Cotizacion de Redes y Conectividad RD, SRL (vencida).",
+   "status": "VENCIDA",
+   "gap": "Cotizacion VENCIDA el 2026-06-30: precio historico, no vigente.",
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-QUOT-003",
+   "file": "DOC-QUOT-003.pdf",
+   "batch": 5,
+   "kind": "pdf",
+   "purpose": "Cotizacion de Licencias y Software Empresarial LSE, SRL (vencida).",
+   "status": "VENCIDA",
+   "gap": "Cotizacion VENCIDA el 2026-08-15. Ademas: una cotizacion NO equivale a autorizacion de fabricante.",
+   "fictional": true
+  },
+  {
+   "doc_id": "DOC-QUOT-004",
+   "file": "DOC-QUOT-004.pdf",
+   "batch": 5,
+   "kind": "pdf",
+   "purpose": "Cotizacion de Componentes y Perifericos CP, SRL (vigente).",
+   "status": "vigente",
+   "gap": "Producto NO CUMPLE especificaciones minimas tipicas (4GB RAM < 8GB requeridos).",
+   "fictional": true
+  }
+ ],
+ "deliberate_gaps": [
+  "Sin autorizacion Microsoft partner ni de fabricantes (manufacturer_authorizations vacio).",
+  "Sin certificaciones ISO empresariales (company_certifications vacio).",
+  "PROJECT-002 sin acta de recepcion.",
+  "PROJECT-005 sin acta de cierre.",
+  "DOC-QUOT-002 vencida (2026-06-30); DOC-QUOT-003 vencida (2026-08-15).",
+  "DOC-QUOT-004: producto que no cumple especificaciones (4GB RAM).",
+  "DOC-CERT-EXP-001: CCNA vencida (2025-06-30).",
+  "Estados financieros solo 2024-2025."
+ ]
+}

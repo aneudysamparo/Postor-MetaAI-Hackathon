@@ -1,0 +1,561 @@
+{
+ "fictional": true,
+ "notice": "DATOS 100% FICTICIOS - demo hackathon postor-meta-demo (Company Brain). Empresa, personas, clientes, documentos, cifras, RNC, cedulas y telefonos inventados. Cada documento fisico lleva la marca 'DOCUMENTO FICTICIO - MATERIAL DE DEMOSTRACION'.",
+ "dataset_version": "novatech-v1",
+ "company": {
+  "legal_name": "NovaTech Solutions, SRL",
+  "commercial_name": "NovaTech",
+  "country": "DO",
+  "company_type": "SRL",
+  "company_size": "small",
+  "founded": "2020-02-18",
+  "years_in_operation": 6,
+  "employee_count": 12,
+  "rnc_fictional": "131-48271-9",
+  "mercantile_registry": "489231-SD",
+  "rpe_fictional": "882145",
+  "slogan": "Tecnologia que transforma operaciones.",
+  "address": "Av. Tiradentes 456, Naco, Santo Domingo, Rep. Dom.",
+  "phones_fictional": [
+   "809-555-0142",
+   "829-555-0177"
+  ],
+  "email": "info@novatech-demo.do",
+  "website": "www.novatech-demo.do",
+  "operating_currencies": [
+   "DOP",
+   "USD"
+  ],
+  "coverage": "Nacional, con capacidad de trabajo remoto",
+  "verification_level": "self_asserted_demo",
+  "source": "DOC-LEGAL-001, DOC-LEGAL-002, DOC-CORP-001"
+ },
+ "capabilities": [
+  {
+   "id": "software_development",
+   "label": "Desarrollo de software",
+   "verification_level": "documented",
+   "source": "Proyectos PROJECT-001, PROJECT-002, PROJECT-003 + facturas y actas",
+   "relations": [
+    "PROJECT-001",
+    "PROJECT-002",
+    "PROJECT-003"
+   ]
+  },
+  {
+   "id": "it_consulting",
+   "label": "Consultoria IT",
+   "verification_level": "self_asserted_demo",
+   "source": "Perfil corporativo DOC-CORP-001",
+   "relations": [
+    "DOC-CORP-001"
+   ]
+  },
+  {
+   "id": "system_integration",
+   "label": "Integracion de sistemas",
+   "verification_level": "documented",
+   "source": "Proyectos PROJECT-001, PROJECT-002",
+   "relations": [
+    "PROJECT-001",
+    "PROJECT-002"
+   ]
+  },
+  {
+   "id": "mobile_development",
+   "label": "Desarrollo movil",
+   "verification_level": "documented",
+   "source": "Proyecto PROJECT-003",
+   "relations": [
+    "PROJECT-003"
+   ]
+  },
+  {
+   "id": "network_infrastructure",
+   "label": "Infraestructura y redes",
+   "verification_level": "documented",
+   "source": "Proyecto PROJECT-004",
+   "relations": [
+    "PROJECT-004"
+   ]
+  },
+  {
+   "id": "technical_support",
+   "label": "Soporte tecnico",
+   "verification_level": "partially_documented",
+   "source": "Proyecto PROJECT-004 + PROJECT-005 (sin acta de cierre)",
+   "relations": [
+    "PROJECT-004",
+    "PROJECT-005"
+   ]
+  },
+  {
+   "id": "technology_supply",
+   "label": "Suministro tecnologico (via distribuidores)",
+   "verification_level": "self_asserted_demo",
+   "source": "Cotizaciones DOC-QUOT-001..004; sin autorizaciones de fabricante",
+   "relations": [
+    "DOC-QUOT-001",
+    "DOC-QUOT-004"
+   ]
+  },
+  {
+   "id": "cloud_services",
+   "label": "Servicios cloud",
+   "verification_level": "self_asserted_demo",
+   "source": "Perfil corporativo DOC-CORP-001",
+   "relations": [
+    "DOC-CORP-001"
+   ]
+  },
+  {
+   "id": "training",
+   "label": "Capacitacion",
+   "verification_level": "self_asserted_demo",
+   "source": "Alcance de PROJECT-001",
+   "relations": [
+    "PROJECT-001"
+   ]
+  }
+ ],
+ "certifications": {
+  "individual": [
+   {
+    "title": "AWS Certified Solutions Architect - Associate",
+    "holder": "Rafael Eduardo Castillo Nunez",
+    "issuer": "Amazon Web Services",
+    "issued": "2024-04-10",
+    "expires": "2027-04-10",
+    "status": "vigente",
+    "document_id": "DOC-CERT-001",
+    "verification_level": "documented",
+    "source": "DOC-CERT-001"
+   },
+   {
+    "title": "Project Management Professional (PMP)",
+    "holder": "Laura Isabel Mendez Torres",
+    "issuer": "Project Management Institute",
+    "issued": "2024-01-31",
+    "expires": "2027-01-31",
+    "status": "vigente",
+    "document_id": "DOC-CERT-002",
+    "verification_level": "documented",
+    "source": "DOC-CERT-002"
+   },
+   {
+    "title": "Microsoft Certified: Azure Administrator Associate",
+    "holder": "Carla Maria Rosario Diaz",
+    "issuer": "Microsoft",
+    "issued": "2024-09-01",
+    "expires": "2027-09-01",
+    "status": "vigente",
+    "document_id": "DOC-CERT-003",
+    "verification_level": "documented",
+    "source": "DOC-CERT-003"
+   },
+   {
+    "title": "Cisco Certified Network Associate (CCNA)",
+    "holder": "Carlos Daniel Reyes Santana",
+    "issuer": "Cisco",
+    "issued": "2022-06-30",
+    "expires": "2025-06-30",
+    "status": "VENCIDA - brecha deliberada",
+    "document_id": "DOC-CERT-EXP-001",
+    "verification_level": "documented",
+    "source": "DOC-CERT-EXP-001"
+   }
+  ],
+  "manufacturer_authorizations": [],
+  "company_certifications": [],
+  "known_gaps": [
+   "Sin acreditacion Microsoft Solutions Partner ni autorizacion directa de fabricantes (brecha deliberada).",
+   "Sin certificaciones ISO empresariales (brecha deliberada).",
+   "CCNA de Carlos Daniel Reyes Santana VENCIDA el 2025-06-30 (brecha deliberada)."
+  ]
+ },
+ "experience": [
+  {
+   "project_id": "PROJECT-001",
+   "title": "Sistema de Gestion Documental Empresarial",
+   "client_fictional": "Grupo Empresarial del Caribe",
+   "category": "software_development",
+   "contract_value": 2450000,
+   "currency": "DOP",
+   "start": "2024-03-04",
+   "end": "2024-11-20",
+   "technologies": [
+    "Python/Django",
+    "PostgreSQL",
+    "React",
+    "Docker"
+   ],
+   "evidence_document_ids": [
+    "DOC-CONTRACT-001",
+    "DOC-INVOICE-001",
+    "DOC-INVOICE-002",
+    "DOC-ACCEPTANCE-001",
+    "DOC-REF-001"
+   ],
+   "verification_level": "documented",
+   "source": "Expediente del proyecto (DOC-CONTRACT-001, DOC-INVOICE-001, DOC-INVOICE-002, DOC-ACCEPTANCE-001, DOC-REF-001)",
+   "relations": {
+    "capabilities": [
+     "software_development",
+     "system_integration"
+    ],
+    "gap": null
+   }
+  },
+  {
+   "project_id": "PROJECT-002",
+   "title": "Plataforma de Gestion de Inventario",
+   "client_fictional": "Distribuidora Nacional del Este",
+   "category": "software_development",
+   "contract_value": 1850000,
+   "currency": "DOP",
+   "start": "2023-01-16",
+   "end": "2023-09-28",
+   "technologies": [
+    ".NET 7",
+    "SQL Server",
+    "Angular"
+   ],
+   "evidence_document_ids": [
+    "DOC-CONTRACT-002",
+    "DOC-INVOICE-003"
+   ],
+   "verification_level": "partially_documented",
+   "source": "Expediente del proyecto (DOC-CONTRACT-002, DOC-INVOICE-003)",
+   "relations": {
+    "capabilities": [
+     "software_development",
+     "system_integration"
+    ],
+    "gap": "Sin acta de recepcion: existe contrato y factura, pero no hay evidencia formal de aceptacion del cliente."
+   }
+  },
+  {
+   "project_id": "PROJECT-003",
+   "title": "Aplicacion Movil de Servicios",
+   "client_fictional": "Servicios Integrados del Cibao",
+   "category": "software_development",
+   "contract_value": 1200000,
+   "currency": "DOP",
+   "start": "2025-02-10",
+   "end": "2025-10-22",
+   "technologies": [
+    "Flutter",
+    "Firebase",
+    "Node.js"
+   ],
+   "evidence_document_ids": [
+    "DOC-CONTRACT-003",
+    "DOC-INVOICE-004",
+    "DOC-ACCEPTANCE-003",
+    "DOC-REF-002"
+   ],
+   "verification_level": "documented",
+   "source": "Expediente del proyecto (DOC-CONTRACT-003, DOC-INVOICE-004, DOC-ACCEPTANCE-003, DOC-REF-002)",
+   "relations": {
+    "capabilities": [
+     "software_development",
+     "mobile_development"
+    ],
+    "gap": null
+   }
+  },
+  {
+   "project_id": "PROJECT-004",
+   "title": "Infraestructura y Redes",
+   "client_fictional": "Centro Empresarial del Norte",
+   "category": "network_infrastructure",
+   "contract_value": 980000,
+   "currency": "DOP",
+   "start": "2022-05-09",
+   "end": "2022-12-10",
+   "technologies": [
+    "Cisco",
+    "Ubiquiti UniFi",
+    "Wi-Fi 6",
+    "Windows Server"
+   ],
+   "evidence_document_ids": [
+    "DOC-CONTRACT-004",
+    "DOC-INVOICE-005",
+    "DOC-ACCEPTANCE-004"
+   ],
+   "verification_level": "documented",
+   "source": "Expediente del proyecto (DOC-CONTRACT-004, DOC-INVOICE-005, DOC-ACCEPTANCE-004) - alcance Wi-Fi verificado en contrato y acta.",
+   "relations": {
+    "capabilities": [
+     "network_infrastructure",
+     "technical_support"
+    ],
+    "gap": null
+   },
+   "scope_summary": "Instalacion y configuracion de 14 access points Wi-Fi 6, equipos de networking y cableado estructurado, mantenimiento preventivo y documentacion tecnica."
+  },
+  {
+   "project_id": "PROJECT-005",
+   "title": "Soporte y Mantenimiento Tecnologico",
+   "client_fictional": "Soluciones Administrativas del Sur",
+   "category": "technical_support",
+   "contract_value": 720000,
+   "currency": "DOP",
+   "start": "2025-01-06",
+   "end": "2025-12-31",
+   "technologies": [
+    "GLPI",
+    "AnyDesk",
+    "Zabbix"
+   ],
+   "evidence_document_ids": [
+    "DOC-CONTRACT-005",
+    "DOC-INVOICE-006"
+   ],
+   "verification_level": "partially_documented",
+   "source": "Expediente del proyecto (DOC-CONTRACT-005, DOC-INVOICE-006)",
+   "relations": {
+    "capabilities": [
+     "technical_support"
+    ],
+    "gap": "Contrato en curso y factura parcial; sin acta de cierre (servicio vigente hasta dic-2025)."
+   }
+  }
+ ],
+ "financial_profile": {
+  "currency": "DOP",
+  "annual_revenue": {
+   "2024": 8400000,
+   "2025": 10200000
+  },
+  "total_assets": 7500000,
+  "total_liabilities": 2800000,
+  "equity": 4700000,
+  "current_liquidity": 1.8,
+  "simultaneous_capacity": "2-3 proyectos medianos",
+  "source": "DOC-FIN-2024, DOC-FIN-2025",
+  "verification_level": "self_asserted_demo",
+  "relations": {
+   "gap": "Solo ejercicios 2024 y 2025 disponibles; sin historico adicional."
+  },
+  "note": "Un contrato de gran volumen (p. ej. RD$30M) representaria un riesgo financiero considerable para esta empresa."
+ },
+ "team": [
+  {
+   "name": "Miguel Angel Peralta Cruz",
+   "cedula_fictional": "001-0000000-2",
+   "position": "Gerente General",
+   "department": "Direccion",
+   "cv_document_id": null,
+   "verification_level": "self_asserted_demo",
+   "source": "Listado de personal DOC-TEAM-001"
+  },
+  {
+   "name": "Laura Isabel Mendez Torres",
+   "cedula_fictional": "001-0000000-3",
+   "position": "Gerente de Proyectos",
+   "department": "Proyectos",
+   "cv_document_id": "DOC-CV-001",
+   "verification_level": "documented",
+   "source": "DOC-CV-001"
+  },
+  {
+   "name": "Rafael Eduardo Castillo Nunez",
+   "cedula_fictional": "001-0000000-4",
+   "position": "Arquitecto de Software",
+   "department": "Ingenieria",
+   "cv_document_id": "DOC-CV-002",
+   "verification_level": "documented",
+   "source": "DOC-CV-002"
+  },
+  {
+   "name": "Jose Miguel Duarte Pena",
+   "cedula_fictional": "001-0000000-5",
+   "position": "Desarrollador Full-Stack",
+   "department": "Ingenieria",
+   "cv_document_id": "DOC-CV-003",
+   "verification_level": "documented",
+   "source": "DOC-CV-003"
+  },
+  {
+   "name": "Carla Maria Rosario Diaz",
+   "cedula_fictional": "001-0000000-6",
+   "position": "Desarrolladora Full-Stack",
+   "department": "Ingenieria",
+   "cv_document_id": "DOC-CV-004",
+   "verification_level": "documented",
+   "source": "DOC-CV-004"
+  },
+  {
+   "name": "Pedro Luis Vargas Jimenez",
+   "cedula_fictional": "001-0000000-7",
+   "position": "Desarrollador Full-Stack",
+   "department": "Ingenieria",
+   "cv_document_id": null,
+   "verification_level": "self_asserted_demo",
+   "source": "Listado de personal DOC-TEAM-001"
+  },
+  {
+   "name": "Ana Sofia Hernandez Mora",
+   "cedula_fictional": "001-0000000-8",
+   "position": "Desarrolladora Mobile",
+   "department": "Ingenieria",
+   "cv_document_id": null,
+   "verification_level": "self_asserted_demo",
+   "source": "Listado de personal DOC-TEAM-001"
+  },
+  {
+   "name": "Carlos Daniel Reyes Santana",
+   "cedula_fictional": "001-0000000-9",
+   "position": "Ingeniero de Infraestructura",
+   "department": "Infraestructura",
+   "cv_document_id": "DOC-CV-005",
+   "verification_level": "documented",
+   "source": "DOC-CV-005"
+  },
+  {
+   "name": "Mariela Esther Pinales Rojas",
+   "cedula_fictional": "001-0000001-0",
+   "position": "Especialista de Soporte IT",
+   "department": "Soporte",
+   "cv_document_id": null,
+   "verification_level": "self_asserted_demo",
+   "source": "Listado de personal DOC-TEAM-001"
+  },
+  {
+   "name": "Jonathan Rafael Cuevas Lopez",
+   "cedula_fictional": "001-0000001-1",
+   "position": "Especialista de Soporte IT",
+   "department": "Soporte",
+   "cv_document_id": null,
+   "verification_level": "self_asserted_demo",
+   "source": "Listado de personal DOC-TEAM-001"
+  },
+  {
+   "name": "Yocasta Beltran Franco",
+   "cedula_fictional": "001-0000001-2",
+   "position": "Analista de Sistemas",
+   "department": "Proyectos",
+   "cv_document_id": "DOC-CV-006",
+   "verification_level": "documented",
+   "source": "DOC-CV-006"
+  },
+  {
+   "name": "Rosa Amelia Guzman Tapia",
+   "cedula_fictional": "001-0000001-3",
+   "position": "Administracion y Finanzas",
+   "department": "Administracion",
+   "cv_document_id": null,
+   "verification_level": "self_asserted_demo",
+   "source": "Listado de personal DOC-TEAM-001"
+  }
+ ],
+ "suppliers": [
+  {
+   "id": "SUP-001",
+   "name": "TecnoSuministros del Caribe, SRL (ficticio)",
+   "line": "Equipos Dell y Lenovo",
+   "verification_level": "self_asserted_demo",
+   "source": "DOC-QUOT-001..004",
+   "relations": {
+    "quotations": [
+     "DOC-QUOT-001"
+    ],
+    "manufacturer_authorization": null
+   }
+  },
+  {
+   "id": "SUP-002",
+   "name": "Redes y Conectividad RD, SRL (ficticio)",
+   "line": "Networking y telecomunicaciones",
+   "verification_level": "self_asserted_demo",
+   "source": "DOC-QUOT-001..004",
+   "relations": {
+    "quotations": [
+     "DOC-QUOT-002"
+    ],
+    "manufacturer_authorization": null
+   }
+  },
+  {
+   "id": "SUP-003",
+   "name": "Licencias y Software Empresarial LSE, SRL (ficticio)",
+   "line": "Licencias y software empresarial",
+   "verification_level": "self_asserted_demo",
+   "source": "DOC-QUOT-001..004",
+   "relations": {
+    "quotations": [
+     "DOC-QUOT-003"
+    ],
+    "manufacturer_authorization": null
+   }
+  },
+  {
+   "id": "SUP-004",
+   "name": "Componentes y Perifericos CP, SRL (ficticio)",
+   "line": "Componentes y perifericos",
+   "verification_level": "self_asserted_demo",
+   "source": "DOC-QUOT-001..004",
+   "relations": {
+    "quotations": [
+     "DOC-QUOT-004"
+    ],
+    "manufacturer_authorization": null
+   }
+  }
+ ],
+ "compliance": {
+  "dgii": {
+   "status": "al dia (escenario ficticio)",
+   "document_id": "DOC-LEGAL-004",
+   "issued": "2026-10-20",
+   "expires": "2026-11-19",
+   "verification_level": "documented"
+  },
+  "tss": {
+   "status": "al dia (escenario ficticio)",
+   "document_id": "DOC-LEGAL-005",
+   "issued": "2026-10-05",
+   "expires": "2026-12-04",
+   "verification_level": "documented"
+  },
+  "rnc": {
+   "status": "activo (ficticio)",
+   "document_id": "DOC-LEGAL-002",
+   "verification_level": "documented"
+  },
+  "mercantile_registry": {
+   "status": "vigente (ficticio)",
+   "document_id": "DOC-LEGAL-001",
+   "verification_level": "documented"
+  },
+  "rpe": {
+   "status": "activo (ficticio)",
+   "number": "882145",
+   "document_id": "DOC-LEGAL-006",
+   "issued": "2026-01-10",
+   "verification_level": "documented",
+   "source": "DOC-LEGAL-006"
+  }
+ },
+ "known_gaps_summary": [
+  "Sin autorizacion Microsoft partner / fabricantes (NO-GO deliberado para licitaciones de licencias).",
+  "Sin ISO empresariales.",
+  "PROJECT-002 sin acta de recepcion (contrato + factura unicamente).",
+  "PROJECT-005 sin acta de cierre (servicio en curso).",
+  "2 cotizaciones vencidas (DOC-QUOT-002, DOC-QUOT-003).",
+  "1 cotizacion con producto que no cumple especificaciones (DOC-QUOT-004).",
+  "1 certificacion individual vencida (DOC-CERT-EXP-001).",
+  "Estados financieros solo 2024-2025.",
+  "Inventario operativo limitado, sin stock para reventa a gran escala."
+ ],
+ "legal_representative": {
+  "name": "Miguel Angel Peralta Cruz",
+  "cedula_fictional": "001-0000000-2",
+  "position": "Gerente General",
+  "nationality": "Dominicano (ficticio)",
+  "verification_level": "self_asserted_demo",
+  "source": "DOC-LEGAL-001, DOC-LEGAL-003"
+ }
+}

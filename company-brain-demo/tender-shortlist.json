@@ -1,0 +1,610 @@
+{
+  "generated": "2026-11-02 (hora RD)",
+  "note": "Procesos reales publicados en el portal DGCP. Montos y fechas tomados del API de datos abiertos. Los 3 procesos del otro módulo de la demo fueron excluidos.",
+  "tenders": [
+    {
+      "case": "A",
+      "code": "CNE-DAF-CM-2026-0064",
+      "institution": "Comisión Nacional de Energía",
+      "title": "CONTRATACIÓN DE SERVICIOS PROFESIONALES PARA EL DISEÑO DE LA PLATAFORMA DE SERVICIOS EN LINEA EN AZURE Y DESARROLLO DE SOFTWARE O ARQUITECTURA DE SISTEMA PARA ESTA CNE.",
+      "estimated_amount": 2000000,
+      "currency": "DOP",
+      "close_date_rd": "2026-11-05 15:00",
+      "modality": "Contratación Menor",
+      "portal_url": "https://comunidad.comprasdominicana.gob.do/Public/Tendering/OpportunityDetail/Index?noticeUID=DO1.NTC.1793729",
+      "documents": [
+        {
+          "name": "compromiso-etico-de-proveedores (1).docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13954527&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Formulario_Debida_Diligencia.pdf.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13954528&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Politica_Integrada_de_Gestion_Antisoborno_y_Compliance.pdf.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13954529&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F033_Of_Economica (2).docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13954530&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F042_Informacion_Oferente (1).docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13954531&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Acta de inicio.pdf",
+          "type": "Acto de aprobación Especificaciones / Fichas Técnicas / Pliego de Condiciones e Inicio del Procedimiento",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13954532&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Solicitud de compras y contrataciones 046.pdf",
+          "type": "Solicitud Compra o Contratación",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13954533&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Pliego de condiciones.pdf",
+          "type": "Especificaciones/Ficha Técnica",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13954534&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        }
+      ],
+      "rationale": "Desarrollo de software en Azure (plataforma de servicios en línea): objeto 100% dentro de las capacidades de NovaTech (desarrollo web, APIs, cloud); experiencia en 5 proyectos de software + equipo de 12 la respalda -> GO esperado."
+    },
+    {
+      "case": "B",
+      "code": "INDOTEL-DAF-CM-2026-0041",
+      "institution": "Instituto Dominicano de las Telecomunicaciones",
+      "title": "CONTRATACIÓN DEL SERVICIO INTEGRAL DE DESPLIEGUE,  OPERACIÓN, MONITOREO Y MANTENIMIENTO DE PUNTO DE ACCESO WI-FI EN EL  JARDÍN BOTÁNICO DE SANTIAGO",
+      "estimated_amount": 2000000,
+      "currency": "DOP",
+      "close_date_rd": "2026-11-06 14:30",
+      "modality": "Contratación Menor",
+      "portal_url": "https://comunidad.comprasdominicana.gob.do/Public/Tendering/OpportunityDetail/Index?noticeUID=DO1.NTC.1793435",
+      "documents": [
+        {
+          "name": "Estudio_Previo_RD_Conectada__JBotanico_Santiago__FDT_I_000086_26_signed.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13953534&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Memo_relanzamiento_Punto_Wifi_Jardin_Botanico_Santiago_FDT-000115-26_signed.pdf",
+          "type": "Acto de aprobación Especificaciones / Fichas Técnicas / Pliego de Condiciones e Inicio del Procedimiento",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13953535&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_D045_Curriculo_Personal (1).docx",
+          "type": "Currículo Personal Profesional Propuesto",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13953536&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_D049_Experiencia_contratista (4).docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13953537&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F033_Of_Economica.docx",
+          "type": "Oferta Económica (Cotización)",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13953538&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F034_Presentacion_de_Oferta.docx",
+          "type": "Oferta técnica",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13953539&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F042_Informacion_Oferente.docx",
+          "type": "Formulario de Información sobre Oferente",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13953540&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "declaracion-sencilla-persona-juridica.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13953541&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Convocatoria_CD-2026-0041_signed.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13953542&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Pliego Base de Condiciones CM-2026-0041 REV FDT 28.10.2026.pdf",
+          "type": "Especificaciones/Ficha Técnica",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13953543&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Solicitud_de_compra_CM-2026-0041_signed.pdf",
+          "type": "Solicitud Compra o Contratación",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13953544&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        }
+      ],
+      "rationale": "Despliegue/operación/monitoreo/mantenimiento de puntos de acceso Wi-Fi: experiencia relevante (infraestructura y soporte), pero el pliego exige personal con CV (SNCC.D.045) y experiencia del contratista (SNCC.D.049) -> brechas documentales solucionables -> GO con condiciones."
+    },
+    {
+      "case": "C",
+      "code": "UAF-CCC-CP-2026-0007",
+      "institution": "Unidad de Análisis Financiero",
+      "title": "Renovación de Microsoft 365 dirigido a MIPYMES",
+      "estimated_amount": 5700000,
+      "currency": "DOP",
+      "close_date_rd": "2026-11-11 10:00",
+      "modality": "Comparación de Precios",
+      "portal_url": "https://comunidad.comprasdominicana.gob.do/Public/Tendering/OpportunityDetail/Index?noticeUID=DO1.NTC.1793841",
+      "documents": [
+        {
+          "name": "Compromiso ético.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955553&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Especificaciones técnicas.pdf",
+          "type": "Especificaciones/Ficha Técnica",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955554&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Estudios previos.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955555&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Pliego de condiciones.pdf",
+          "type": "Pliego de Condiciones",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955556&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Recomendación de peritos.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955557&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Requerimiento interno.pdf",
+          "type": "Solicitud Compra o Contratación",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955558&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Solicitud de compra OAI.pdf",
+          "type": "Solicitud Compra o Contratación",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955559&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Acta de inicio.pdf",
+          "type": "Acto de Aprobación de las bases de la contratación (Especificaciones / Fichas Técnicas / Pliego de Condiciones) ",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955560&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Acta de inicio.pdf",
+          "type": "Acto de Aprobación de la modalidad de contratación y selección de los peritos",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955561&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "DG-MA-01 V06 Código de  Integridad y Conducta (22-07-2026).pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955562&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Gestión de Canales de Denuncias.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955563&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "PD-PO-03 V03 Declaración de la Política del Sistema de Gestión Integrado (23-06-2026).pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955564&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_D049_Experiencia_contratista.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955565&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F033_Of_Economica.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955566&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F034_Presentacion_de_Oferta.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955567&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F042_Informacion_Oferente.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955568&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCCP-PROV-F-040- Formulario debida diligencia y conflicto de interes-UAF. Beneficiario Final.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955569&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Declaración de Compromiso Ético y Antisoborno de Oferentes - Aprobado 13.07.2026.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955570&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "declaracion-sencilla-persona-juridica.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955571&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Modelo Certificación de oferta libre de colusión.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955572&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "MODELO DE CONTRATO DE EJECUCIÓN DE SERVICIOS.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955573&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_D043_Experiencia_Consultor.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955574&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Aprobación OGTIC.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13955575&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        }
+      ],
+      "rationale": "Renovación de Microsoft 365 (proceso dirigido a MIPYMES): vender/renovar licencias Microsoft exige canal autorizado; NovaTech declara NO ser Microsoft Partner y 0 cartas de autorización de fabricante -> bloqueo obligatorio -> NO-GO esperado."
+    },
+    {
+      "case": "D",
+      "code": "ISFODOSU-CCC-LPN-2026-0003",
+      "institution": "Instituto Superior de Formación Docente Salomé Ureña",
+      "title": "REC - Adquisición, Instalación y Configuración de Equipos de Red y Seguridad Informática para la Actualización y Continuidad del Sistema WI-FI Institucional",
+      "estimated_amount": 8743800,
+      "currency": "DOP",
+      "close_date_rd": "2026-11-10 09:00",
+      "modality": "Licitación Pública Nacional",
+      "portal_url": "https://comunidad.comprasdominicana.gob.do/Public/Tendering/OpportunityDetail/Index?noticeUID=DO1.NTC.1774807",
+      "documents": [
+        {
+          "name": "2. Pliego de condiciones _ocred.pdf",
+          "type": "Especificaciones/Ficha Técnica",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653177&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "1. Acta de inicio_ocred.pdf",
+          "type": "Acto de Aprobación de la modalidad de contratación y selección de los peritos",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653178&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "3. Compromiso Etico_ocred.pdf",
+          "type": "Acto de Aprobación de las bases de la contratación (Especificaciones / Fichas Técnicas / Pliego de Condiciones) ",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653179&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "compromiso-etico-de-proveedores.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653180&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "DECLARACION JURADA PERSONAS JURIDICAS OFERTA ECONOMICA (1).docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653181&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Formulario de aceptación Política contra el Acoso la Violencia y la Discriminación .docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653182&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Formulario debida diligencia y conflicto de interes.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653183&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "POLITICA DE ACOSO VIOLENCIA Y DISCRIMINACIÓN.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653184&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Recibido de codigo de etica.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653185&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC.D.048_-_Experiencia_Profesional_Personal.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653186&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_D049_Experiencia_contratista.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653187&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F033_Of_Economica (1).docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653188&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F034_Presentacion_de_Oferta (1).docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653189&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F042_Informacion_Oferente.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653190&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "LICITACIÓN PÚBLICA NACIONAL (LPN) - BIENES.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653191&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "0. Solicitud de Compra.docx_ocred.pdf",
+          "type": "Solicitud Compra o Contratación",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653192&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "4. Dcitamen Juridico_ocred.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653193&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "6. Convocatoria _ocred.pdf",
+          "type": "Acta simple Máxima Autoridad Ejecutiva autorizando el Proceso",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13653194&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Aprobación OGTIC.pdf",
+          "type": null,
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13896999&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Correo Estudio de Mercado.pdf",
+          "type": null,
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13897000&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Informe Aprob OGTIC .pdf",
+          "type": null,
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13897001&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "10. Respuesta CCC a Monitoreo DGCP.pdf",
+          "type": null,
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13897002&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "11. Informe monitoreo DGCP.pdf",
+          "type": null,
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13897003&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "14. Circular de enmienda 001.pdf",
+          "type": null,
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13900617&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        }
+      ],
+      "rationale": "Adquisición, instalación y configuración de equipos de red y seguridad (APs + switch PoE, RD$8.7M): suministro vía distribuidores; hay que verificar garantías, capacidad financiera para el volumen y condiciones de representación -> revisión."
+    },
+    {
+      "case": "ALT-B",
+      "code": "EDEESTE-CCC-LPN-2026-0012",
+      "institution": "Empresa Distribuidora de Electricidad del Este, S.A.",
+      "title": "Contratación del Servicio de Renovación de Soporte y Mantenimiento de los Switches Principales del Data Center.",
+      "estimated_amount": 7360346.64,
+      "currency": "DOP",
+      "close_date_rd": "2026-12-09 12:00",
+      "modality": "Licitación Pública Nacional",
+      "portal_url": "https://comunidad.comprasdominicana.gob.do/Public/Tendering/OpportunityDetail/Index?noticeUID=DO1.NTC.1788875",
+      "documents": [
+        {
+          "name": "CERTIFICACION DE APROPIACION PRESUPUESTARIA CCC-LPN-2026-0012.pdf",
+          "type": "Certificado de Apropiación Presupuestaria",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907412&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "informe justificativo.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907413&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "1.Reque.pdf",
+          "type": "Especificaciones/Ficha Técnica",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907414&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "2.ficha tecnica.pdf",
+          "type": "Especificaciones/Ficha Técnica",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907415&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Conv.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907416&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "CONSTANCIA COMPROMISO CON CODIGO DE ETICA.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907417&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Declaracion Jurada de Libre Colusion.docx",
+          "type": "Declaración Original Simple",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907418&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Declaracion Jurada Simple actualizada..docx",
+          "type": "Declaración Original Simple",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907419&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Declaración Oferta Libre de Colusión.docx",
+          "type": "Declaración Original Simple",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907420&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "declaracion-sencilla-personas-naturales.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907421&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "DO1_CDOC_3338273_Codigo-de-Etica-EDEESTE-1.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907422&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Form. Informacion sobre el oferente.docx",
+          "type": "Formulario de Información sobre Oferente",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907423&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Form. presentacion de oferta.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907424&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Oferta Economica.docx",
+          "type": "Oferta Económica (Cotización)",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907425&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "RE-CC-FR-007 V0 Formulario Debida Diligencia.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907426&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Solicitud de compra.pdf",
+          "type": "Solicitud Compra o Contratación",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907427&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "PLIEGO LPN-2026-0012.pdf",
+          "type": "Pliego de Condiciones",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907428&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Acto_de_inicio.pdf",
+          "type": "Acto de aprobación Especificaciones / Fichas Técnicas / Pliego de Condiciones e Inicio del Procedimiento",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907429&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Acto_de_inicio.pdf",
+          "type": "Acto de Aprobación de la modalidad de contratación y selección de los peritos",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907430&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Diario Libre.pdf",
+          "type": "Publicación en periódicos de circulación nacional",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907431&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Lisitin Diario.pdf",
+          "type": "Publicación en periódicos de circulación nacional",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907432&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Acto_de_inicio.pdf",
+          "type": "Acto de Aprobación de las bases de la contratación (Especificaciones / Fichas Técnicas / Pliego de Condiciones) ",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907433&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Borrador de Contrato - EDEESTE-CCC-LPN-2026-0012.docx",
+          "type": "Contrato",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907434&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "informe justificativo.pdf",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13907435&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        }
+      ],
+      "rationale": "Alterno de B: renovación de soporte/mantenimiento de switches Cisco principales (LPN, RD$7.36M, cierra 9 dic): soporte de fabricante específico; útil si el pliego exige partner Cisco -> puede virar a NO-GO, buen caso de prueba de criterio."
+    },
+    {
+      "case": "ALT-D",
+      "code": "SISALRIL-CCC-CP-2026-0007",
+      "institution": "Superintendencia de Salud y Riesgos Laborales",
+      "title": " Adquisición de Switch para uso de la Superintendencia de Salud y Riesgos Laborales.",
+      "estimated_amount": 4100000,
+      "currency": "DOP",
+      "close_date_rd": "2026-11-05 14:00",
+      "modality": "Comparación de Precios",
+      "portal_url": "https://comunidad.comprasdominicana.gob.do/Public/Tendering/OpportunityDetail/Index?noticeUID=DO1.NTC.1790747",
+      "documents": [
+        {
+          "name": "7-FM-AD36-No.2 Compromiso Ético.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935061&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "Acuerdo_Confidencialidad_Proveedores_SISALRIL 20.03.2026.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935062&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "contrato-ejecucion-de-bienes (2).docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935063&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F033_Of_Economica.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935064&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F034_Presentacion_de_Oferta.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935065&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "SNCC_F042_Informacion_Oferente.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935066&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "8-FM-AD38-Rev. 1 Debida Diligencia.docx",
+          "type": "Otro",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935067&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "8.ACTA DE INICIO - SISALRIL-CCC-CP-2026-0007- Adquisicion switch.pdf",
+          "type": "Acto de Aprobación de la modalidad de contratación y selección de los peritos",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935068&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "1.Req. Interno Switch..pdf",
+          "type": "Especificaciones/Ficha Técnica",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935069&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "2.Especificaciones Tecnicas Switch.pdf",
+          "type": "Especificaciones/Ficha Técnica",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935070&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "5.Solicitud de Compras - Switch..pdf",
+          "type": "Solicitud Compra o Contratación",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935071&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "6.APROPIACION_SISALRIL-CCC-CP-2026-0007_SWITCH.pdf",
+          "type": "Certificado de Apropiación Presupuestaria",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935072&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "9.Pliego de Condiciones Switch- SISALRIL-CCC-CP-2026-0007.28.10.26..pdf",
+          "type": "Especificaciones/Ficha Técnica",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935073&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        },
+        {
+          "name": "10.Convocatoria Switch- SISALRIL-CCC-CP-2026-0007.28.10.26..pdf",
+          "type": "Acto de Aprobación de las bases de la contratación (Especificaciones / Fichas Técnicas / Pliego de Condiciones) ",
+          "url": "https://comunidad.comprasdominicana.gob.do/Public/Archive/RetrieveFile/Index?DocumentId=13935074&InCommunity=False&InPaymentGateway=False&DocUniqueIdentifier="
+        }
+      ],
+      "rationale": "Alterno de D: adquisición de switches 24/48 puertos (CP, RD$4.1M, cierra 5 nov): suministro puro de equipos de red con ficha técnica detallada -> caso de revisión más simple y barato."
+    }
+  ]
+}

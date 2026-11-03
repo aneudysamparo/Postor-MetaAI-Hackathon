@@ -1,0 +1,14 @@
+{
+ "case": "B",
+ "code": "INDOTEL-DAF-CM-2026-0041",
+ "institution": "Instituto Dominicano de las Telecomunicaciones",
+ "title": "Servicio integral de despliegue, operacion, monitoreo y mantenimiento de puntos Wi-Fi (Jardin Botanico Santiago)",
+ "estimated_amount_dop": 2000000,
+ "close_date_rd": "2026-11-06 14:30",
+ "modality": "Contratacion Menor",
+ "portal_url": "https://comunidad.comprasdominicana.gob.do/Public/Tendering/OpportunityDetail/Index?noticeUID=DO1.NTC.1793435",
+ "design_scenario": "GO_WITH_CONDITIONS",
+ "source": "Portal DGCP (documentos originales, sin modificar)",
+ "file_count": 11,
+ "notes": "Caso condicional: 2 brechas subsanables (cert. cableado estructurado, carta del fabricante Wi-Fi)."
+}
