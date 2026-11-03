@@ -133,6 +133,7 @@ export interface RunArtifacts {
   assessment: OpportunityAssessment | null;
   requirements: TenderRequirement[];
   contradictions: string[];
+  failedWindows: { fileName: string; startPage: number; endPage: number; error: string }[];
   findings: ComplianceFinding[];
   verdict: ComplianceVerdict | null;
   financials: FinancialCheck | null;
@@ -246,10 +247,11 @@ function dataOf<T>(artifacts: Artifact[], type: string): T | null {
 
 // Flattens the artifact list into the shape the tabs read.
 export function readArtifacts(artifacts: Artifact[]): RunArtifacts {
-  const requirements = dataOf<{ requirements?: TenderRequirement[]; contradictions?: string[] }>(
-    artifacts,
-    'requirements',
-  );
+  const requirements = dataOf<{
+    requirements?: TenderRequirement[];
+    contradictions?: string[];
+    failedWindows?: RunArtifacts['failedWindows'];
+  }>(artifacts, 'requirements');
   const compliance = dataOf<{
     findings?: ComplianceFinding[];
     verdict?: ComplianceVerdict;
@@ -274,6 +276,7 @@ export function readArtifacts(artifacts: Artifact[]): RunArtifacts {
     assessment: dataOf<OpportunityAssessment>(artifacts, 'opportunity_assessment'),
     requirements: requirements?.requirements ?? [],
     contradictions: requirements?.contradictions ?? [],
+    failedWindows: requirements?.failedWindows ?? [],
     findings: compliance?.findings ?? [],
     verdict: compliance?.verdict ?? null,
     financials: compliance?.financials ?? null,

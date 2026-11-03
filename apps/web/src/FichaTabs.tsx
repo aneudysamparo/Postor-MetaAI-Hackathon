@@ -174,67 +174,81 @@ export function RequirementsTab({
     artifacts.findings.map((finding) => [finding.requirementId, finding]),
   );
   return (
-    <Section title={`${artifacts.requirements.length} requisitos extraídos del pliego y enmiendas`}>
-      <table>
-        <thead>
-          <tr>
-            <th>Requisito</th>
-            <th>Tipo</th>
-            <th>Estado</th>
-            <th>Fuente</th>
-            <th>Nota</th>
-          </tr>
-        </thead>
-        <tbody>
-          {artifacts.requirements.map((requirement) => {
-            const finding = findingById.get(requirement.id);
-            const artifactId = artifacts.requirementsArtifactId;
-            return (
-              <tr key={requirement.id}>
-                <td>
-                  {requirement.title}{' '}
-                  {requirement.mandatory && <Chip tone="neutral">obligatorio</Chip>}
-                </td>
-                <td>{CATEGORY_LABELS[requirement.category] ?? requirement.category}</td>
-                <td>
-                  {finding !== undefined ? (
-                    <StatusChip status={finding.status} />
-                  ) : (
-                    <Chip tone="neutral">sin evaluar</Chip>
-                  )}
-                </td>
-                <td>
-                  {artifactId !== null && (
-                    <button
-                      className="link"
-                      onClick={() =>
-                        onOpenEvidence({
-                          kind: 'requirement',
-                          artifactId,
-                          evidenceId: requirement.source.evidenceId,
-                          title: requirement.title,
-                          originalText: requirement.originalText,
-                        })
-                      }
-                    >
-                      pliego p{requirement.source.page}
-                    </button>
-                  )}
-                </td>
-                <td className="muted">
-                  {finding?.reason ?? requirement.plainExplanation}
-                  {finding !== undefined && finding.companyEvidenceIds.length > 0 && (
-                    <div>
-                      <code>{finding.companyEvidenceIds.join(', ')}</code>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </Section>
+    <>
+      {artifacts.failedWindows.length > 0 && (
+        <p className="banner">
+          Páginas no leídas por el analista (el modelo no devolvió un resultado válido tras
+          reintentar):{' '}
+          {artifacts.failedWindows
+            .map((window) => `${window.fileName} pp. ${window.startPage}–${window.endPage}`)
+            .join('; ')}
+          . Revísalas a mano: que no aparezcan requisitos ahí no significa que no existan.
+        </p>
+      )}
+      <Section
+        title={`${artifacts.requirements.length} requisitos extraídos del pliego y enmiendas`}
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Requisito</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th>Fuente</th>
+              <th>Nota</th>
+            </tr>
+          </thead>
+          <tbody>
+            {artifacts.requirements.map((requirement) => {
+              const finding = findingById.get(requirement.id);
+              const artifactId = artifacts.requirementsArtifactId;
+              return (
+                <tr key={requirement.id}>
+                  <td>
+                    {requirement.title}{' '}
+                    {requirement.mandatory && <Chip tone="neutral">obligatorio</Chip>}
+                  </td>
+                  <td>{CATEGORY_LABELS[requirement.category] ?? requirement.category}</td>
+                  <td>
+                    {finding !== undefined ? (
+                      <StatusChip status={finding.status} />
+                    ) : (
+                      <Chip tone="neutral">sin evaluar</Chip>
+                    )}
+                  </td>
+                  <td>
+                    {artifactId !== null && (
+                      <button
+                        className="link"
+                        onClick={() =>
+                          onOpenEvidence({
+                            kind: 'requirement',
+                            artifactId,
+                            evidenceId: requirement.source.evidenceId,
+                            title: requirement.title,
+                            originalText: requirement.originalText,
+                          })
+                        }
+                      >
+                        pliego p{requirement.source.page}
+                      </button>
+                    )}
+                  </td>
+                  <td className="muted">
+                    {finding?.reason ?? requirement.plainExplanation}
+                    {finding !== undefined && finding.companyEvidenceIds.length > 0 && (
+                      <div>
+                        <code>{finding.companyEvidenceIds.join(', ')}</code>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </Section>
+    </>
   );
 }
 
