@@ -25,7 +25,8 @@ DGCP tenders resolving to 4 verdicts: GO, GO_WITH_CONDITIONS, NO_GO, NEEDS_REVIE
 2. Pick the next `pending` task in order; mark `in_progress`.
 3. Analyze it against the cited docs, implement, run its validation.
 4. Mark `done`, append a session-log entry (done + validation evidence + next).
-5. New window / compacted context: steps 1–4 are the entire handoff.
+5. Commit the task on its own: one commit per implementation, named files only.
+6. New window / compacted context: steps 1–5 are the entire handoff.
 
 ## Stack (locked)
 
