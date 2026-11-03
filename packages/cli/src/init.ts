@@ -5,6 +5,7 @@
 //   --db=auto|postgres|sqlite   database branch (default auto)
 //   --check                     validate only, change nothing
 //   --force                     recreate the disposable database
+//   --offline                   no Meta key: recorded demo runs only (no smoke test)
 //   --json                      machine-readable report
 import {
   copyFileSync,
@@ -238,10 +239,11 @@ async function runSmokeTest(paths: RepoPaths, fileEnv: Record<string, string>): 
 function printUsage(): void {
   console.log(
     [
-      'Usage: npm run init -- [--db=auto|postgres|sqlite] [--check] [--force] [--json]',
+      'Usage: npm run init -- [--db=auto|postgres|sqlite] [--check] [--force] [--offline] [--json]',
       '  --db      database branch (default auto: postgres with Docker, else sqlite)',
       '  --check   validate only, change nothing',
       '  --force   recreate the disposable database',
+      '  --offline no Meta key: load the recorded demo runs; live analysis needs a key',
       '  --json    machine-readable report',
     ].join('\n'),
   );
@@ -259,6 +261,7 @@ async function main(): Promise<void> {
   const jsonOutput = hasFlag(argv, '--json');
   const checkOnly = hasFlag(argv, '--check');
   const force = hasFlag(argv, '--force');
+  const offline = hasFlag(argv, '--offline');
   const dbFlag = readOption(argv, 'db') ?? 'auto';
 
   // Read-only probes first: cheap failures before any writes.
@@ -308,6 +311,11 @@ async function main(): Promise<void> {
   }
 
   const keyOk = await runner.runStep('meta-key-gate', () => {
+    // Offline (judges without the key): everything except live analysis
+    // works on the recorded runs imported below.
+    if (offline) {
+      return 'offline: key not required (recorded demo runs only; live analysis disabled)';
+    }
     if (effectiveKey.length === 0) {
       throw new Error(
         'META_API_KEY is empty: request the demo key from the team, paste it into .env, and re-run.',
@@ -369,6 +377,24 @@ async function main(): Promise<void> {
     return finish(runner, startedAt, paths, jsonOutput, dbMode);
   }
 
+  // Recorded runs (data/demo-runs/snapshot.json): real past analyses so the
+  // feed, ficha, evidence and trace are explorable right away. Idempotent.
+  await runner.runStep('demo-runs', async () => {
+    const snapshot = join(paths.root, 'data', 'demo-runs', 'snapshot.json');
+    if (!existsSync(snapshot)) {
+      return 'no recorded runs shipped (skipped)';
+    }
+    const cli = join(paths.root, 'apps', 'api', 'dist', 'demo', 'demo-cli.js');
+    await runCommand('node', [cli, 'import', snapshot], {
+      cwd: paths.root,
+      env: mergedEnv(paths),
+      timeoutMs: BUILD_TIMEOUT_MS,
+    });
+    return 'recorded demo runs imported';
+  });
+  if (offline) {
+    return finish(runner, startedAt, paths, jsonOutput, dbMode);
+  }
   await runner.runStep('smoke-test', () => runSmokeTest(paths, fileEnv));
   return finish(runner, startedAt, paths, jsonOutput, dbMode);
 }

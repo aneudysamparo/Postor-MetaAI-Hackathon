@@ -19,7 +19,9 @@
     "brain:load": "tsx packages/cli/src/brain-load.ts",
     "init": "tsx packages/cli/src/init.ts",
     "demo:init": "tsx packages/cli/src/init.ts",
-    "doctor": "tsx packages/cli/src/doctor.ts"
+    "doctor": "tsx packages/cli/src/doctor.ts",
+    "demo:export": "node apps/api/dist/demo/demo-cli.js export",
+    "demo:import": "node apps/api/dist/demo/demo-cli.js import"
   },
   "devDependencies": {
     "eslint": "^9.18.0",

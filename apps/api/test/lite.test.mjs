@@ -104,3 +104,25 @@ describe('demo reset visibility', async () => {
     assert.equal(isRunVisible(markers, 'opp1', new Date('2026-11-03T13:00:00Z')), true);
   });
 });
+
+describe('demo snapshot id remap', async () => {
+  const { remapIds } = await import('../dist/demo/demo-snapshot.js');
+
+  it('rewrites every occurrence of machine-local ids', () => {
+    const map = new Map([
+      ['cmw06qmjy002ryi0j11orkl4v', 'cmlocal0000000000000doc01'],
+      ['cmw06q7nv0000yi0ju58laiwp', 'cmlocal0000000000000opp01'],
+    ]);
+    const serialized = JSON.stringify({
+      opportunityId: 'cmw06q7nv0000yi0ju58laiwp',
+      requirement: {
+        id: 'cmw06qmjy002ryi0j11orkl4v-p10-RD-01',
+        documentId: 'cmw06qmjy002ryi0j11orkl4v',
+      },
+    });
+    const remapped = JSON.parse(remapIds(serialized, map));
+    assert.equal(remapped.opportunityId, 'cmlocal0000000000000opp01');
+    assert.equal(remapped.requirement.id, 'cmlocal0000000000000doc01-p10-RD-01');
+    assert.equal(remapped.requirement.documentId, 'cmlocal0000000000000doc01');
+  });
+});
