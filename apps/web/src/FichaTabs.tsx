@@ -577,6 +577,36 @@ function CallDetails({ call, index }: { call: ModelCall; index: number }): JSX.E
   );
 }
 
+// Model family for the color legend shared with "Cómo funciona".
+function modelFamily(model: string): string {
+  const lower = model.toLowerCase();
+  if (lower.includes('wonder')) {
+    return 'wonder';
+  }
+  if (lower.includes('sam')) {
+    return 'sam';
+  }
+  if (lower.includes('prompt-guard')) {
+    return 'guard';
+  }
+  return 'spark';
+}
+
+function modelUsage(trace: TraceResponse): { model: string; family: string; calls: number }[] {
+  const counts = new Map<string, number>();
+  for (const agentRun of trace.agentRuns) {
+    for (const call of agentRun.modelCalls) {
+      const model = call.modelReturned ?? call.modelRequested;
+      counts.set(model, (counts.get(model) ?? 0) + 1);
+    }
+  }
+  return [...counts.entries()].map(([model, calls]) => ({
+    model,
+    family: modelFamily(model),
+    calls,
+  }));
+}
+
 // AgentRun rows say "ok"; the shared chip vocabulary says "completed".
 function agentRunStatus(status: string): string {
   if (status === 'ok') {
@@ -605,6 +635,15 @@ export function TraceTab({ trace }: { trace: TraceResponse }): JSX.Element {
             ', tarifas de referencia — configúralas en .env'}
           )
         </p>
+      </Section>
+      <Section title="Modelos que actuaron en esta corrida">
+        <div className="lane-tags">
+          {modelUsage(trace).map((usage) => (
+            <span key={usage.model} className={`model-tag model-${usage.family}`}>
+              {usage.model} · {usage.calls} llamada(s)
+            </span>
+          ))}
+        </div>
       </Section>
       <Section title="Pasos del pipeline (agente, hora, modelo)">
         <ol className="trace">

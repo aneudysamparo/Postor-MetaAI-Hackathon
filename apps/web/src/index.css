@@ -521,3 +521,92 @@ label.check {
   border-radius: 8px;
   font-size: 14px;
 }
+
+.lanes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 14px 0;
+}
+.lane {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.lane-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.lane-step {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.lane-step-title {
+  font-weight: 650;
+  margin-bottom: 2px;
+}
+.lane-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.model-tag {
+  font-size: 12px;
+  font-weight: 650;
+  padding: 2px 9px;
+  border-radius: 20px;
+  border: 1px solid;
+}
+.model-spark {
+  background: #e4eefb;
+  color: #10294d;
+  border-color: #1d5fb8;
+}
+.model-wonder {
+  background: #efe7fb;
+  color: #2a1050;
+  border-color: #6b3fb8;
+}
+.model-sam {
+  background: #fde7f1;
+  color: #5a0a2c;
+  border-color: #e11d74;
+}
+.model-guard {
+  background: #e3f2e9;
+  color: #0b3a1d;
+  border-color: #1c7a3d;
+}
+.model-code {
+  background: #f2f2f2;
+  color: #222;
+  border-color: #777;
+}
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.model-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+.model-card p {
+  margin: 0;
+  font-size: 13.5px;
+}
+@media (max-width: 860px) {
+  .lanes {
+    grid-template-columns: 1fr;
+  }
+}

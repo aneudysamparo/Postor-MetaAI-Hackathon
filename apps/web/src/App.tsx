@@ -4,13 +4,16 @@ import { AccessGate } from './AccessGate';
 import { CompanyBrainView } from './CompanyBrainView';
 import { Feed } from './Feed';
 import { Ficha } from './Ficha';
+import { HowItWorks } from './HowItWorks';
 
 // Routes (Spanish, like the UI labels):
 //   /oportunidades                      feed
 //   /oportunidades/:code/:tab?          ficha of one tender, tab in the URL
 //   /company-brain                      company profile
+//   /como-funciona                      the pipeline and its Meta models
 export const OPPORTUNITIES_PATH = '/oportunidades';
 export const COMPANY_BRAIN_PATH = '/company-brain';
+export const HOW_IT_WORKS_PATH = '/como-funciona';
 
 function navClass({ isActive }: { isActive: boolean }): string {
   if (isActive) {
@@ -36,6 +39,9 @@ function Shell({ userKeyRequired }: { userKeyRequired: boolean }): JSX.Element {
           <NavLink to={COMPANY_BRAIN_PATH} className={navClass}>
             Company Brain
           </NavLink>
+          <NavLink to={HOW_IT_WORKS_PATH} className={navClass}>
+            Cómo funciona
+          </NavLink>
         </nav>
         <p className="side-foot">
           Licitaciones reales del portal DGCP · empresa ficticia (NovaTech, DEMO) · la oferta la
@@ -55,6 +61,7 @@ function Shell({ userKeyRequired }: { userKeyRequired: boolean }): JSX.Element {
             element={<Ficha userKeyRequired={userKeyRequired} />}
           />
           <Route path={COMPANY_BRAIN_PATH} element={<CompanyBrainView />} />
+          <Route path={HOW_IT_WORKS_PATH} element={<HowItWorks />} />
           <Route path="*" element={<Navigate to={OPPORTUNITIES_PATH} replace />} />
         </Routes>
       </main>
