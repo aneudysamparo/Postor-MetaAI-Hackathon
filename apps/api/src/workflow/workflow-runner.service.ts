@@ -69,6 +69,8 @@ function loadLiteDocCodes(): string[] {
 }
 const FIRST_ATTEMPT = 1;
 const COST_SUMMARY_DECIMALS = 6;
+// 30 minutes without any workflow event: far beyond the slowest model call.
+const STALE_RUN_MS = 1_800_000;
 const INTERRUPTED_REASON = 'Interrupted: the API process stopped while this run was executing.';
 
 // BidOrchestrator (TECH section 8): runs the agent pipeline for one tender,
@@ -131,14 +133,30 @@ export class WorkflowRunner {
     return run;
   }
 
-  // Runs execute in-process, so any run still queued/running when the API
-  // boots lost its executor (process killed or restarted). They are closed
-  // as failed with an explicit event instead of showing "running" forever.
+  // Runs execute in-process, so a run still queued/running when the API
+  // boots usually lost its executor (process killed or restarted). Stale
+  // ones are closed as failed with an explicit event instead of showing
+  // "running" forever.
   public async recoverInterruptedRuns(): Promise<number> {
-    const orphans = await this.prisma.workflowRun.findMany({
+    const candidates = await this.prisma.workflowRun.findMany({
       where: { status: { in: [WORKFLOW_STATUS.QUEUED, WORKFLOW_STATUS.RUNNING] } },
-      select: { id: true },
+      select: { id: true, startedAt: true },
     });
+    // Another process (a CLI check, a second API) may legitimately be
+    // executing a run, so only runs silent for longer than any single model
+    // call could take are treated as orphans.
+    const staleBefore = Date.now() - STALE_RUN_MS;
+    const orphans: { id: string }[] = [];
+    for (const candidate of candidates) {
+      const lastEvent = await this.prisma.workflowEvent.findFirst({
+        where: { workflowId: candidate.id },
+        orderBy: { createdAt: 'desc' },
+      });
+      const lastActivity = lastEvent?.createdAt ?? candidate.startedAt;
+      if (lastActivity.getTime() < staleBefore) {
+        orphans.push(candidate);
+      }
+    }
     for (const orphan of orphans) {
       await this.prisma.workflowRun.update({
         where: { id: orphan.id },
