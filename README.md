@@ -37,15 +37,45 @@ response received, tokens, duration, and cost estimate. No black boxes.
 
 ## Quickstart (judges)
 
+Requirements: Node 22+ (`.nvmrc`), npm. Docker is optional (Postgres); without
+it everything runs on a disposable local SQLite database.
+
 ```bash
 npm install
-npm run seed      # validates the dataset, prepares local storage, prints a readiness report (offline)
-npm run dev       # API + web
+cp .env.example .env            # paste META_API_KEY (handed over by the team)
+npm run init -- --db=sqlite     # builds, loads data + Company Brain, live smoke test, readiness report
+npm run dev                     # API on :3000 + web on http://localhost:5173
 ```
 
-Then: open Opportunities → pick a case → **Analyze & Prepare Bid** → watch the
-agents → open Results and the Trace. `npm run seed` is idempotent and makes no
-model calls; live runs need `META_API_KEY` in `.env` (see `.env.example`).
+Then: **Oportunidades** → pick a case → **Ver ficha** → **▶ Correr análisis en
+vivo** and watch each agent step complete (real 2 s polling, no fake
+animations). When it finishes, walk the tabs: Análisis (verdict, conditions
+with owner + deadline), Requisitos (click any `pliego pN` to open the cited
+page of the original PDF), Productos/Costos (prices only from company
+quotations), **Traza** (every model call: prompt sent, response, tokens,
+duration, estimated cost), Formularios/Documentos (filled SNCC forms and the
+tender's own F.033, downloadable after human validation).
+
+`npm run seed` validates the dataset offline (no key, no model calls);
+`npm run doctor` diagnoses the environment. Tests: `npm test`.
+
+## What runs where
+
+| Step                            | Agent / module                                                                              | Model                         |
+| ------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------- |
+| Load tender + company           | orchestrator, `documents/` (per-page quality: text/mixed/scanned)                           | —                             |
+| Opportunity fit                 | Opportunity agent                                                                           | `muse-spark-1.3`              |
+| Requirements with page evidence | Tender Analyst (12-page windows, 4 in parallel)                                             | `muse-spark-1.3`              |
+| Scanned pages                   | Visual reader: page render → `sam-3.1` region step → vision read                            | `sam-3.1`* + `muse-spark-1.3` |
+| Requirement × Company Brain     | Compliance agent + **deterministic** verdict and financial ratios                           | `muse-spark-1.3`              |
+| Item prices                     | Research & Pricing + deterministic guard (price must literally appear in a valid quotation) | `muse-spark-1.3`              |
+| Proposal draft                  | Bid Writer → Bid Reviewer → one correction round → re-review                                | `muse-spark-1.3`              |
+| Bid package                     | SNCC forms + the tender's own F.033 filled, `[PENDING]` where unknown                       | —                             |
+
+\* `sam-3.1` segmentation is wired behind a fail-closed interface: its
+region-box contract could not be verified on the hackathon account, so the
+trace records the gap and pages are read whole and cited by page number —
+never with invented coordinates.
 
 ## Repository layout
 
@@ -70,6 +100,5 @@ an external procurement API behind the same `TenderSource` interface.
 
 ## Status
 
-Active hackathon build, executed task-by-task from an internal roadmap. The
-`EXECUTION-SUMMARY.md` published at the end reports what worked, per-agent
-timings, and what remained out of scope.
+Hackathon build (Oct 26 – Nov 4, 2026). See [`EXECUTION-SUMMARY.md`](EXECUTION-SUMMARY.md)
+for live results per case, per-agent timings, and what remained out of scope.
