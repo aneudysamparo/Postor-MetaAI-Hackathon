@@ -32,7 +32,7 @@ export class ComplianceAgent extends BaseAgent<ComplianceAgentInput, ComplianceO
   protected readonly agentName = 'compliance';
   protected readonly agentRole = 'Compliance Agent';
   protected readonly taskName = 'evaluate';
-  protected readonly promptVersion = 'compliance-v1';
+  protected readonly promptVersion = 'compliance-v2';
   protected readonly outputSchema = ComplianceOutputSchema;
 
   public constructor(metaModel: MetaModelService) {
@@ -74,8 +74,21 @@ export class ComplianceAgent extends BaseAgent<ComplianceAgentInput, ComplianceO
       '- An expired document (see warnings) cannot prove current compliance.',
       '- When two sources disagree, say so in the reason; never pick silently.',
       '- blocker is true ONLY when the gap cannot be closed before the tender',
-      '  closes (for example a missing manufacturer authorization the tender',
-      '  demands as admissibility). A gap fixable in time is never a blocker.',
+      '  closes. A gap fixable in time is never a blocker. Decide by what the',
+      '  tender accepts:',
+      '  * If it accepts a letter from the manufacturer OR an authorized',
+      '    distributor/supplier, and the company works with a supplier of that',
+      '    product line (see suppliers in the facts), the letter is obtainable',
+      '    before closing: not_met with blocker false, suggestedOwner the',
+      '    supplier relationship owner, and the action "request the letter".',
+      '  * It is a blocker when the tender requires the BIDDER itself to hold a',
+      '    status it lacks and cannot acquire in time (manufacturer partner or',
+      '    channel program such as Microsoft CSP, years of experience, number',
+      '    of past contracts), or the criterion is CUMPLE/NO CUMPLE and no',
+      '    route to the document exists.',
+      '- Contract-execution clauses (penalties, rescission causes, obligations',
+      '  after award) are not_applicable at bid stage unless they demand a',
+      '  document with the offer.',
       '- Forms, declarations, and commitments the bidder completes during bid',
       '  preparation (SNCC.F.xxx forms, sworn statements, bonds to be issued)',
       '  are satisfiable actions: mark unknown with a recommendedAction to',
