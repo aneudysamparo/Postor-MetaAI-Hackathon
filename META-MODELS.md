@@ -175,11 +175,15 @@ Muse Spark cleared it. Flagged chunks appear in **Analysis → Document safety**
 The step never blocks an analysis, and a failure is shown, never a silent
 pass.
 
-**Optional open-weights backend:** with `POSTOR_GUARD_URL` set, Meta's **Llama
-Prompt Guard 2 (86M)** self-hosted on Modal
-([`deploy/modal/prompt_guard.py`](deploy/modal/prompt_guard.py)) scores every
-chunk instead. The model is gated on Hugging Face; access must be granted
-first.
+**Open-weights backend (Prompt Guard 2 → Muse Spark):** with `POSTOR_GUARD_URL`
+set, Meta's **Llama Prompt Guard 2 (86M)**, self-hosted on Modal
+([`deploy/modal/prompt_guard.py`](deploy/modal/prompt_guard.py)), scores every
+pliego and amendment in sentence-sized segments (≤400 characters; a whole
+1,500-character chunk dilutes an injected sentence from 0.83 to 0.0055), 4
+batches in parallel. Muse Spark then confirms only what it flags. Measured
+live: the DEMO trap → Prompt Guard 2 82%, confirmed by Muse Spark; case D (246
+chunks) → Prompt Guard 2 flagged one sworn declaration (0.99) and Muse Spark
+cleared it, so nothing is reported (~100 s, in parallel with the analysis).
 
 Try it: `npm run guard:check -- data/guard-fixtures/pliego-trampa-DEMO.txt`.
 

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
+import { mapWithConcurrency } from '../agents/base/concurrency';
 import { MetaModelService, type ChatUsage } from './meta-model.service';
 
 // Document guard. Tender documents are DATA, never instructions: before
@@ -66,6 +67,16 @@ export const GUARD_CHUNK_CHARS = 1500;
 // keeps ordinary legal language ("deberá", "no se aceptará") out.
 const DEFAULT_GUARD_THRESHOLD = 0.8;
 const PROMPT_GUARD_TEXTS_PER_CALL = 64;
+// Prompt Guard 2 scores a whole text: an injected sentence inside 1,500
+// characters of legal prose is diluted (measured on the DEMO trap: 0.0055
+// for the chunk vs 0.83 for the sentence alone). So it reads sentence-sized
+// segments and each chunk takes its highest segment score.
+export const PROMPT_GUARD_SEGMENT_CHARS = 400;
+// Modal serves batches concurrently; 4 in flight keeps a 56-page pliego
+// well inside the lite run instead of ~2 minutes sequentially.
+const PROMPT_GUARD_PARALLEL_CALLS = 4;
+const PERCENT_POINTS = 100;
+const SENTENCE_END_PATTERN = /(?<=[.;:!?])\s+/;
 const PROMPT_GUARD_TIMEOUT_MS = 60_000;
 const MIN_CHUNK_CHARS = 20;
 // Muse Spark judges escalated chunks in small batches (one call each), and
@@ -132,6 +143,33 @@ export function chunkForGuard(text: string, maxChars: number = GUARD_CHUNK_CHARS
 // Pure (unit-tested): the injection cues a chunk matches (empty = clean).
 export function screenForGuard(text: string): string[] {
   return INJECTION_CUES.filter((cue) => cue.pattern.test(text)).map((cue) => cue.name);
+}
+
+// Pure (unit-tested): chunk -> sentence-sized segments for Prompt Guard 2.
+// Short sentences are merged up to the limit; long ones are cut on spaces.
+export function segmentForPromptGuard(
+  text: string,
+  maxChars: number = PROMPT_GUARD_SEGMENT_CHARS,
+): string[] {
+  const segments: string[] = [];
+  let current = '';
+  for (const sentence of text.split(SENTENCE_END_PATTERN)) {
+    const pieces = chunkForGuard(sentence, maxChars);
+    if (pieces.length === 0) {
+      continue;
+    }
+    for (const piece of pieces) {
+      if (current.length > 0 && current.length + piece.length + 1 > maxChars) {
+        segments.push(current);
+        current = '';
+      }
+      current = current.length > 0 ? `${current} ${piece}` : piece;
+    }
+  }
+  if (current.length > 0) {
+    segments.push(current);
+  }
+  return segments;
 }
 
 export function guardBackend(env: NodeJS.ProcessEnv = process.env): GuardBackend | null {
@@ -225,6 +263,23 @@ export class DocumentGuardService {
       .sort((left, right) => right.cues.length - left.cues.length)
       .slice(0, MAX_ESCALATED_CHUNKS)
       .map((entry) => entry.chunk);
+    const judged = await this.judgeWithMuseSpark(escalated, threshold);
+    return {
+      backend: 'muse_spark',
+      model: judged.model,
+      scannedChunks: chunks.length,
+      escalatedChunks: escalated.length,
+      threshold,
+      flagged: judged.flagged,
+      calls: judged.calls,
+    };
+  }
+
+  // Muse Spark (document-guard-v1) judges the given chunks, 8 per call.
+  private async judgeWithMuseSpark(
+    escalated: GuardChunk[],
+    threshold: number,
+  ): Promise<{ model: string; flagged: GuardFinding[]; calls: GuardCallRecord[] }> {
     const flagged: GuardFinding[] = [];
     const calls: GuardCallRecord[] = [];
     let model = 'muse-spark';
@@ -258,31 +313,31 @@ export class DocumentGuardService {
         summary: { excerpts: batch.length, threshold, flagged: batchFlagged },
       });
     }
-    return {
-      backend: 'muse_spark',
-      model,
-      scannedChunks: chunks.length,
-      escalatedChunks: escalated.length,
-      threshold,
-      flagged,
-      calls,
-    };
+    return { model, flagged, calls };
   }
 
   private async scanWithPromptGuard(chunks: GuardChunk[]): Promise<GuardScan> {
     const baseUrl = (process.env.POSTOR_GUARD_URL ?? '').trim().replace(/\/+$/, '');
     const token = (process.env.POSTOR_GUARD_TOKEN ?? '').trim();
     const threshold = guardThreshold();
-    const flagged: GuardFinding[] = [];
     const calls: GuardCallRecord[] = [];
     let model = GUARD_MODEL_ID;
-    for (let start = 0; start < chunks.length; start += PROMPT_GUARD_TEXTS_PER_CALL) {
-      const batch = chunks.slice(start, start + PROMPT_GUARD_TEXTS_PER_CALL);
+    // Every segment remembers its chunk; a chunk is flagged once, with the
+    // highest-scoring segment as the reason.
+    const segments = chunks.flatMap((chunk, chunkIndex) =>
+      segmentForPromptGuard(chunk.text).map((text) => ({ chunkIndex, text })),
+    );
+    const best = new Map<number, { score: number; text: string }>();
+    const batches: (typeof segments)[] = [];
+    for (let start = 0; start < segments.length; start += PROMPT_GUARD_TEXTS_PER_CALL) {
+      batches.push(segments.slice(start, start + PROMPT_GUARD_TEXTS_PER_CALL));
+    }
+    await mapWithConcurrency(batches, PROMPT_GUARD_PARALLEL_CALLS, async (batch) => {
       const startedAt = Date.now();
       const response = await this.httpFetch(`${baseUrl}/classify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ texts: batch.map((chunk) => chunk.text) }),
+        body: JSON.stringify({ texts: batch.map((segment) => segment.text) }),
         signal: AbortSignal.timeout(PROMPT_GUARD_TIMEOUT_MS),
       });
       if (!response.ok) {
@@ -297,17 +352,21 @@ export class DocumentGuardService {
       }
       let batchFlagged = 0;
       payload.scores.forEach((score, index) => {
-        const chunk = batch[index];
-        if (typeof score === 'number' && score >= threshold && chunk !== undefined) {
-          flagged.push({ ...chunk, score, reason: null });
-          batchFlagged += 1;
+        const segment = batch[index];
+        if (typeof score !== 'number' || segment === undefined || score < threshold) {
+          return;
+        }
+        batchFlagged += 1;
+        const previous = best.get(segment.chunkIndex);
+        if (previous === undefined || score > previous.score) {
+          best.set(segment.chunkIndex, { score, text: segment.text });
         }
       });
       calls.push({
         provider: 'modal',
         promptVersion: 'prompt-guard-2',
         systemPrompt: '',
-        taskPrompt: `${batch.length} page chunks of the pliego and amendments (classifier input)`,
+        taskPrompt: `${batch.length} sentence-sized segments of the pliego and amendments (classifier input)`,
         modelRequested: model,
         modelReturned: model,
         usage: { inputTokens: null, outputTokens: null },
@@ -315,15 +374,37 @@ export class DocumentGuardService {
         rawResponse: null,
         summary: { texts: batch.length, threshold, flagged: batchFlagged },
       });
-    }
+    });
+    const candidates: GuardFinding[] = [...best.entries()]
+      .sort(([left], [right]) => left - right)
+      .flatMap(([chunkIndex, hit]) => {
+        const chunk = chunks[chunkIndex];
+        if (chunk === undefined) {
+          return [];
+        }
+        return [{ ...chunk, score: hit.score, reason: `Segmento marcado: «${hit.text}»` }];
+      });
+    // Second opinion: Muse Spark confirms what Prompt Guard 2 flagged, so
+    // imperative legal text (sworn declarations) is not reported as an attack.
+    const judged = await this.judgeWithMuseSpark(candidates, threshold);
+    const flagged = judged.flagged.map((finding) => {
+      const prior = candidates.find(
+        (candidate) => candidate.fileName === finding.fileName && candidate.text === finding.text,
+      );
+      const guardScore = Math.round((prior?.score ?? 0) * PERCENT_POINTS);
+      return {
+        ...finding,
+        reason: `Prompt Guard 2 ${guardScore}% · Muse Spark: ${finding.reason ?? ''}`,
+      };
+    });
     return {
       backend: 'prompt_guard_2',
-      model,
+      model: `${model} + ${judged.model}`,
       scannedChunks: chunks.length,
-      escalatedChunks: chunks.length,
+      escalatedChunks: candidates.length,
       threshold,
       flagged,
-      calls,
+      calls: [...calls, ...judged.calls],
     };
   }
 }

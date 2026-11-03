@@ -68,7 +68,9 @@ All four models are called on the **Meta Model API**
 [`.env.example`](.env.example)); nothing else is required. Optional:
 **Llama Prompt Guard 2 (86M)**, Meta's open-weights injection classifier,
 self-hosted on Modal ([`deploy/modal/prompt_guard.py`](deploy/modal/prompt_guard.py)),
-replaces the Muse Spark guard when `POSTOR_GUARD_URL` is set.
+screens every tender segment when `POSTOR_GUARD_URL` is set, and Muse Spark
+confirms what it flags (live: the DEMO trap is caught, the one false positive
+on the real tenders is cleared).
 
 ```mermaid
 flowchart LR
