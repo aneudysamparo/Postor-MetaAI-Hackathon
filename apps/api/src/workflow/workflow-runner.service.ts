@@ -2,7 +2,9 @@ import { BadRequestException, Inject, Injectable, Logger, NotFoundException } fr
 import {
   ComplianceFinding,
   ComplianceVerdict,
+  DraftOffer,
   PricingFinding,
+  ReviewReport,
   TenderRequirement,
   TenderRequirementSchema,
   VisualEvidence,
@@ -16,6 +18,7 @@ import { OpportunityAgent, OpportunityInput } from '../agents/opportunity/opport
 import { TenderAnalystService } from '../agents/tender-analyst/tender-analyst.service';
 import { VisualEvidenceService } from '../agents/visual/visual-evidence.service';
 import { StructuredFact, buildStructuredFacts } from '../brain/structured-facts';
+import { BidDocumentsService } from '../documents/bid-documents.service';
 import { DocumentIngestionService } from '../documents/document-ingestion.service';
 import { NormalizedTender, TENDER_SOURCE, TenderSource } from '../documents/tender-source';
 import { PrismaService } from '../prisma/prisma.service';
@@ -73,6 +76,7 @@ export class WorkflowRunner {
     private readonly visual: VisualEvidenceService,
     private readonly pricing: PricingService,
     private readonly drafting: BidDraftingService,
+    private readonly bidDocuments: BidDocumentsService,
   ) {}
 
   public async startWorkflow(input: StartWorkflowInput) {
@@ -206,6 +210,12 @@ export class WorkflowRunner {
           await this.runDrafting(runId, context);
         } catch {
           failures.push('writer');
+        }
+        // Step 8 (T6.2 forms + T6.4 F.033): deterministic, no model call.
+        try {
+          await this.runDocuments(runId, context);
+        } catch {
+          failures.push('documents');
         }
       }
       if (failures.length > 0) {
@@ -576,6 +586,47 @@ export class WorkflowRunner {
       await this.failAgentRun(runId, reviewerRun.id, 'reviewer', 'reviewer.review', error);
       throw error;
     }
+  }
+
+  // Step 8: fills the SNCC forms and the tender's own F.033 from the company
+  // profile + pricing, and writes the draft as Markdown. Files land under
+  // storage/outputs/<runId>/ and are served by GET /workflows/:id/files/:name.
+  private async runDocuments(runId: string, context: LoadedContext): Promise<void> {
+    await this.emit(runId, WORKFLOW_EVENT.STEP_STARTED, 'orchestrator', null, {
+      step: 'documents.generate',
+    });
+    const company = await this.prisma.company.findUniqueOrThrow({
+      where: { id: context.companyId },
+    });
+    const draftArtifact = await this.prisma.artifact.findFirst({
+      where: { workflowId: runId, type: 'draft_offer' },
+    });
+    const reviewArtifact = await this.prisma.artifact.findFirst({
+      where: { workflowId: runId, type: 'review_report' },
+    });
+    const draftPayload = (draftArtifact?.data ?? {}) as { draft?: DraftOffer };
+    const reviewPayload = (reviewArtifact?.data ?? {}) as { review?: ReviewReport };
+    const files = await this.bidDocuments.generate({
+      runId,
+      tender: context.tender,
+      profile: company.profile,
+      pricing: await this.loadPricing(runId),
+      draft: draftPayload.draft ?? null,
+      review: reviewPayload.review ?? null,
+    });
+    await this.prisma.artifact.create({
+      data: {
+        workflowId: runId,
+        type: 'bid_documents',
+        producedBy: 'orchestrator',
+        data: { files } as unknown as Prisma.InputJsonValue,
+      },
+    });
+    await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'orchestrator', null, {
+      step: 'documents.generate',
+      files: files.length,
+      pendingMarkers: files.reduce((sum, file) => sum + file.pendingMarkers, 0),
+    });
   }
 
   private async loadCompliance(

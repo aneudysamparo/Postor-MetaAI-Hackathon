@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ApiTenderSource } from './api-tender-source';
+import { BidDocumentsService } from './bid-documents.service';
 import { DocumentIngestionService } from './document-ingestion.service';
 import { DocxTextExtractor } from './docx-text-extractor';
 import { LocalTenderSource, resolveDefaultTendersDir } from './local-tender-source';
@@ -15,6 +16,7 @@ const API_SOURCE_NAME = 'api';
     PdfPageRenderer,
     DocxTextExtractor,
     DocumentIngestionService,
+    BidDocumentsService,
     {
       provide: TENDER_SOURCE,
       useFactory: () => {
@@ -32,6 +34,7 @@ const API_SOURCE_NAME = 'api';
     PdfTextExtractor,
     PdfPageRenderer,
     DocxTextExtractor,
+    BidDocumentsService,
   ],
 })
 export class DocumentsModule {}

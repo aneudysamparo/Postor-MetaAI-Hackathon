@@ -41,6 +41,7 @@ export const IMPLEMENTED_STEPS = [
   'pricing.research',
   'writer.draft',
   'reviewer.review',
+  'documents.generate',
 ] as const;
 
 // Steps not wired yet. Listed on results so the UI can label a run as a
