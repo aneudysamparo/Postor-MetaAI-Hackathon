@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import { NavLink, Navigate, Route, Routes } from 'react-router';
+import { AccessGate } from './AccessGate';
 import { CompanyBrainView } from './CompanyBrainView';
 import { Feed } from './Feed';
 import { Ficha } from './Ficha';
@@ -19,6 +20,10 @@ function navClass({ isActive }: { isActive: boolean }): string {
 }
 
 export function App(): JSX.Element {
+  return <AccessGate>{(access) => <Shell userKeyRequired={access.userKeyRequired} />}</AccessGate>;
+}
+
+function Shell({ userKeyRequired }: { userKeyRequired: boolean }): JSX.Element {
   return (
     <div className="shell">
       <aside className="side">
@@ -41,8 +46,14 @@ export function App(): JSX.Element {
         <Routes>
           <Route path="/" element={<Navigate to={OPPORTUNITIES_PATH} replace />} />
           <Route path={OPPORTUNITIES_PATH} element={<Feed />} />
-          <Route path={`${OPPORTUNITIES_PATH}/:code`} element={<Ficha />} />
-          <Route path={`${OPPORTUNITIES_PATH}/:code/:tab`} element={<Ficha />} />
+          <Route
+            path={`${OPPORTUNITIES_PATH}/:code`}
+            element={<Ficha userKeyRequired={userKeyRequired} />}
+          />
+          <Route
+            path={`${OPPORTUNITIES_PATH}/:code/:tab`}
+            element={<Ficha userKeyRequired={userKeyRequired} />}
+          />
           <Route path={COMPANY_BRAIN_PATH} element={<CompanyBrainView />} />
           <Route path="*" element={<Navigate to={OPPORTUNITIES_PATH} replace />} />
         </Routes>

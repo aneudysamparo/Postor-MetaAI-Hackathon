@@ -216,16 +216,67 @@ export function fetchCompany(): Promise<CompanyBrain> {
   return getJson<CompanyBrain>('/company');
 }
 
-export async function startWorkflow(opportunityId: string, mode: RunMode): Promise<{ id: string }> {
+export async function startWorkflow(
+  opportunityId: string,
+  mode: RunMode,
+  metaKey: string,
+): Promise<{ id: string }> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  // The visitor's own Meta key goes ONLY on this request (public demo).
+  if (metaKey.length > 0) {
+    headers['x-meta-api-key'] = metaKey;
+  }
   const response = await fetch(`${API_BASE}/workflows`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ opportunityId, mode }),
   });
   if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText} starting the analysis`);
+    const detail = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(detail?.message ?? `${response.status} ${response.statusText}`);
   }
   return (await response.json()) as { id: string };
+}
+
+export interface AccessStatus {
+  required: boolean;
+  granted: boolean;
+  userKeyRequired: boolean;
+}
+
+export function fetchAccess(): Promise<AccessStatus> {
+  return getJson<AccessStatus>('/access');
+}
+
+export async function grantAccess(token: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/access`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+  });
+  if (!response.ok) {
+    throw new Error('Token de acceso inválido.');
+  }
+}
+
+// Visitor's Meta key: kept in sessionStorage (this tab only), sent only when
+// starting a live analysis. Storage can be unavailable (private mode).
+const META_KEY_STORAGE = 'postor-meta-key';
+
+export function readStoredMetaKey(): string {
+  try {
+    return sessionStorage.getItem(META_KEY_STORAGE) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+export function storeMetaKey(key: string): void {
+  try {
+    sessionStorage.setItem(META_KEY_STORAGE, key);
+  } catch {
+    // Not persisted: the key still works for this page view.
+  }
 }
 
 // Hides earlier analyses (one opportunity, or all with null). Nothing is

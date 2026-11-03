@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { JSX } from 'react';
-import { fetchOpportunities, fetchTrace, readArtifacts, resetDemo, startWorkflow } from './api';
+import {
+  fetchOpportunities,
+  fetchTrace,
+  readArtifacts,
+  readStoredMetaKey,
+  resetDemo,
+  startWorkflow,
+  storeMetaKey,
+} from './api';
 import type { Opportunity, RunMode, TraceResponse } from './api';
 import { Link, useNavigate, useParams } from 'react-router';
 import { EvidenceModal } from './EvidenceModal';
@@ -126,7 +134,7 @@ const STEP_CHIPS: Record<StepState, { label: string; tone: 'ok' | 'info' | 'bad'
   skipped: { label: 'omitido', tone: 'neutral' },
 };
 
-export function Ficha(): JSX.Element {
+export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.Element {
   const params = useParams();
   const navigate = useNavigate();
   const code = params.code ?? '';
@@ -135,6 +143,7 @@ export function Ficha(): JSX.Element {
   const [runId, setRunId] = useState<string | null>(null);
   const [trace, setTrace] = useState<TraceResponse | null>(null);
   const [mode, setMode] = useState<RunMode>('lite');
+  const [metaKey, setMetaKey] = useState(() => readStoredMetaKey());
   const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
@@ -198,7 +207,7 @@ export function Ficha(): JSX.Element {
       if (opportunity === null) {
         return;
       }
-      const run = await startWorkflow(opportunity.id, mode);
+      const run = await startWorkflow(opportunity.id, mode, metaKey.trim());
       setTrace(null);
       setRunId(run.id);
     } catch (reason) {
@@ -248,6 +257,11 @@ export function Ficha(): JSX.Element {
   ];
   const openEvidence = (target: EvidenceTarget): void => setEvidenceTarget(target);
 
+  let keyHint: string | undefined;
+  if (userKeyRequired && metaKey.trim().length === 0) {
+    keyHint =
+      'El análisis en vivo usa tu propia Meta API key; las corridas grabadas no la necesitan.';
+  }
   let runButtonLabel = '▶ Correr análisis en vivo';
   if (trace !== null) {
     runButtonLabel = '↺ Re-correr análisis en vivo';
@@ -290,9 +304,28 @@ export function Ficha(): JSX.Element {
             Analizando…
           </button>
         ) : (
-          <button className="btn" onClick={() => void onRunLive()} disabled={starting}>
+          <button
+            className="btn"
+            onClick={() => void onRunLive()}
+            disabled={starting || (userKeyRequired && metaKey.trim().length === 0)}
+            title={keyHint}
+          >
             {runButtonLabel}
           </button>
+        )}
+        {userKeyRequired && (
+          <label className="muted">
+            Tu Meta API key{' '}
+            <input
+              type="password"
+              value={metaKey}
+              placeholder="solo para esta pestaña"
+              onChange={(event) => {
+                setMetaKey(event.target.value);
+                storeMetaKey(event.target.value);
+              }}
+            />
+          </label>
         )}
         <label className="muted">
           Modo{' '}

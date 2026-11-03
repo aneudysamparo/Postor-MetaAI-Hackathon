@@ -501,3 +501,23 @@ label.check {
   background: rgba(225, 29, 116, 0.12);
   border-radius: 3px;
 }
+
+.gate {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.gate .panel {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 10px;
+}
+.gate input,
+.meta-strip input[type='password'] {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14px;
+}
