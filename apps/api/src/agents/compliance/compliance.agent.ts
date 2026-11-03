@@ -32,7 +32,7 @@ export class ComplianceAgent extends BaseAgent<ComplianceAgentInput, ComplianceO
   protected readonly agentName = 'compliance';
   protected readonly agentRole = 'Compliance Agent';
   protected readonly taskName = 'evaluate';
-  protected readonly promptVersion = 'compliance-v2';
+  protected readonly promptVersion = 'compliance-v3';
   protected readonly outputSchema = ComplianceOutputSchema;
 
   public constructor(metaModel: MetaModelService) {
@@ -86,6 +86,13 @@ export class ComplianceAgent extends BaseAgent<ComplianceAgentInput, ComplianceO
       '    channel program such as Microsoft CSP, years of experience, number',
       '    of past contracts), or the criterion is CUMPLE/NO CUMPLE and no',
       '    route to the document exists.',
+      '- Technical specifications of GOODS to be supplied (models, speeds,',
+      '  ports, standards, warranty of the equipment) describe the product the',
+      '  bidder will offer, not the company. They are met by quoting a',
+      '  compliant model through a supplier: status unknown with the action',
+      '  "obtain a quotation for a compliant model", never a blocker. Only the',
+      "  bidder's own experience, staff and certifications are judged against",
+      '  the company evidence.',
       '- Contract-execution clauses (penalties, rescission causes, obligations',
       '  after award) are not_applicable at bid stage unless they demand a',
       '  document with the offer.',
