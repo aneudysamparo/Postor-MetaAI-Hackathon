@@ -1,0 +1,55 @@
+# Postor AI Bid Team — Docker Compose for Dokploy (also runs on any Docker host).
+#
+# One service: the API serves the built web app on port 3000. SQLite, the
+# rendered pages and the generated bid files live on the `postor-storage`
+# volume. The first boot creates the schema, loads the fictional Company
+# Brain and imports the four recorded demo runs (see deploy/docker-entrypoint.sh).
+#
+# Dokploy: create a "Compose" service from this repo, compose path
+# `./compose.dokploy.yml`, set the variables below in the Environment tab,
+# then add the domain (e.g. demo.postor.do -> service `app`, port 3000, HTTPS).
+# No host port is published: Dokploy's Traefik routes the domain to the
+# container. Local test:  docker compose -f compose.dokploy.yml up --build
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: postor-demo:latest
+    restart: unless-stopped
+    expose:
+      - '3000'
+    environment:
+      PORT: '3000'
+      META_BASE_URL: ${META_BASE_URL:-https://api.meta.ai/v1}
+      # Optional server key. Leave empty on a public demo: visitors paste
+      # their own key in the ficha (used for that run only, never stored).
+      META_API_KEY: ${META_API_KEY:-}
+      POSTOR_REQUIRE_USER_KEY: ${POSTOR_REQUIRE_USER_KEY:-true}
+      # Access gate for the whole app (judges receive it with the submission).
+      DEMO_ACCESS_TOKEN: ${DEMO_ACCESS_TOKEN:-}
+      POSTOR_MODE: ${POSTOR_MODE:-lite}
+      # Optional cost-estimate rates shown in the Trace (USD per million tokens).
+      META_COST_INPUT_USD_PER_MTOK: ${META_COST_INPUT_USD_PER_MTOK:-}
+      META_COST_OUTPUT_USD_PER_MTOK: ${META_COST_OUTPUT_USD_PER_MTOK:-}
+      # Optional: Llama Prompt Guard 2 on Modal instead of the Muse Spark guard.
+      POSTOR_GUARD_URL: ${POSTOR_GUARD_URL:-}
+      POSTOR_GUARD_TOKEN: ${POSTOR_GUARD_TOKEN:-}
+    volumes:
+      - postor-storage:/app/storage
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+
+volumes:
+  postor-storage:

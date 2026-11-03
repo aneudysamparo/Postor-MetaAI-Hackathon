@@ -12,16 +12,39 @@ Wonder** audits the draft, **SAM 3.1** localizes official marks on scanned
 pages, and **Muse Voice Transcribe** lets the bid manager answer open
 `[PENDING]` items by voice.
 
+### What Postor does
+
+1. **Finds and reads the tender** — real Dominican public tenders (DGCP
+   portal): pliego, amendments and official forms, never modified.
+2. **Checks it against the company** — every requirement against the
+   company's private _Company Brain_ (certifications with expiry dates,
+   projects, finances, team), citing document + page.
+3. **Decides honestly** — _GO / GO WITH CONDITIONS / NO GO / NEEDS REVIEW_,
+   with financial ratios, revenue concentration and conditions with owner and
+   deadline.
+4. **Prepares the bid** — a technical proposal draft audited by a second
+   model, the SNCC forms and the tender's own **F.033 economic offer with
+   prices** (store and rate-card costs, ITBIS, total in words).
+5. **Leaves the human in charge** — anything unproven stays `[PENDING]`; the
+   bid manager can answer by voice. Postor never submits, signs or sends.
+
+**Contents:** [For judges](#for-judges--start-here) ·
+[Meta models](#meta-models-we-use--and-where-they-run) ·
+[The demo](#the-demo) · [Why this matters](#why-this-matters-dominican-republic) ·
+[Run it](#run-it) · [Deploy (Dokploy)](#deploy-on-dokploy) ·
+[Disclosures](#disclosures)
+
 ## For judges — start here
 
 1. **Try it live:** **https://demo.postor.do** (access token in our
-   submission). The four tenders already show real recorded runs; to run a new
+   submission; deployed from this repo with [`compose.dokploy.yml`](compose.dokploy.yml)). The four tenders already show real recorded runs; to run a new
    analysis, paste your own Meta API key in the ficha (it is used for that run
    only, never stored).
 2. **Follow the 3-minute walkthrough** below.
 3. **See how each Meta model is used** in the map and table below (also in the
    app: **Cómo funciona**).
-4. **Run it locally** (optional): see [Run it locally](#run-it-locally).
+4. **Run it yourself** (optional): see [Run it](#run-it) — Node, or one
+   `docker compose` command.
 
 ### 3-minute walkthrough
 
@@ -38,7 +61,14 @@ pages, and **Muse Voice Transcribe** lets the bid manager answer open
 | 9   | **Documentos** → 🎙 Grabar respuesta                                    | Answer a `[PENDING]` by voice: Muse Voice Transcribe + Muse Spark map it, shown as "declarado", never as proof.                                                             |
 | 10  | Cases C and D → **Análisis**                                           | Same system, different verdicts: NO GO (manufacturer authorization) and NEEDS REVIEW (contract ≈ 86% of revenue).                                                           |
 
-### Meta models in the pipeline
+### Meta models we use — and where they run
+
+All four models are called on the **Meta Model API**
+(`https://api.meta.ai/v1`) with one key (`META_API_KEY`, see
+[`.env.example`](.env.example)); nothing else is required. Optional:
+**Llama Prompt Guard 2 (86M)**, Meta's open-weights injection classifier,
+self-hosted on Modal ([`deploy/modal/prompt_guard.py`](deploy/modal/prompt_guard.py)),
+replaces the Muse Spark guard when `POSTOR_GUARD_URL` is set.
 
 ```mermaid
 flowchart LR
@@ -151,8 +181,9 @@ data; each is labeled with its origin.
 
 **Postor's answer:** read the real tender, check it against the company's own
 documents (validity dates included), say _go / go with conditions / no go /
-needs review_ with page-level evidence, and pre-fill the official forms —
-leaving prices, signatures and anything unproven to a human.
+needs review_ with page-level evidence, and prepare the official forms and a
+priced F.033 — leaving the final decision, signatures and anything unproven to
+a human.
 
 ## How it works
 
@@ -165,38 +196,73 @@ text, and nothing invented ever becomes a fact: unknowns are `[PENDING: ...]`.
 Every AI call is logged and inspectable in the **Trace** view: prompt sent,
 response received, tokens, duration, and cost estimate. No black boxes.
 
-## Run it locally
+## Run it
+
+You need a Meta Model API key for live analyses (`META_API_KEY`). Without
+one, everything except **▶ Correr análisis en vivo** still works on the four
+recorded runs.
+
+### Option A — Node (development)
 
 Requirements: Node 22+ (`.nvmrc`), npm. Docker is optional (Postgres); without
 it everything runs on a disposable local SQLite database.
 
 ```bash
 npm install
-cp .env.example .env            # paste META_API_KEY (handed over by the team)
+cp .env.example .env            # paste your META_API_KEY
 npm run init -- --db=sqlite     # builds, loads data + Company Brain, live smoke test, readiness report
 npm run dev                     # API on :3000 + web on http://localhost:5173
 ```
 
-Then: **Oportunidades** → pick a case → **Ver ficha** → **▶ Correr análisis en
-vivo** (mode **Rápido**: the key-requirements dossier, ~1–2 min; **Completo**: the
-whole pliego, 10–20 min) and watch each agent step complete (real 2 s polling, no fake
-animations). When it finishes, walk the tabs: Análisis (verdict, conditions
-with owner + deadline), Requisitos (click any `pliego pN` to open the cited
-page of the original PDF), Productos/Costos (prices only from company
-quotations), **Traza** (every model call: prompt sent, response, tokens,
-duration, estimated cost), Formularios/Documentos (filled SNCC forms and the
-tender's own F.033, downloadable after human validation).
-
 **No API key?** Run `npm run init -- --db=sqlite --offline` instead: it skips
 the key check and loads real recorded runs of all four tenders
-(`data/demo-runs/snapshot.json`), so the feed, verdicts, evidence, SAM regions
-and the full Trace are explorable; only **Correr análisis en vivo** needs a key.
-
-**Public demo deployment:** see [`DEPLOY.md`](DEPLOY.md) (single Docker
-container, access token, visitors bring their own Meta key).
+(`data/demo-runs/snapshot.json`), so the feed, verdicts, evidence, SAM regions,
+the priced F.033 and the full Trace are explorable.
 
 `npm run seed` validates the dataset offline (no key, no model calls);
 `npm run doctor` diagnoses the environment. Tests: `npm test`.
+
+### Option B — Docker Compose (same as production)
+
+```bash
+cp .env.example .env            # optional: META_API_KEY, DEMO_ACCESS_TOKEN
+docker compose -f compose.dokploy.yml up --build -d
+docker compose -f compose.dokploy.yml exec app \
+  node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>r.text()).then(console.log)"
+```
+
+One container serves the API and the web app on port 3000; SQLite and the
+generated files live on the `postor-storage` volume. The first boot (~1 min)
+creates the database, loads the fictional Company Brain and imports the four
+recorded runs. To open it in a browser, publish the port with an override,
+e.g. `docker run --rm -p 3000:3000 --env-file .env -v postor-storage:/app/storage postor-demo:latest`.
+
+### Using it
+
+**Oportunidades** → pick a case → **Ver ficha** → **▶ Correr análisis en
+vivo** (mode **Rápido**: the key-requirements dossier, ~1.5–2.5 min;
+**Completo**: the whole pliego, 10–20 min) and watch each agent step complete
+(real 2 s polling, no fake animations). Then walk the tabs: Análisis (verdict,
+conditions with owner + deadline, document safety), Requisitos (click any
+`pliego pN` to open the cited page of the original PDF), Productos/Costos,
+**Traza** (every model call: prompt sent, response, tokens, duration,
+estimated cost), **Formularios** (the priced F.033 and the SNCC forms) and
+Documentos (editable files after human validation; answer `[PENDING]` items by
+voice).
+
+## Deploy on Dokploy
+
+1. **Create → Compose** service from this GitHub repo, branch `main`,
+   compose path **`./compose.dokploy.yml`**.
+2. **Environment:** `DEMO_ACCESS_TOKEN` (long random string, handed to judges),
+   `POSTOR_REQUIRE_USER_KEY=true` (visitors paste their own Meta key, used for
+   that run only), optionally `META_API_KEY`. Full table in [`DEPLOY.md`](DEPLOY.md).
+3. **Domains:** `demo.postor.do` → service `app`, port `3000`, HTTPS on.
+4. **Deploy.** The healthcheck (`/api/health`) turns green after the first
+   boot; open the domain, enter the access token and browse the recorded runs.
+
+The `postor-storage` volume keeps the database between deploys; every boot is
+idempotent.
 
 ## Repository layout
 
@@ -204,7 +270,9 @@ container, access token, visitors bring their own Meta key).
 apps/api/            # NestJS: orchestrator, agents, documents, brain, observability
 apps/web/            # React + Vite: opportunities, live analysis, results, trace
 packages/contracts/  # Shared Zod-validated agent contracts
-data/                # Local fixtures: company-brain/ tenders/ templates/ expected-results/
+data/                # Fixtures: company-brain/ tenders/ suppliers/ templates/ lite/ demo-runs/
+deploy/              # Container entrypoint, optional Modal guard
+compose.dokploy.yml  # Docker Compose for Dokploy / any Docker host
 storage/             # Generated by seed (gitignored)
 ```
 

@@ -19,14 +19,23 @@ docker run -d --name postor-demo -p 3000:3000 \
 
 Health check: `GET /api/health`. First boot takes ~1 minute (Brain load + import).
 
-## Dokploy
+## Dokploy (Docker Compose — recommended)
 
-1. New **Application** → source: this GitHub repo, branch `main`, build type **Dockerfile**.
-2. **Environment** (see table below). Do not set `META_API_KEY` if visitors bring their own key.
-3. **Volumes**: mount a volume at `/app/storage`.
-4. **Domains**: `demo.postor.do` → container port `3000`, HTTPS on (Let's Encrypt).
-   HTTPS matters: the access cookie is `Secure` behind HTTPS and visitor keys travel in a header.
-5. Deploy, then open the domain, enter the access token, and browse the recorded runs.
+1. **Create → Compose** service: this GitHub repo, branch `main`, compose
+   path `./compose.dokploy.yml`.
+2. **Environment** tab: the variables in the table below (Dokploy writes them
+   to the compose `.env`). Do not set `META_API_KEY` if visitors bring their
+   own key.
+3. **Domains**: `demo.postor.do` → service `app`, container port `3000`,
+   HTTPS on (Let's Encrypt). The compose file publishes no host port; Traefik
+   routes the domain. HTTPS matters: the access cookie is `Secure` behind
+   HTTPS and visitor keys travel in a header.
+4. Deploy. The named volume `postor-storage` (mounted at `/app/storage`) keeps
+   the SQLite database, rendered pages and generated files across deploys.
+5. Open the domain, enter the access token, and browse the recorded runs.
+
+Alternative: a Dokploy **Application** with build type **Dockerfile**, a volume
+at `/app/storage` and the same variables and domain.
 
 ## Environment
 
