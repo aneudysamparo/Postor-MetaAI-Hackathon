@@ -5,6 +5,9 @@ import type { ModelCall, Opportunity, RunArtifacts, TenderDocumentRow, TraceResp
 import type { EvidenceTarget } from './EvidenceModal';
 import {
   Chip,
+  LabeledItem,
+  MatchChip,
+  RichText,
   Section,
   StatusChip,
   VerdictChip,
@@ -12,6 +15,7 @@ import {
   formatMoney,
   formatRdLocal,
 } from './ui';
+import type { Tone } from './ui';
 
 const PERCENT_SCALE = 100;
 const MILLISECONDS_PER_SECOND = 1000;
@@ -19,6 +23,55 @@ const COST_DECIMALS = 5;
 const RUN_COST_DECIMALS = 4;
 
 // ---- Resumen ----
+
+const RECOMMENDATION_LABELS: Record<string, { label: string; tone: Tone }> = {
+  go: { label: 'Preliminar: competir', tone: 'ok' },
+  no_go: { label: 'Preliminar: no competir', tone: 'bad' },
+  needs_review: { label: 'Preliminar: revisar', tone: 'warn' },
+};
+
+// A whole entry wrapped as "[PENDING: ...]" reads better without the wrapper
+// inside the amber "Falta información" card.
+function unwrapPending(text: string): string {
+  const match = /^\[PENDING:\s*([\s\S]*)\]$/.exec(text.trim());
+  return match?.[1] ?? text;
+}
+
+function FitCard({
+  title,
+  tone,
+  items,
+  empty,
+  unwrap = false,
+}: {
+  title: string;
+  tone: 'ok' | 'bad' | 'warn';
+  items: string[];
+  empty: string;
+  unwrap?: boolean;
+}): JSX.Element {
+  return (
+    <div className={`fit-card fit-${tone}`}>
+      <h4>
+        {title} <span className="muted">({items.length})</span>
+      </h4>
+      {items.length === 0 && <p className="muted">{empty}</p>}
+      <ul>
+        {items.map((item) => {
+          let text = item;
+          if (unwrap) {
+            text = unwrapPending(item);
+          }
+          return (
+            <li key={item}>
+              <LabeledItem text={text} />
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 export function SummaryTab({
   opportunity,
@@ -29,59 +82,97 @@ export function SummaryTab({
 }): JSX.Element {
   const assessment = artifacts.assessment;
   const dated = artifacts.requirements.filter((requirement) => requirement.deadline !== undefined);
+  let recommendation: { label: string; tone: Tone } | undefined;
+  if (assessment !== null) {
+    recommendation = RECOMMENDATION_LABELS[assessment.recommendation];
+  }
   return (
-    <div className="grid2">
+    <div>
       <Section title="Vista previa">
-        <p>{assessment?.summary ?? 'Sin evaluación de oportunidad.'}</p>
-        {assessment !== null && <p className="muted">{assessment.justification}</p>}
-      </Section>
-      <Section title={`Ítems (${artifacts.pricing.length})`}>
-        <table>
-          <thead>
-            <tr>
-              <th>Descripción</th>
-              <th>Cant.</th>
-            </tr>
-          </thead>
-          <tbody>
-            {artifacts.pricing.map((item) => (
-              <tr key={item.item}>
-                <td>{item.item}</td>
-                <td>{item.quantity ?? '[PENDING]'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Section>
-      <Section title="Ajuste con la empresa">
+        {assessment === null && <p className="muted">Sin evaluación de oportunidad.</p>}
         {assessment !== null && (
-          <ul className="kv">
-            <li>
-              <b>Capacidades relevantes:</b> {assessment.relevantCapabilities.join('; ') || '—'}
-            </li>
-            <li>
-              <b>Incompatibilidades:</b>{' '}
-              {assessment.incompatibilities.join('; ') || 'ninguna detectada'}
-            </li>
-            <li>
-              <b>Falta información:</b> {assessment.missingInformation.join('; ') || '—'}
-            </li>
-          </ul>
+          <div>
+            <p className="chips-row">
+              <MatchChip level={assessment.matchLevel} />
+              {recommendation !== undefined && (
+                <Chip tone={recommendation.tone}>{recommendation.label}</Chip>
+              )}
+              <VerdictChip verdict={artifacts.verdict?.verdict ?? null} />
+              <span className="muted">
+                El veredicto final lo da Cumplimiento tras leer el pliego.
+              </span>
+            </p>
+            <p className="lead">
+              <RichText text={assessment.summary} />
+            </p>
+            <details>
+              <summary>¿Por qué este ajuste?</summary>
+              <p className="muted">
+                <RichText text={assessment.justification} />
+              </p>
+            </details>
+          </div>
         )}
       </Section>
-      <Section title="Cronograma">
-        <ul className="kv">
-          <li>
-            <b>Cierre de ofertas:</b> {formatRdLocal(opportunity.closeDateRd)}
-          </li>
-          {dated.map((requirement) => (
-            <li key={requirement.id}>
-              <b>{formatRdLocal(requirement.deadline)}:</b> {requirement.title} (pliego p
-              {requirement.source.page})
+      {assessment !== null && (
+        <section className="panel">
+          <h3 className="panel-title">Ajuste con la empresa</h3>
+          <div className="fit-grid">
+            <FitCard
+              title="Capacidades relevantes"
+              tone="ok"
+              items={assessment.relevantCapabilities}
+              empty="Ninguna identificada."
+            />
+            <FitCard
+              title="Incompatibilidades"
+              tone="bad"
+              items={assessment.incompatibilities}
+              empty="Ninguna detectada."
+            />
+            <FitCard
+              title="Falta información"
+              tone="warn"
+              items={assessment.missingInformation}
+              empty="Nada pendiente."
+              unwrap
+            />
+          </div>
+        </section>
+      )}
+      <div className="grid2">
+        <Section title={`Ítems (${artifacts.pricing.length})`}>
+          <table>
+            <thead>
+              <tr>
+                <th>Descripción</th>
+                <th>Cant.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {artifacts.pricing.map((item) => (
+                <tr key={item.item}>
+                  <td>{item.item}</td>
+                  <td>{item.quantity ?? '[PENDING]'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+        <Section title="Cronograma">
+          <ul className="kv">
+            <li>
+              <b>Cierre de ofertas:</b> {formatRdLocal(opportunity.closeDateRd)}
             </li>
-          ))}
-        </ul>
-      </Section>
+            {dated.map((requirement) => (
+              <li key={requirement.id}>
+                <b>{formatRdLocal(requirement.deadline)}:</b> {requirement.title} (pliego p
+                {requirement.source.page})
+              </li>
+            ))}
+          </ul>
+        </Section>
+      </div>
     </div>
   );
 }

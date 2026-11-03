@@ -211,3 +211,63 @@ export function MatchChip({ level }: { level: string | null }): JSX.Element | nu
   }
   return <Chip tone={entry.tone}>{entry.label}</Chip>;
 }
+
+// Model text carries inline citations ("[DOC-CERT-003]", "[profile]") and
+// pending markers ("[PENDING: ...]"). RichText renders them as compact
+// chips so the prose stays readable and every source stays visible.
+const BRACKET_PATTERN = /\[([^\]]+)\]/g;
+const PENDING_PREFIX = 'PENDING:';
+
+export function RichText({ text }: { text: string }): JSX.Element {
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+  for (const match of text.matchAll(BRACKET_PATTERN)) {
+    const index = match.index ?? 0;
+    if (index > cursor) {
+      parts.push(text.slice(cursor, index));
+    }
+    const inner = (match[1] ?? '').trim();
+    if (inner.startsWith(PENDING_PREFIX)) {
+      parts.push(
+        <span key={index} className="chip chip-warn pending">
+          pendiente: {inner.slice(PENDING_PREFIX.length).trim()}
+        </span>,
+      );
+    } else {
+      parts.push(
+        <span key={index} className="src" title="Fuente en el Company Brain o el expediente">
+          {inner}
+        </span>,
+      );
+    }
+    cursor = index + match[0].length;
+  }
+  if (cursor < text.length) {
+    parts.push(text.slice(cursor));
+  }
+  return <>{parts}</>;
+}
+
+const LABEL_SEPARATOR = ': ';
+// Longer prefixes are sentences, not labels.
+const LABEL_MAX_CHARS = 48;
+
+// "Label: details" items (the model's usual list shape) get a bold label.
+export function LabeledItem({ text }: { text: string }): JSX.Element {
+  const separator = text.indexOf(LABEL_SEPARATOR);
+  const hasLabel = separator > 0 && separator <= LABEL_MAX_CHARS && !text.startsWith('[');
+  if (!hasLabel) {
+    return <RichText text={text} />;
+  }
+  const label = text.slice(0, separator);
+  let rest = text.slice(separator + LABEL_SEPARATOR.length).trim();
+  // The model often repeats the label as the first words of the details.
+  if (rest.toLowerCase().startsWith(label.toLowerCase())) {
+    rest = rest.slice(label.length).trim();
+  }
+  return (
+    <>
+      <b>{label}</b> <RichText text={rest} />
+    </>
+  );
+}
