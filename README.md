@@ -25,18 +25,18 @@ pages, and **Muse Voice Transcribe** lets the bid manager answer open
 
 ### 3-minute walkthrough
 
-| #   | Where                                                                  | What to look at                                                                                                   |
-| --- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 1   | **Oportunidades**                                                      | 4 real DGCP tenders with verdict, match level, amount and close date.                                             |
-| 2   | **Company Brain**                                                      | The fictional bidder: certifications with expiry dates, projects, finances, known gaps.                           |
-| 3   | Case A → **Ver ficha** → modo _Rápido_ → **▶ Correr análisis en vivo** | Live progress per step and a clock (≈1.5–2.5 min).                                                                |
-| 4   | **Análisis**                                                           | Verdict, conditions with owner + deadline, financial ratios, document safety (injection guard).                   |
-| 5   | **Requisitos** → click any `pliego pN`                                 | The cited page of the ORIGINAL PDF, rendered, with the requirement text.                                          |
-| 6   | **Productos** → open a scanned page                                    | SAM 3.1 boxes over the original page + Muse Spark's reading.                                                      |
-| 7   | **Traza**                                                              | Every model call: model, prompt sent, response, tokens, duration, estimated cost.                                 |
-| 8   | **Formularios / Documentos**                                           | SNCC forms and the tender's own F.033 pre-filled; prices and signatures stay `[PENDING]` for a human.             |
-| 9   | **Documentos** → 🎙 Grabar respuesta                                    | Answer a `[PENDING]` by voice: Muse Voice Transcribe + Muse Spark map it, shown as "declarado", never as proof.   |
-| 10  | Cases C and D → **Análisis**                                           | Same system, different verdicts: NO GO (manufacturer authorization) and NEEDS REVIEW (contract ≈ 86% of revenue). |
+| #   | Where                                                                  | What to look at                                                                                                                                                             |
+| --- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Oportunidades**                                                      | 4 real DGCP tenders with verdict, match level, amount and close date.                                                                                                       |
+| 2   | **Company Brain**                                                      | The fictional bidder: certifications with expiry dates, projects, finances, known gaps.                                                                                     |
+| 3   | Case A → **Ver ficha** → modo _Rápido_ → **▶ Correr análisis en vivo** | Live progress per step and a clock (≈1.5–2.5 min).                                                                                                                          |
+| 4   | **Análisis**                                                           | Verdict, conditions with owner + deadline, financial ratios, document safety (injection guard).                                                                             |
+| 5   | **Requisitos** → click any `pliego pN`                                 | The cited page of the ORIGINAL PDF, rendered, with the requirement text.                                                                                                    |
+| 6   | **Productos** → open a scanned page                                    | SAM 3.1 boxes over the original page + Muse Spark's reading.                                                                                                                |
+| 7   | **Traza**                                                              | Every model call: model, prompt sent, response, tokens, duration, estimated cost.                                                                                           |
+| 8   | **Formularios** → F.033 · **Tiendas (DEMO)**                           | The economic offer: cost from fictional stores or NovaTech's hourly rates, one markup to ~97% of the budget, ITBIS, total and amount in words. Signature stays `[PENDING]`. |
+| 9   | **Documentos** → 🎙 Grabar respuesta                                    | Answer a `[PENDING]` by voice: Muse Voice Transcribe + Muse Spark map it, shown as "declarado", never as proof.                                                             |
+| 10  | Cases C and D → **Análisis**                                           | Same system, different verdicts: NO GO (manufacturer authorization) and NEEDS REVIEW (contract ≈ 86% of revenue).                                                           |
 
 ### Meta models in the pipeline
 
@@ -86,9 +86,23 @@ Transcribe · grey = deterministic code (no model).
 called, validated, guarded, traced and what happens when it fails.
 
 What is deliberately **not** a model: the Go/No-Go verdict, financial ratios
-and revenue concentration, price validation, mandatory-requirement coverage,
-and form filling are deterministic code, so the model can never invent a
-price or flip a verdict on its own.
+and revenue concentration, price validation, the offer price (markup, ITBIS,
+totals, amount in words), mandatory-requirement coverage, and form filling
+are deterministic code, so the model can never invent a price or flip a
+verdict on its own.
+
+**The economic offer (SNCC.F.033).** Each tender's items are transcribed
+from the pliego with their page (`data/tenders/*/items.json`). The pricing
+agent (Muse Spark, `pricing-v2`) picks the cheapest valid product for each
+good from five fictional stores (`data/suppliers/tiendas-DEMO.json`, also
+shown in the app under **Tiendas (DEMO)**) and, for services, only estimates
+hours per role. Code then checks every cost literally against the catalog,
+computes services as hours × NovaTech's rate card, and applies the company's
+pricing policy (`data/company-brain/pricing-policy.json`): total with ITBIS at
+97% of the reference budget (band 95–99%), never under a 10% margin, with
+incomplete, over-budget or unusually high-margin offers flagged. Live: case D
+→ RD$ 8,481,486.60 (97%, 21% margin, every line under the entity's own
+estimate); case A → RD$ 1,940,000.00.
 
 ## The demo
 

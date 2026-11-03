@@ -8,8 +8,11 @@ data/
 ├── company-brain/      # FICTIONAL NovaTech Solutions SRL: structured profile,
 │                       # docs-graph.json, docs/ (41 DEMO-marked files), builders
 ├── tenders/            # 4 REAL DGCP tenders (unmodified originals) + metadata
-│                       # each case: metadata.json + original/
+│                       # each case: metadata.json + original/ + items.json
+│                       # (items transcribed from the pliego, with page)
 │                       # shortlist.json = selection rationale
+├── suppliers/          # FICTIONAL store catalogs (tiendas-DEMO.json): goods
+│                       # costs for the economic offer (F.033)
 ├── templates/          # Bid document templates (.docx, Spanish originals)
 └── expected-results/   # Design verdicts + requirement states (eval reference)
 ```
