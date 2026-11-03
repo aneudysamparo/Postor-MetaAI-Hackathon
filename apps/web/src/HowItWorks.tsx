@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 // Meta model that does the work (or "código" when it is deterministic), so
 // judges and viewers see where every model acts without reading code.
 
-type ModelKey = 'spark' | 'wonder' | 'sam' | 'guard' | 'code';
+type ModelKey = 'spark' | 'wonder' | 'sam' | 'voice' | 'code';
 
 interface ModelInfo {
   name: string;
@@ -16,7 +16,7 @@ const MODELS: Record<ModelKey, ModelInfo> = {
   spark: {
     name: 'Muse Spark',
     id: 'muse-spark-1.3',
-    role: 'Lee el pliego, contrasta con el Company Brain, investiga precios y redacta. También lee páginas escaneadas (visión).',
+    role: 'Lee el pliego, contrasta con el Company Brain, investiga precios y redacta. También lee páginas escaneadas (visión) y juzga los fragmentos sospechosos de la guardia de documentos.',
   },
   wonder: {
     name: 'Muse Wonder',
@@ -28,10 +28,10 @@ const MODELS: Record<ModelKey, ModelInfo> = {
     id: 'sam-3.1',
     role: 'Localiza firmas, rúbricas y logos institucionales en páginas escaneadas y devuelve sus coordenadas.',
   },
-  guard: {
-    name: 'Llama Prompt Guard 2',
-    id: 'Llama-Prompt-Guard-2-86M · Modal',
-    role: 'Revisa cada fragmento del pliego antes de que lo lean los agentes: detecta instrucciones escondidas (prompt injection).',
+  voice: {
+    name: 'Muse Voice Transcribe',
+    id: 'muse-voice-transcribe-1.0',
+    role: 'Transcribe la nota de voz con la que el gerente responde los [PENDING] del borrador; Muse Spark la asigna a cada pendiente.',
   },
   code: {
     name: 'Código determinista',
@@ -58,8 +58,8 @@ const LANES: { label: string; steps: Step[] }[] = [
       },
       {
         title: 'Guardia de documentos',
-        detail: 'Cada página se revisa contra instrucciones escondidas.',
-        models: ['guard'],
+        detail: 'Una criba busca texto dirigido a una IA; Muse Spark juzga lo sospechoso.',
+        models: ['code', 'spark'],
       },
     ],
   },
@@ -112,6 +112,11 @@ const LANES: { label: string; steps: Step[] }[] = [
         models: ['spark'],
       },
       { title: 'Revisor', detail: 'Otro modelo audita el borrador.', models: ['wonder'] },
+      {
+        title: 'Pendientes por voz',
+        detail: 'El gerente dicta lo que sabe; queda como declaración, no como evidencia.',
+        models: ['voice', 'spark'],
+      },
       {
         title: 'Formularios + F.033',
         detail: 'SNCC y el F.033 oficial pre-llenados; firma y precio quedan para una persona.',

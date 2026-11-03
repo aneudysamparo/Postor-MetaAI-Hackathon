@@ -154,6 +154,15 @@ export interface RunArtifacts {
   files: GeneratedFile[];
   requirementsArtifactId: string | null;
   guard: DocumentGuardResult | null;
+  voiceNotes: VoiceNote[];
+}
+
+export interface VoiceNote {
+  transcript: string;
+  audioDurationMs: number | null;
+  pendingItems: string[];
+  answers: { pendingIndex: number; pending: string; answer: string; proofNeeded?: string | null }[];
+  unmatched: string[];
 }
 
 export interface DocumentGuardResult {
@@ -253,6 +262,24 @@ export async function startWorkflow(
     throw new Error(detail?.message ?? `${response.status} ${response.statusText}`);
   }
   return (await response.json()) as { id: string };
+}
+
+// Voice answer to the draft's [PENDING] items (WAV body). Like a run, it
+// calls Meta models, so the visitor's key travels on this request only.
+export async function postVoiceNote(runId: string, wav: Blob, metaKey: string): Promise<void> {
+  const headers: Record<string, string> = { 'Content-Type': 'audio/wav' };
+  if (metaKey.length > 0) {
+    headers['x-meta-api-key'] = metaKey;
+  }
+  const response = await fetch(`${API_BASE}/workflows/${runId}/voice-notes`, {
+    method: 'POST',
+    headers,
+    body: wav,
+  });
+  if (!response.ok) {
+    const detail = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(detail?.message ?? `${response.status} ${response.statusText}`);
+  }
 }
 
 export interface AccessStatus {
@@ -383,5 +410,8 @@ export function readArtifacts(artifacts: Artifact[]): RunArtifacts {
     files: documents?.files ?? [],
     requirementsArtifactId: requirementsArtifact?.id ?? null,
     guard: dataOf<DocumentGuardResult>(artifacts, 'document_guard'),
+    voiceNotes: artifacts
+      .filter((entry) => entry.type === 'voice_note')
+      .map((entry) => entry.data as VoiceNote),
   };
 }

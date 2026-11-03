@@ -415,7 +415,13 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
         <FormsTab runId={trace.id} artifacts={artifacts} opportunityId={opportunity.id} />
       )}
       {trace !== null && tab === 'documentos' && (
-        <DocumentsTab runId={trace.id} artifacts={artifacts} opportunityId={opportunity.id} />
+        <DocumentsTab
+          runId={trace.id}
+          artifacts={artifacts}
+          opportunityId={opportunity.id}
+          metaKey={metaKey}
+          onVoiceNote={() => refresh(trace.id)}
+        />
       )}
       {evidenceTarget !== null && (
         <EvidenceModal target={evidenceTarget} onClose={() => setEvidenceTarget(null)} />

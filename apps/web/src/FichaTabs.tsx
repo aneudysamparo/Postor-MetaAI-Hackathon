@@ -10,6 +10,7 @@ import type {
   TraceResponse,
 } from './api';
 import type { EvidenceTarget } from './EvidenceModal';
+import { VoicePending } from './VoicePending';
 import {
   Chip,
   LabeledItem,
@@ -616,6 +617,9 @@ function modelFamily(model: string): string {
   if (lower.includes('prompt-guard')) {
     return 'guard';
   }
+  if (lower.includes('voice')) {
+    return 'voice';
+  }
   return 'spark';
 }
 
@@ -863,10 +867,14 @@ export function DocumentsTab({
   runId,
   artifacts,
   opportunityId,
+  metaKey,
+  onVoiceNote,
 }: {
   runId: string;
   artifacts: RunArtifacts;
   opportunityId: string;
+  metaKey: string;
+  onVoiceNote: () => Promise<unknown>;
 }): JSX.Element {
   const [validation] = useValidation(runId);
   const [originals, setOriginals] = useState<TenderDocumentRow[]>([]);
@@ -901,6 +909,7 @@ export function DocumentsTab({
           sella y presenta por su cuenta en el portal de compras.
         </p>
       </Section>
+      <VoicePending runId={runId} artifacts={artifacts} metaKey={metaKey} onAdded={onVoiceNote} />
       <Section title={`Expediente original (${originals.length} documentos, sin modificar)`}>
         <ul className="files">
           {originals.map((document) => (
