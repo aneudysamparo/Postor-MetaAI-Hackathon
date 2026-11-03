@@ -8,7 +8,7 @@
     "start": "node dist/main.js",
     "lint": "eslint src --max-warnings 0",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "npm run build && node --test test/brain-regression.test.mjs test/boot.test.mjs test/analyst.test.mjs test/workflow-state.test.mjs test/compliance.test.mjs test/visual.test.mjs test/pricing.test.mjs",
+    "test": "npm run build && node --test test/brain-regression.test.mjs test/boot.test.mjs test/analyst.test.mjs test/workflow-state.test.mjs test/compliance.test.mjs test/visual.test.mjs test/pricing.test.mjs test/drafting.test.mjs",
     "prisma:generate": "prisma generate",
     "prisma:validate": "prisma validate --schema=prisma/schema.prisma",
     "prisma:sqlite:prepare": "node prisma/derive-sqlite-schema.mjs",

@@ -3,6 +3,9 @@ import { ComplianceAgent } from '../agents/compliance/compliance.agent';
 import { ComplianceService } from '../agents/compliance/compliance.service';
 import { PricingAgent } from '../agents/pricing/pricing.agent';
 import { PricingService } from '../agents/pricing/pricing.service';
+import { ReviewerAgent } from '../agents/reviewer/reviewer.agent';
+import { BidDraftingService } from '../agents/writer/bid-drafting.service';
+import { WriterAgent } from '../agents/writer/writer.agent';
 import { OpportunityAgent } from '../agents/opportunity/opportunity.agent';
 import { TenderAnalystAgent } from '../agents/tender-analyst/tender-analyst.agent';
 import { TenderAnalystService } from '../agents/tender-analyst/tender-analyst.service';
@@ -30,6 +33,9 @@ import { WorkflowRunner } from './workflow-runner.service';
     VisualEvidenceService,
     PricingAgent,
     PricingService,
+    WriterAgent,
+    ReviewerAgent,
+    BidDraftingService,
   ],
 })
 export class WorkflowModule {}

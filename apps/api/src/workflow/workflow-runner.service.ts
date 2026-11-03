@@ -1,8 +1,16 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { TenderRequirement, TenderRequirementSchema, VisualEvidence } from '@postor/contracts';
+import {
+  ComplianceFinding,
+  ComplianceVerdict,
+  PricingFinding,
+  TenderRequirement,
+  TenderRequirementSchema,
+  VisualEvidence,
+} from '@postor/contracts';
 import { Prisma } from '@prisma/client';
 import { AgentCallTrace } from '../agents/base/base-agent';
 import { ComplianceService } from '../agents/compliance/compliance.service';
+import { BidDraftingService } from '../agents/writer/bid-drafting.service';
 import { PricingService } from '../agents/pricing/pricing.service';
 import { OpportunityAgent, OpportunityInput } from '../agents/opportunity/opportunity.agent';
 import { TenderAnalystService } from '../agents/tender-analyst/tender-analyst.service';
@@ -64,6 +72,7 @@ export class WorkflowRunner {
     private readonly compliance: ComplianceService,
     private readonly visual: VisualEvidenceService,
     private readonly pricing: PricingService,
+    private readonly drafting: BidDraftingService,
   ) {}
 
   public async startWorkflow(input: StartWorkflowInput) {
@@ -189,6 +198,14 @@ export class WorkflowRunner {
           await this.runPricing(runId, context);
         } catch {
           failures.push('pricing');
+        }
+        // Steps 6-7 (T6.2/T6.3): draft + review with one correction round.
+        // They use whatever compliance and pricing produced (empty on a
+        // crash), so a draft always exists for the human to finish.
+        try {
+          await this.runDrafting(runId, context);
+        } catch {
+          failures.push('writer');
         }
       }
       if (failures.length > 0) {
@@ -480,6 +497,112 @@ export class WorkflowRunner {
       await this.failAgentRun(runId, agentRun.id, 'pricing', 'pricing.research', error);
       throw error;
     }
+  }
+
+  // Steps 6-7 (PRD section 7 Agents 5-6): the drafting service runs writer
+  // -> reviewer -> (one correction) -> reviewer. Writer and reviewer get
+  // their own AgentRun rows so the trace shows each call under its agent.
+  private async runDrafting(runId: string, context: LoadedContext): Promise<void> {
+    const writerRun = await this.startAgentRun(runId, 'writer', 'draft', []);
+    const reviewerRun = await this.startAgentRun(runId, 'reviewer', 'review', []);
+    await this.emit(runId, WORKFLOW_EVENT.STEP_STARTED, 'writer', writerRun.id, {
+      step: 'writer.draft',
+    });
+    try {
+      const compliance = await this.loadCompliance(runId);
+      const result = await this.drafting.draftAndReview({
+        tender: context.tender,
+        requirements: await this.loadRequirements(runId),
+        findings: compliance.findings,
+        verdict: compliance.verdict,
+        pricing: await this.loadPricing(runId),
+        facts: context.facts,
+      });
+      for (let index = 0; index < result.writerTraces.length; index += 1) {
+        const trace = result.writerTraces[index];
+        const round = result.rounds[index];
+        if (trace !== undefined && round !== undefined) {
+          await this.saveModelCall(writerRun.id, trace, round.draft);
+        }
+      }
+      for (let index = 0; index < result.reviewerTraces.length; index += 1) {
+        const trace = result.reviewerTraces[index];
+        const round = result.rounds[index];
+        if (trace !== undefined && round !== undefined) {
+          await this.saveModelCall(reviewerRun.id, trace, round.review);
+        }
+      }
+      const draftArtifact = await this.prisma.artifact.create({
+        data: {
+          workflowId: runId,
+          type: 'draft_offer',
+          producedBy: 'writer',
+          data: {
+            draft: result.finalDraft,
+            rounds: result.rounds.length,
+          } as unknown as Prisma.InputJsonValue,
+        },
+      });
+      const reviewArtifact = await this.prisma.artifact.create({
+        data: {
+          workflowId: runId,
+          type: 'review_report',
+          producedBy: 'reviewer',
+          data: {
+            review: result.finalReview,
+            rounds: result.rounds.map((round) => ({
+              review: round.review,
+              deterministicOmissions: round.deterministicOmissions,
+            })),
+          } as unknown as Prisma.InputJsonValue,
+        },
+      });
+      await this.finishAgentRun(writerRun.id, [draftArtifact.id], null);
+      await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'writer', writerRun.id, {
+        step: 'writer.draft',
+        sections: result.finalDraft.sections.length,
+        pendingFields: result.finalDraft.pendingFields.length,
+        rounds: result.rounds.length,
+      });
+      await this.finishAgentRun(reviewerRun.id, [reviewArtifact.id], null);
+      await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'reviewer', reviewerRun.id, {
+        step: 'reviewer.review',
+        verdict: result.finalReview.verdict,
+        firstVerdict: result.rounds[0]?.review.verdict ?? null,
+        omitted: result.finalReview.omitted.length,
+      });
+    } catch (error) {
+      await this.failAgentRun(runId, writerRun.id, 'writer', 'writer.draft', error);
+      await this.failAgentRun(runId, reviewerRun.id, 'reviewer', 'reviewer.review', error);
+      throw error;
+    }
+  }
+
+  private async loadCompliance(
+    runId: string,
+  ): Promise<{ findings: ComplianceFinding[]; verdict: ComplianceVerdict | null }> {
+    const artifact = await this.prisma.artifact.findFirst({
+      where: { workflowId: runId, type: 'compliance' },
+    });
+    if (artifact === null) {
+      return { findings: [], verdict: null };
+    }
+    const payload = artifact.data as {
+      findings?: ComplianceFinding[];
+      verdict?: ComplianceVerdict;
+    };
+    return { findings: payload.findings ?? [], verdict: payload.verdict ?? null };
+  }
+
+  private async loadPricing(runId: string): Promise<PricingFinding[]> {
+    const artifact = await this.prisma.artifact.findFirst({
+      where: { workflowId: runId, type: 'pricing' },
+    });
+    if (artifact === null) {
+      return [];
+    }
+    const payload = artifact.data as { items?: PricingFinding[] };
+    return payload.items ?? [];
   }
 
   private async loadVisualEvidence(runId: string): Promise<VisualEvidence[]> {

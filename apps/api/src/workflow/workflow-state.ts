@@ -39,11 +39,14 @@ export const IMPLEMENTED_STEPS = [
   'visual.read',
   'compliance.evaluate',
   'pricing.research',
+  'writer.draft',
+  'reviewer.review',
 ] as const;
 
-// Agents that join in T6. Listed on results so the UI can label the run
-// as a partial pipeline instead of a final verdict.
-export const PENDING_STEPS = ['writer.draft', 'reviewer.review'] as const;
+// Steps not wired yet. Listed on results so the UI can label a run as a
+// partial pipeline instead of a final verdict. Empty since T6: the full
+// PRD pipeline runs.
+export const PENDING_STEPS: readonly string[] = [];
 
 const TERMINAL_STATUSES: readonly WorkflowStatus[] = [
   WORKFLOW_STATUS.COMPLETED,

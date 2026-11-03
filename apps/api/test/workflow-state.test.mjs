@@ -47,6 +47,7 @@ describe('workflow state machine', () => {
     assert.equal(overlap.length, 0);
     assert.ok(IMPLEMENTED_STEPS.includes('compliance.evaluate'));
     assert.ok(IMPLEMENTED_STEPS.includes('pricing.research'));
+    assert.ok(IMPLEMENTED_STEPS.includes('reviewer.review'));
   });
 
   it('scopes evidence rows per run so re-runs never collide', () => {
