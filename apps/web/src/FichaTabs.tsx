@@ -10,6 +10,7 @@ import type {
   TraceResponse,
 } from './api';
 import type { EvidenceTarget } from './EvidenceModal';
+import { OfferTable } from './OfferTable';
 import { VoicePending } from './VoicePending';
 import {
   Chip,
@@ -764,39 +765,42 @@ export function FormsTab({
   const review = artifacts.review;
   return (
     <div>
-      <Section title={`SNCC.F.033 — Oferta económica (${artifacts.pricing.length} líneas)`}>
-        <table>
-          <thead>
-            <tr>
-              <th>Ítem</th>
-              <th>Descripción</th>
-              <th>Unidad</th>
-              <th>Cant.</th>
-              <th>Precio unitario</th>
-              <th>ITBIS</th>
-              <th>Final</th>
-            </tr>
-          </thead>
-          <tbody>
-            {artifacts.pricing.map((item, index) => (
-              <tr key={item.item}>
-                <td>{index + 1}</td>
-                <td>{item.item}</td>
-                <td>{item.unit ?? '[PENDING]'}</td>
-                <td>{item.quantity ?? '[PENDING]'}</td>
-                <td className="muted">
-                  [PENDING: precio de oferta]
-                  {item.status === 'ok' &&
-                    item.unitPrice !== null &&
-                    ` costo ref. RD$ ${formatMoney(item.unitPrice)}`}
-                </td>
-                <td className="muted">[PENDING]</td>
-                <td className="muted">[PENDING]</td>
+      {artifacts.offer !== null && <OfferTable offer={artifacts.offer} />}
+      {artifacts.offer === null && (
+        <Section title={`SNCC.F.033 — Oferta económica (${artifacts.pricing.length} líneas)`}>
+          <table>
+            <thead>
+              <tr>
+                <th>Ítem</th>
+                <th>Descripción</th>
+                <th>Unidad</th>
+                <th>Cant.</th>
+                <th>Precio unitario</th>
+                <th>ITBIS</th>
+                <th>Final</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </Section>
+            </thead>
+            <tbody>
+              {artifacts.pricing.map((item, index) => (
+                <tr key={item.item}>
+                  <td>{index + 1}</td>
+                  <td>{item.item}</td>
+                  <td>{item.unit ?? '[PENDING]'}</td>
+                  <td>{item.quantity ?? '[PENDING]'}</td>
+                  <td className="muted">
+                    [PENDING: precio de oferta]
+                    {item.status === 'ok' &&
+                      item.unitPrice !== null &&
+                      ` costo ref. RD$ ${formatMoney(item.unitPrice)}`}
+                  </td>
+                  <td className="muted">[PENDING]</td>
+                  <td className="muted">[PENDING]</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+      )}
       {review !== null && (
         <Section title="Revisión automática del borrador">
           <p>

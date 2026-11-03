@@ -143,6 +143,7 @@ export interface RunArtifacts {
   visual: VisualEvidence[];
   samGap: string | null;
   pricing: PricingFinding[];
+  offer: EconomicOffer | null;
   pricingTotals: {
     pricedItems: number;
     pendingItems: number;
@@ -155,6 +156,64 @@ export interface RunArtifacts {
   requirementsArtifactId: string | null;
   guard: DocumentGuardResult | null;
   voiceNotes: VoiceNote[];
+}
+
+// Economic offer (SNCC.F.033) computed by the API from store/rate costs and
+// the company's pricing policy (mirrors EconomicOfferSchema).
+export interface OfferLine {
+  itemId: string | null;
+  description: string;
+  unit: string | null;
+  quantity: number | null;
+  unitCostDop: number | null;
+  costSource: string | null;
+  unitOfferDop: number | null;
+  itbisDop: number | null;
+  unitFinalDop: number | null;
+  lineTotalDop: number | null;
+  estimatedUnitPriceDop: number | null;
+  tenderPage: number | null;
+}
+
+export interface EconomicOffer {
+  status: 'in_band' | 'margin_floor' | 'over_budget' | 'incomplete' | 'no_budget';
+  lines: OfferLine[];
+  budgetDop: number | null;
+  costTotalDop: number;
+  offerTotalDop: number;
+  pctOfBudget: number | null;
+  marginPct: number | null;
+  itbisPct: number;
+  targetPctOfBudget: number;
+  bandPctOfBudget: { min: number; max: number };
+  minMarginPct: number;
+  amountInWords: string;
+  notes: string[];
+}
+
+export interface StoreCatalog {
+  id: string;
+  name: string;
+  line: string;
+  valid_until: string;
+  notes: string;
+  products: { sku: string; name: string; unit: string; price_dop: number; stock: number | null }[];
+}
+
+export interface StoresResponse {
+  stores: StoreCatalog[];
+  policy: {
+    itbis_pct: number;
+    offer_target_pct_of_budget: number;
+    offer_band_pct_of_budget: { min: number; max: number };
+    min_margin_pct: number;
+    rationale: string;
+    service_rates: { role: string; rate_dop_per_hour: number }[];
+  };
+}
+
+export function fetchStores(): Promise<StoresResponse> {
+  return getJson<StoresResponse>('/stores');
 }
 
 export interface VoiceNote {
@@ -381,10 +440,11 @@ export function readArtifacts(artifacts: Artifact[]): RunArtifacts {
     artifacts,
     'visual_evidence',
   );
-  const pricing = dataOf<{ items?: PricingFinding[]; totals?: RunArtifacts['pricingTotals'] }>(
-    artifacts,
-    'pricing',
-  );
+  const pricing = dataOf<{
+    items?: PricingFinding[];
+    totals?: RunArtifacts['pricingTotals'];
+    offer?: EconomicOffer | null;
+  }>(artifacts, 'pricing');
   const draft = dataOf<{ draft?: DraftOffer }>(artifacts, 'draft_offer');
   const review = dataOf<{ review?: ReviewReport; rounds?: RunArtifacts['reviewRounds'] }>(
     artifacts,
@@ -404,6 +464,7 @@ export function readArtifacts(artifacts: Artifact[]): RunArtifacts {
     samGap: visual?.samGap ?? null,
     pricing: pricing?.items ?? [],
     pricingTotals: pricing?.totals ?? null,
+    offer: pricing?.offer ?? null,
     draft: draft?.draft ?? null,
     review: review?.review ?? null,
     reviewRounds: review?.rounds ?? [],

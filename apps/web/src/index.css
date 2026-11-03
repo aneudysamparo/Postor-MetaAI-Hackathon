@@ -615,3 +615,10 @@ label.check {
     grid-template-columns: 1fr;
   }
 }
+
+.table-scroll {
+  overflow-x: auto;
+}
+.table-scroll table td:nth-child(2) {
+  min-width: 220px;
+}
