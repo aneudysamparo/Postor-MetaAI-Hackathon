@@ -37,6 +37,12 @@ export abstract class BaseAgent<TInput, TOutput> {
 
   protected constructor(protected readonly metaModel: MetaModelService) {}
 
+  // Model routing per agent: undefined uses the default reasoning model
+  // (muse-spark). An agent overrides this to route its task elsewhere.
+  protected modelFor(): string | undefined {
+    return undefined;
+  }
+
   protected abstract buildTaskPrompt(input: TInput): string;
 
   public async run(input: TInput): Promise<AgentResult<TOutput>> {
@@ -46,6 +52,7 @@ export abstract class BaseAgent<TInput, TOutput> {
       systemPrompt,
       taskPrompt,
       schema: this.outputSchema,
+      model: this.modelFor(),
     });
     return {
       data: completion.data,

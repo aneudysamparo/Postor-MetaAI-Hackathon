@@ -13,6 +13,12 @@ export interface ReviewerAgentInput {
   maxItemsPerList: number;
 }
 
+// The reviewer runs on a DIFFERENT Meta model than the writer: Muse Wonder,
+// a max-effort reasoning model, audits what Muse Spark drafted, so the
+// critique is not the author grading its own work. META_MODEL_REVIEWER
+// overrides it (e.g. back to muse-spark-1.3).
+const DEFAULT_REVIEWER_MODEL = 'muse-wonder-1.0';
+
 // Agent 6 (PRD section 7, Bid Reviewer). Reads the draft against the
 // requirements and the compliance matrix and reports omissions, unbacked
 // claims and contradictions. A deterministic coverage check is merged on top
@@ -27,6 +33,14 @@ export class ReviewerAgent extends BaseAgent<ReviewerAgentInput, ReviewReport> {
 
   public constructor(metaModel: MetaModelService) {
     super(metaModel);
+  }
+
+  protected modelFor(): string {
+    const configured = (process.env.META_MODEL_REVIEWER ?? '').trim();
+    if (configured.length > 0) {
+      return configured;
+    }
+    return DEFAULT_REVIEWER_MODEL;
   }
 
   protected buildTaskPrompt(input: ReviewerAgentInput): string {
