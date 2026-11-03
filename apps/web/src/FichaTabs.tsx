@@ -245,6 +245,41 @@ export function AnalysisTab({ artifacts }: { artifacts: RunArtifacts }): JSX.Ele
           </ul>
         </Section>
       )}
+      <Section title="Seguridad de los documentos">
+        {artifacts.guard === null && (
+          <p className="muted">
+            La guardia de documentos (Meta Llama Prompt Guard 2) no corrió en este análisis.
+          </p>
+        )}
+        {artifacts.guard !== null && (
+          <div>
+            <p>
+              {artifacts.guard.flagged.length === 0 && (
+                <Chip tone="ok">sin instrucciones incrustadas</Chip>
+              )}
+              {artifacts.guard.flagged.length > 0 && (
+                <Chip tone="bad">{artifacts.guard.flagged.length} fragmento(s) sospechosos</Chip>
+              )}{' '}
+              <span className="muted">
+                {artifacts.guard.scannedChunks} fragmentos del pliego y enmiendas revisados con{' '}
+                <code>{artifacts.guard.model}</code> (umbral {artifacts.guard.threshold}). Los
+                documentos se tratan siempre como datos, nunca como instrucciones.
+              </span>
+            </p>
+            <ul className="checks">
+              {artifacts.guard.flagged.map((finding) => (
+                <li key={`${finding.fileName}-${finding.page}-${finding.score}`}>
+                  <Chip tone="bad">{Math.round(finding.score * PERCENT_SCALE)}%</Chip>{' '}
+                  <b>
+                    {finding.fileName} p{finding.page}
+                  </b>{' '}
+                  <span className="muted">“{finding.excerpt}…”</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </Section>
       {artifacts.contradictions.length > 0 && (
         <Section title="Contradicciones detectadas en el expediente">
           <ul>

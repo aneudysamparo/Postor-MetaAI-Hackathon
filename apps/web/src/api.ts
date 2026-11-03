@@ -153,6 +153,14 @@ export interface RunArtifacts {
   reviewRounds: { review: ReviewReport; deterministicOmissions: string[] }[];
   files: GeneratedFile[];
   requirementsArtifactId: string | null;
+  guard: DocumentGuardResult | null;
+}
+
+export interface DocumentGuardResult {
+  model: string;
+  scannedChunks: number;
+  threshold: number;
+  flagged: { fileName: string; page: number; score: number; excerpt: string }[];
 }
 
 export interface TenderDocumentRow {
@@ -365,5 +373,6 @@ export function readArtifacts(artifacts: Artifact[]): RunArtifacts {
     reviewRounds: review?.rounds ?? [],
     files: documents?.files ?? [],
     requirementsArtifactId: requirementsArtifact?.id ?? null,
+    guard: dataOf<DocumentGuardResult>(artifacts, 'document_guard'),
   };
 }
