@@ -14,14 +14,14 @@ One fictional IT company (**NovaTech Solutions SRL** — every company record is
 invented and DEMO-marked, never a real bidder) is evaluated against 4 real,
 open Dominican public tenders (DGCP portal, unmodified originals):
 
-| Case | Tender | Verdict |
-|---|---|---|
-| A · CNE software on Azure | Fits experience, staff, and docs | **GO** |
-| B · INDOTEL Wi-Fi deployment | Two fixable gaps before closing | **GO_WITH_CONDITIONS** |
-| C · UAF Microsoft 365 renewal | Mandatory manufacturer letter missing | **NO_GO** |
-| D · ISFODOSU network equipment | Ratios pass, contract ≈ 86% of revenue | **NEEDS_REVIEW** |
+| Case                           | Tender                                 | Verdict                |
+| ------------------------------ | -------------------------------------- | ---------------------- |
+| A · CNE software on Azure      | Fits experience, staff, and docs       | **GO**                 |
+| B · INDOTEL Wi-Fi deployment   | Two fixable gaps before closing        | **GO_WITH_CONDITIONS** |
+| C · UAF Microsoft 365 renewal  | Mandatory manufacturer letter missing  | **NO_GO**              |
+| D · ISFODOSU network equipment | Ratios pass, contract ≈ 86% of revenue | **NEEDS_REVIEW**       |
 
-The point: the same pipeline says *go* and *don't go* **for the right reasons**,
+The point: the same pipeline says _go_ and _don't go_ **for the right reasons**,
 with every claim traced to a tender clause and a company document.
 
 ## How it works
