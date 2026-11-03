@@ -62,7 +62,7 @@ export function EvidenceModal({
                   {detail.document.pageCount}{' '}
                   <Chip>{METHOD_LABELS[detail.evidence.method] ?? detail.evidence.method}</Chip>{' '}
                   {detail.pagePreview !== null && (
-                    <Chip tone="neutral">calidad {detail.pagePreview.quality}</Chip>
+                    <Chip tone="neutral">quality {detail.pagePreview.quality}</Chip>
                   )}
                 </p>
                 {detail.pagePreview !== null && (
@@ -91,7 +91,7 @@ export function EvidenceModal({
             </h3>
             <p>
               <Chip>{METHOD_LABELS[target.item.method] ?? target.item.method}</Chip>{' '}
-              <Chip tone="neutral">calidad {target.item.pageQuality}</Chip>{' '}
+              <Chip tone="neutral">quality {target.item.pageQuality}</Chip>{' '}
               {target.item.requiresHumanReview && <Chip tone="warn">needs human review</Chip>}
             </p>
             <p className="muted">{target.item.note}</p>

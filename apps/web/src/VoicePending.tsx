@@ -145,7 +145,7 @@ export function VoicePending({
               <li key={`${answer.pendingIndex}-${answer.answer}`}>
                 <Chip tone="warn">declared</Chip> <b>{answer.pending}:</b> {answer.answer}
                 {answer.proofNeeded !== undefined && answer.proofNeeded !== null && (
-                  <span className="muted"> · falta adjuntar: {answer.proofNeeded}</span>
+                  <span className="muted"> · still to attach: {answer.proofNeeded}</span>
                 )}
               </li>
             ))}

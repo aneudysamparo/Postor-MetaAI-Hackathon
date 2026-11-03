@@ -87,7 +87,7 @@ const TERMINAL_STATUSES = new Set(['completed', 'needs_review', 'failed']);
 // Steps in pipeline order, with their Spanish labels for the live list.
 const PIPELINE_STEPS: { step: string; label: string }[] = [
   { step: 'load_context', label: 'Load tender file and company' },
-  { step: 'guard.scan', label: 'Document guard (Muse Spark)' },
+  { step: 'guard.scan', label: 'Document guard (injection screen)' },
   { step: 'opportunity.evaluate', label: 'Opportunity agent' },
   { step: 'tender_analyst.extract', label: 'Tender analyst' },
   { step: 'consolidate', label: 'Consolidate requirements' },
@@ -328,7 +328,7 @@ export function Ficha({ userKeyRequired }: { userKeyRequired: boolean }): JSX.El
           </label>
         )}
         <label className="muted">
-          Modo{' '}
+          Mode{' '}
           <select
             value={mode}
             onChange={(event) => setMode(event.target.value as RunMode)}

@@ -25,3 +25,4 @@ apps/api/prisma/schema.sqlite.prisma
 
 # Local Claude Code session config
 .claude/
+video/

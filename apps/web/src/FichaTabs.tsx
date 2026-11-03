@@ -371,7 +371,7 @@ export function RequirementsTab({
                 <tr key={requirement.id}>
                   <td>
                     {requirement.title}{' '}
-                    {requirement.mandatory && <Chip tone="neutral">obligatorio</Chip>}
+                    {requirement.mandatory && <Chip tone="neutral">mandatory</Chip>}
                   </td>
                   <td>{CATEGORY_LABELS[requirement.category] ?? requirement.category}</td>
                   <td>
