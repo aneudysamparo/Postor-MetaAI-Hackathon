@@ -1,3 +1,5 @@
+import { currentRequestMetaKey, userKeyRequired } from './request-meta-key';
+
 // Meta model configuration. Read from the environment, validated lazily:
 // validation happens on the first model call, never at import time, so the
 // API can boot (health checks, UI) on machines where the key is not set yet.
@@ -24,7 +26,17 @@ export function loadMetaModelsConfig(env: NodeJS.ProcessEnv = process.env): Meta
       'Missing META_BASE_URL. Copy .env.example to .env and set the Meta Model API base URL.',
     );
   }
-  const apiKey = readTrimmed(env, 'META_API_KEY');
+  // A visitor's own key (public demo, bring-your-own-key) wins over the
+  // server key; when the deployment requires user keys, the server key is
+  // never used for model calls.
+  const requestKey = currentRequestMetaKey();
+  let apiKey = readTrimmed(env, 'META_API_KEY');
+  if (userKeyRequired(env)) {
+    apiKey = '';
+  }
+  if (requestKey !== null) {
+    apiKey = requestKey;
+  }
   if (apiKey.length === 0) {
     throw new Error(
       'Missing META_API_KEY. Request the demo key from the team, paste it into .env, and retry.',

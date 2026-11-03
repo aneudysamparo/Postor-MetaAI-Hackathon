@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   NotFoundException,
   Param,
   Post,
@@ -10,6 +11,9 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { BidDocumentsService } from '../documents/bid-documents.service';
+import { normalizeUserKey, userKeyRequired } from '../models/request-meta-key';
+
+const META_KEY_HEADER = 'x-meta-api-key';
 import { z } from 'zod';
 import { WorkflowRunner } from './workflow-runner.service';
 
@@ -29,14 +33,30 @@ export class WorkflowController {
   ) {}
 
   @Post()
-  public start(@Body() body: unknown) {
+  public start(@Body() body: unknown, @Headers(META_KEY_HEADER) metaKeyHeader?: string) {
     const parsed = StartWorkflowBodySchema.safeParse(body);
     if (!parsed.success) {
       throw new BadRequestException(
         'Body must be { opportunityId: string, companyId?: string, mode?: "lite" | "full" }.',
       );
     }
-    return this.runner.startWorkflow(parsed.data);
+    // Bring-your-own-key: the visitor's key (if any) only lives in this run's
+    // async context; it is never persisted, logged or echoed back.
+    let metaKey: string | null = null;
+    if (metaKeyHeader !== undefined && metaKeyHeader.length > 0) {
+      metaKey = normalizeUserKey(metaKeyHeader);
+      if (metaKey === null) {
+        throw new BadRequestException('The Meta API key header is malformed.');
+      }
+    }
+    const serverKeyPresent = (process.env.META_API_KEY ?? '').trim().length > 0;
+    const needsUserKey = userKeyRequired() || !serverKeyPresent;
+    if (needsUserKey && metaKey === null) {
+      throw new BadRequestException(
+        'Live analysis on this deployment needs your own Meta API key (x-meta-api-key).',
+      );
+    }
+    return this.runner.startWorkflow({ ...parsed.data, metaKey });
   }
 
   @Get(':id')

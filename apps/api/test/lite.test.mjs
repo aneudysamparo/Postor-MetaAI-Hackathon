@@ -126,3 +126,56 @@ describe('demo snapshot id remap', async () => {
     assert.equal(remapped.requirement.documentId, 'cmlocal0000000000000doc01');
   });
 });
+
+describe('demo access gate', async () => {
+  const { isRequestAllowed, digestOf } = await import('../dist/access/access-token.js');
+  const base = { token: 'judge-token-2026', cookieHeader: undefined, headerToken: undefined };
+
+  it('is open when no token is configured', () => {
+    assert.equal(isRequestAllowed({ ...base, token: null, path: '/api/workflows' }), true);
+  });
+
+  it('keeps health, access and the web pages open', () => {
+    assert.equal(isRequestAllowed({ ...base, path: '/api/health' }), true);
+    assert.equal(isRequestAllowed({ ...base, path: '/api/access' }), true);
+    assert.equal(isRequestAllowed({ ...base, path: '/oportunidades' }), true);
+  });
+
+  it('requires the cookie digest or the header token on /api', () => {
+    assert.equal(isRequestAllowed({ ...base, path: '/api/opportunities' }), false);
+    const cookieHeader = `other=1; postor_access=${digestOf('judge-token-2026')}`;
+    assert.equal(isRequestAllowed({ ...base, path: '/api/opportunities', cookieHeader }), true);
+    assert.equal(
+      isRequestAllowed({ ...base, path: '/api/opportunities', headerToken: 'judge-token-2026' }),
+      true,
+    );
+    assert.equal(
+      isRequestAllowed({ ...base, path: '/api/opportunities', headerToken: 'wrong' }),
+      false,
+    );
+  });
+});
+
+describe('visitor Meta key', async () => {
+  const { normalizeUserKey, runWithMetaKey, currentRequestMetaKey } =
+    await import('../dist/models/request-meta-key.js');
+
+  it('rejects malformed keys and accepts plausible ones', () => {
+    assert.equal(normalizeUserKey('short'), null);
+    assert.equal(normalizeUserKey('has spaces inside the key value'), null);
+    assert.equal(
+      normalizeUserKey('  abcdefghijklmnopqrstuvwxyz012345  '),
+      'abcdefghijklmnopqrstuvwxyz012345',
+    );
+  });
+
+  it('exposes the key only inside its run context', async () => {
+    assert.equal(currentRequestMetaKey(), null);
+    const seen = await runWithMetaKey('visitor-key-0123456789', async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      return currentRequestMetaKey();
+    });
+    assert.equal(seen, 'visitor-key-0123456789');
+    assert.equal(currentRequestMetaKey(), null);
+  });
+});

@@ -37,6 +37,7 @@ import { BidDocumentsService } from '../documents/bid-documents.service';
 import { DocumentIngestionService } from '../documents/document-ingestion.service';
 import { NormalizedTender, TENDER_SOURCE, TenderSource } from '../documents/tender-source';
 import { estimateCallCost, loadCostRates } from '../observability/cost-estimate';
+import { runWithMetaKey } from '../models/request-meta-key';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AGENT_RUN_STATUS,
@@ -54,6 +55,8 @@ export interface StartWorkflowInput {
   opportunityId: string;
   companyId?: string;
   mode?: string;
+  // Visitor's own Meta key for this run only (never persisted).
+  metaKey?: string | null;
 }
 
 interface LoadedContext {
@@ -132,9 +135,11 @@ export class WorkflowRunner {
     // Fire-and-forget by design (see class comment). The last-resort catch
     // only logs: execute() already funnels every expected failure into the
     // run status, so reaching here means persistence itself broke.
-    void this.execute(run.id, mode).catch((error: unknown) => {
-      this.logger.error(`Workflow ${run.id} crashed outside the state machine: ${String(error)}`);
-    });
+    void runWithMetaKey(input.metaKey ?? null, () => this.execute(run.id, mode)).catch(
+      (error: unknown) => {
+        this.logger.error(`Workflow ${run.id} crashed outside the state machine: ${String(error)}`);
+      },
+    );
     return run;
   }
 
