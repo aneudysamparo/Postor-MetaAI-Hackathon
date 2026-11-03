@@ -76,6 +76,9 @@ Prompt Guard 2 · grey = deterministic code (no model).
 | `sam-3.1`                  | Meta Model API (`/responses`)      | Visual reader                                                                                           | One concept per call ("handwritten signature", "logo") on the rendered page; returns pixel boxes drawn over the original in the UI | `apps/api/src/agents/visual/visual-evidence.service.ts`                         |
 | `Llama-Prompt-Guard-2-86M` | Open weights, self-hosted on Modal | Document guard                                                                                          | Every pliego/amendment page chunk scored for prompt-injection intent before agents read it; flagged chunks shown, never obeyed     | `apps/api/src/models/document-guard.service.ts`, `deploy/modal/prompt_guard.py` |
 
+**Deep dive:** [`META-MODELS.md`](META-MODELS.md) explains how each model is
+called, validated, guarded, traced and what happens when it fails.
+
 What is deliberately **not** a model: the Go/No-Go verdict, financial ratios
 and revenue concentration, price validation, mandatory-requirement coverage,
 and form filling are deterministic code, so the model can never invent a
