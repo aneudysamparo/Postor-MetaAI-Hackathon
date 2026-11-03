@@ -89,3 +89,18 @@ describe('workflow mode', () => {
     assert.equal(resolveWorkflowMode('bogus', undefined), 'lite');
   });
 });
+
+describe('demo reset visibility', async () => {
+  const { isRunVisible } = await import('../dist/workflow/demo-reset.service.js');
+  const markers = { all: '2026-11-03T10:00:00Z', byOpportunity: { opp1: '2026-11-03T12:00:00Z' } };
+
+  it('hides runs started before the global reset', () => {
+    assert.equal(isRunVisible(markers, 'opp2', new Date('2026-11-03T09:00:00Z')), false);
+    assert.equal(isRunVisible(markers, 'opp2', new Date('2026-11-03T11:00:00Z')), true);
+  });
+
+  it('applies the per-opportunity reset on top', () => {
+    assert.equal(isRunVisible(markers, 'opp1', new Date('2026-11-03T11:00:00Z')), false);
+    assert.equal(isRunVisible(markers, 'opp1', new Date('2026-11-03T13:00:00Z')), true);
+  });
+});

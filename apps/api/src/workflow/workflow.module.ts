@@ -14,6 +14,7 @@ import { BrainModule } from '../brain/brain.module';
 import { DocumentsModule } from '../documents/documents.module';
 import { ModelsModule } from '../models/models.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { DemoResetService } from './demo-reset.service';
 import { EvidenceController } from './evidence.controller';
 import { OpportunitiesController } from './opportunities.controller';
 import { WorkflowController } from './workflow.controller';
@@ -25,6 +26,7 @@ import { WorkflowRunner } from './workflow-runner.service';
   controllers: [WorkflowController, OpportunitiesController, EvidenceController],
   providers: [
     WorkflowRunner,
+    DemoResetService,
     OpportunityAgent,
     TenderAnalystAgent,
     TenderAnalystService,

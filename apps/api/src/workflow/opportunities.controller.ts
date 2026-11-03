@@ -1,8 +1,9 @@
-import { Controller, Get, Inject, NotFoundException, Param, Res } from '@nestjs/common';
+import { Body, Controller, Get, Inject, NotFoundException, Param, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { createReadStream } from 'node:fs';
 import { TENDER_SOURCE, TenderSource } from '../documents/tender-source';
 import { PrismaService } from '../prisma/prisma.service';
+import { DemoResetService } from './demo-reset.service';
 
 interface LatestRunSummary {
   id: string;
@@ -12,6 +13,7 @@ interface LatestRunSummary {
   verdict: string | null;
   matchLevel: string | null;
   summary: string | null;
+  mode: string;
 }
 
 const PDF_MIME = 'application/pdf';
@@ -26,7 +28,20 @@ export class OpportunitiesController {
   public constructor(
     private readonly prisma: PrismaService,
     @Inject(TENDER_SOURCE) private readonly tenderSource: TenderSource,
+    private readonly demoReset: DemoResetService,
   ) {}
+
+  // Hides earlier analyses (all, or one opportunity) so the demo can start
+  // clean. Nothing is deleted; see DemoResetService.
+  @Post('demo/reset')
+  public reset(@Body() body: { opportunityId?: unknown }) {
+    let opportunityId: string | null = null;
+    if (typeof body?.opportunityId === 'string' && body.opportunityId.length > 0) {
+      opportunityId = body.opportunityId;
+    }
+    this.demoReset.reset(opportunityId);
+    return { reset: opportunityId ?? 'all' };
+  }
 
   // One card per tender: metadata from the tender source, document count,
   // and the latest run with its verdict (compliance) and match level
@@ -43,6 +58,9 @@ export class OpportunitiesController {
     // failed or interrupted run must not hide the last usable analysis.
     const latestByOpportunity = new Map<string, (typeof runs)[number]>();
     for (const run of runs) {
+      if (!this.demoReset.isVisible(run.opportunityId, run.startedAt)) {
+        continue;
+      }
       const current = latestByOpportunity.get(run.opportunityId);
       const usable = USABLE_STATUSES.has(run.status);
       if (current === undefined) {
@@ -156,6 +174,15 @@ export class OpportunitiesController {
     const artifacts = await this.prisma.artifact.findMany({
       where: { workflowId: run.id, type: { in: ['compliance', 'opportunity_assessment'] } },
     });
+    const created = await this.prisma.workflowEvent.findFirst({
+      where: { workflowId: run.id, type: 'workflow.created' },
+    });
+    const createdMetadata = (created?.metadata ?? {}) as { mode?: unknown };
+    // Runs created before lite mode existed were always full analyses.
+    let mode = 'full';
+    if (typeof createdMetadata.mode === 'string') {
+      mode = createdMetadata.mode;
+    }
     let verdict: string | null = null;
     let matchLevel: string | null = null;
     let summary: string | null = null;
@@ -181,6 +208,7 @@ export class OpportunitiesController {
       verdict,
       matchLevel,
       summary,
+      mode,
     };
   }
 }
