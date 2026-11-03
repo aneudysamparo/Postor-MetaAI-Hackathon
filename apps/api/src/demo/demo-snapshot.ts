@@ -281,12 +281,19 @@ async function regenerateBidFiles(
   if (!hasDocuments) {
     return;
   }
-  await bidDocuments.generate({
+  const files = await bidDocuments.generate({
     runId: run.id,
     tender,
     profile: company.profile,
     pricing: (dataOf('pricing').items ?? []) as never,
+    offer: (dataOf('pricing').offer ?? null) as never,
     draft: (dataOf('draft_offer').draft ?? null) as never,
     review: (dataOf('review_report').review ?? null) as never,
+  });
+  // The file list reflects what this code generates today (the recorded
+  // run may predate a filler change), so every listed file exists.
+  await prisma.artifact.updateMany({
+    where: { workflowId: run.id, type: 'bid_documents' },
+    data: { data: { files } as never },
   });
 }
