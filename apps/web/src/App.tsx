@@ -1,39 +1,36 @@
-import { useState } from 'react';
 import type { JSX } from 'react';
+import { NavLink, Navigate, Route, Routes } from 'react-router';
 import { CompanyBrainView } from './CompanyBrainView';
 import { Feed } from './Feed';
 import { Ficha } from './Ficha';
 
-type View =
-  { name: 'feed' } | { name: 'brain' } | { name: 'ficha'; opportunityId: string; code: string };
+// Routes (Spanish, like the UI labels):
+//   /oportunidades                      feed
+//   /oportunidades/:code/:tab?          ficha of one tender, tab in the URL
+//   /company-brain                      company profile
+export const OPPORTUNITIES_PATH = '/oportunidades';
+export const COMPANY_BRAIN_PATH = '/company-brain';
+
+function navClass({ isActive }: { isActive: boolean }): string {
+  if (isActive) {
+    return 'nav active';
+  }
+  return 'nav';
+}
 
 export function App(): JSX.Element {
-  const [view, setView] = useState<View>({ name: 'feed' });
-  const navClass = (active: boolean): string => {
-    if (active) {
-      return 'nav active';
-    }
-    return 'nav';
-  };
   return (
     <div className="shell">
       <aside className="side">
         <h1 className="brand">Postor Bids</h1>
         <p className="brand-sub">Del pliego a tu oferta completa</p>
         <nav>
-          <button
-            className={navClass(view.name === 'feed')}
-            onClick={() => setView({ name: 'feed' })}
-          >
+          <NavLink to={OPPORTUNITIES_PATH} className={navClass}>
             Oportunidades
-          </button>
-          <button
-            className={navClass(view.name === 'brain')}
-            onClick={() => setView({ name: 'brain' })}
-          >
+          </NavLink>
+          <NavLink to={COMPANY_BRAIN_PATH} className={navClass}>
             Company Brain
-          </button>
-          {view.name === 'ficha' && <button className="nav active">{view.code}</button>}
+          </NavLink>
         </nav>
         <p className="side-foot">
           Licitaciones reales del portal DGCP · empresa ficticia (NovaTech, DEMO) · la oferta la
@@ -41,13 +38,14 @@ export function App(): JSX.Element {
         </p>
       </aside>
       <main className="main">
-        {view.name === 'feed' && (
-          <Feed onOpen={(opportunityId, code) => setView({ name: 'ficha', opportunityId, code })} />
-        )}
-        {view.name === 'brain' && <CompanyBrainView />}
-        {view.name === 'ficha' && (
-          <Ficha opportunityId={view.opportunityId} onBack={() => setView({ name: 'feed' })} />
-        )}
+        <Routes>
+          <Route path="/" element={<Navigate to={OPPORTUNITIES_PATH} replace />} />
+          <Route path={OPPORTUNITIES_PATH} element={<Feed />} />
+          <Route path={`${OPPORTUNITIES_PATH}/:code`} element={<Ficha />} />
+          <Route path={`${OPPORTUNITIES_PATH}/:code/:tab`} element={<Ficha />} />
+          <Route path={COMPANY_BRAIN_PATH} element={<CompanyBrainView />} />
+          <Route path="*" element={<Navigate to={OPPORTUNITIES_PATH} replace />} />
+        </Routes>
       </main>
     </div>
   );

@@ -23,7 +23,10 @@ export interface LatestRun {
   verdict: Verdict | null;
   matchLevel: string | null;
   summary: string | null;
+  mode: RunMode;
 }
+
+export type RunMode = 'lite' | 'full';
 
 export interface Opportunity {
   id: string;
@@ -213,16 +216,33 @@ export function fetchCompany(): Promise<CompanyBrain> {
   return getJson<CompanyBrain>('/company');
 }
 
-export async function startWorkflow(opportunityId: string): Promise<{ id: string }> {
+export async function startWorkflow(opportunityId: string, mode: RunMode): Promise<{ id: string }> {
   const response = await fetch(`${API_BASE}/workflows`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ opportunityId }),
+    body: JSON.stringify({ opportunityId, mode }),
   });
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText} starting the analysis`);
   }
   return (await response.json()) as { id: string };
+}
+
+// Hides earlier analyses (one opportunity, or all with null). Nothing is
+// deleted server-side.
+export async function resetDemo(opportunityId: string | null): Promise<void> {
+  const body: { opportunityId?: string } = {};
+  if (opportunityId !== null) {
+    body.opportunityId = opportunityId;
+  }
+  const response = await fetch(`${API_BASE}/demo/reset`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText} resetting the demo`);
+  }
 }
 
 export function documentFileUrl(documentId: string, page: number | null): string {

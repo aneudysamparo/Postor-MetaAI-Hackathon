@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { JSX } from 'react';
 import { fetchCompany } from './api';
 import type { CompanyBrain } from './api';
-import { Chip, Section, formatMoney } from './ui';
+import { Chip, Section, formatMoney, formatRdLocal } from './ui';
 import type { Tone } from './ui';
 
 // YYYY-MM-DD prefix of an ISO timestamp.
@@ -80,7 +80,8 @@ export function CompanyBrainView(): JSX.Element {
               <b>RPE (ficticio):</b> {text(identity.rpe_fictional)}
             </li>
             <li>
-              <b>Fundada:</b> {text(identity.founded)} · {text(identity.employee_count)} empleados
+              <b>Fundada:</b> {formatRdLocal(text(identity.founded))} ·{' '}
+              {text(identity.employee_count)} empleados
             </li>
             <li>
               <b>Representante:</b> {text(record(profile.legal_representative).name)}
@@ -120,7 +121,7 @@ export function CompanyBrainView(): JSX.Element {
                 <td>{text(certification.title)}</td>
                 <td>{text(certification.holder)}</td>
                 <td>
-                  {text(certification.expires)}{' '}
+                  {formatRdLocal(text(certification.expires))}{' '}
                   <Chip tone={certificationTone(certification.status)}>
                     {text(certification.status)}
                   </Chip>
@@ -155,7 +156,7 @@ export function CompanyBrainView(): JSX.Element {
                   <code>{document.fileName}</code>
                 </td>
                 <td>{document.documentType}</td>
-                <td>{document.expiryDate?.slice(0, ISO_DATE_LENGTH) ?? '—'}</td>
+                <td>{formatRdLocal(document.expiryDate?.slice(0, ISO_DATE_LENGTH))}</td>
                 <td className="muted">{document.verificationStatus}</td>
               </tr>
             ))}

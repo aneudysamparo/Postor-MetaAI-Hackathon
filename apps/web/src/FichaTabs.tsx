@@ -3,7 +3,15 @@ import type { JSX } from 'react';
 import { documentFileUrl, fetchDocuments, generatedFileUrl } from './api';
 import type { ModelCall, Opportunity, RunArtifacts, TenderDocumentRow, TraceResponse } from './api';
 import type { EvidenceTarget } from './EvidenceModal';
-import { Chip, Section, StatusChip, VerdictChip, formatDateTime, formatMoney } from './ui';
+import {
+  Chip,
+  Section,
+  StatusChip,
+  VerdictChip,
+  formatDateTime,
+  formatMoney,
+  formatRdLocal,
+} from './ui';
 
 const PERCENT_SCALE = 100;
 const MILLISECONDS_PER_SECOND = 1000;
@@ -64,11 +72,12 @@ export function SummaryTab({
       <Section title="Cronograma">
         <ul className="kv">
           <li>
-            <b>Cierre de ofertas:</b> {opportunity.closeDateRd ?? '—'}
+            <b>Cierre de ofertas:</b> {formatRdLocal(opportunity.closeDateRd)}
           </li>
           {dated.map((requirement) => (
             <li key={requirement.id}>
-              <b>{requirement.deadline}:</b> {requirement.title} (pliego p{requirement.source.page})
+              <b>{formatRdLocal(requirement.deadline)}:</b> {requirement.title} (pliego p
+              {requirement.source.page})
             </li>
           ))}
         </ul>
@@ -105,7 +114,7 @@ export function AnalysisTab({ artifacts }: { artifacts: RunArtifacts }): JSX.Ele
             <li key={`${condition.requirementId}-${condition.description}`}>
               <span className="box">☐</span> {condition.description}{' '}
               <span className="muted">
-                · responsable {condition.owner} · antes de {condition.deadline}
+                · responsable {condition.owner} · antes de {formatRdLocal(condition.deadline)}
               </span>
             </li>
           ))}
@@ -291,7 +300,7 @@ export function ProductsTab({
                     <code>{item.sourceDocCode}</code>
                   )}
                   {item.validUntil !== null && item.validUntil !== undefined && (
-                    <div className="muted">válida hasta {item.validUntil}</div>
+                    <div className="muted">válida hasta {formatRdLocal(item.validUntil)}</div>
                   )}
                 </td>
                 <td className="muted">{item.assumptions.join(' · ')}</td>

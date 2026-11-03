@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { JSX } from 'react';
-import { fetchOpportunities, fetchTrace, readArtifacts, startWorkflow } from './api';
-import type { Opportunity, TraceResponse } from './api';
+import { fetchOpportunities, fetchTrace, readArtifacts, resetDemo, startWorkflow } from './api';
+import type { Opportunity, RunMode, TraceResponse } from './api';
+import { Link, useNavigate, useParams } from 'react-router';
 import { EvidenceModal } from './EvidenceModal';
 import type { EvidenceTarget } from './EvidenceModal';
 import {
@@ -14,19 +15,58 @@ import {
   SummaryTab,
   TraceTab,
 } from './FichaTabs';
-import { Chip, Stat, StatusChip, VerdictChip, formatMoney } from './ui';
+import { Chip, Stat, StatusChip, VerdictChip, formatMoney, formatRdLocal } from './ui';
 
+// Tab label + URL slug (/oportunidades/:code/:tab).
 const TABS = [
-  'Resumen',
-  'Análisis',
-  'Requisitos',
-  'Productos',
-  'Costos',
-  'Traza',
-  'Formularios',
-  'Documentos',
+  { label: 'Resumen', slug: 'resumen' },
+  { label: 'Análisis', slug: 'analisis' },
+  { label: 'Requisitos', slug: 'requisitos' },
+  { label: 'Productos', slug: 'productos' },
+  { label: 'Costos', slug: 'costos' },
+  { label: 'Traza', slug: 'traza' },
+  { label: 'Formularios', slug: 'formularios' },
+  { label: 'Documentos', slug: 'documentos' },
 ] as const;
-type TabName = (typeof TABS)[number];
+type TabSlug = (typeof TABS)[number]['slug'];
+const DEFAULT_TAB: TabSlug = 'resumen';
+
+function tabFromParam(param: string | undefined): TabSlug {
+  const match = TABS.find((entry) => entry.slug === param);
+  return match?.slug ?? DEFAULT_TAB;
+}
+
+const MODE_LABELS: Record<RunMode, string> = {
+  lite: 'modo rápido',
+  full: 'modo completo',
+};
+const SECONDS_PER_MINUTE = 60;
+const MILLISECONDS_PER_SECOND = 1000;
+const SECOND_DIGITS = 2;
+
+// "2:41" elapsed for the live demo clock (until finished, then final).
+function elapsedLabel(trace: TraceResponse, now: number): string {
+  let end = now;
+  if (trace.finishedAt !== null) {
+    end = new Date(trace.finishedAt).getTime();
+  }
+  const totalSeconds = Math.max(
+    0,
+    Math.round((end - new Date(trace.startedAt).getTime()) / MILLISECONDS_PER_SECOND),
+  );
+  const minutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
+  const seconds = String(totalSeconds % SECONDS_PER_MINUTE).padStart(SECOND_DIGITS, '0');
+  return `${minutes}:${seconds}`;
+}
+
+function modeOf(trace: TraceResponse): RunMode {
+  const created = trace.events.find((event) => event.type === 'workflow.created');
+  const mode = created?.metadata?.mode;
+  if (mode === 'lite') {
+    return 'lite';
+  }
+  return 'full';
+}
 
 // Live analysis polls the real run every 2 s (PRD section 10: no fake
 // animations). The pipeline writes artifacts as it goes, so tabs fill in
@@ -86,17 +126,16 @@ const STEP_CHIPS: Record<StepState, { label: string; tone: 'ok' | 'info' | 'bad'
   skipped: { label: 'omitido', tone: 'neutral' },
 };
 
-export function Ficha({
-  opportunityId,
-  onBack,
-}: {
-  opportunityId: string;
-  onBack: () => void;
-}): JSX.Element {
+export function Ficha(): JSX.Element {
+  const params = useParams();
+  const navigate = useNavigate();
+  const code = params.code ?? '';
+  const tab = tabFromParam(params.tab);
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
   const [trace, setTrace] = useState<TraceResponse | null>(null);
-  const [tab, setTab] = useState<TabName>('Resumen');
+  const [mode, setMode] = useState<RunMode>('lite');
+  const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [evidenceTarget, setEvidenceTarget] = useState<EvidenceTarget | null>(null);
@@ -104,12 +143,19 @@ export function Ficha({
   useEffect(() => {
     fetchOpportunities()
       .then((all) => {
-        const match = all.find((entry) => entry.id === opportunityId) ?? null;
+        const match = all.find((entry) => entry.code === code) ?? null;
+        if (match === null) {
+          setError(`No existe la oportunidad ${code}.`);
+        }
         setOpportunity(match);
         setRunId(match?.latestRun?.id ?? null);
       })
       .catch((reason: unknown) => setError(String(reason)));
-  }, [opportunityId]);
+  }, [code]);
+
+  const goToTab = (slug: TabSlug): void => {
+    void navigate(`/oportunidades/${code}/${slug}`);
+  };
 
   const refresh = useCallback(async (id: string): Promise<TraceResponse> => {
     const latest = await fetchTrace(id);
@@ -126,6 +172,7 @@ export function Ficha({
     const poll = async (): Promise<void> => {
       try {
         const latest = await refresh(runId);
+        setNow(Date.now());
         if (!cancelled && !TERMINAL_STATUSES.has(latest.status)) {
           timer = setTimeout(() => void poll(), POLL_INTERVAL_MS);
         }
@@ -148,13 +195,36 @@ export function Ficha({
     setStarting(true);
     setError(null);
     try {
-      const run = await startWorkflow(opportunityId);
+      if (opportunity === null) {
+        return;
+      }
+      const run = await startWorkflow(opportunity.id, mode);
       setTrace(null);
       setRunId(run.id);
     } catch (reason) {
       setError(String(reason));
     } finally {
       setStarting(false);
+    }
+  }
+
+  // Hides this tender's previous analyses so it can be shown from zero.
+  async function onReset(): Promise<void> {
+    if (opportunity === null) {
+      return;
+    }
+    const confirmed = window.confirm(
+      `¿Reiniciar el análisis de ${opportunity.code}? El historial se conserva, solo se oculta.`,
+    );
+    if (!confirmed) {
+      return;
+    }
+    try {
+      await resetDemo(opportunity.id);
+      setTrace(null);
+      setRunId(null);
+    } catch (reason) {
+      setError(String(reason));
     }
   }
 
@@ -185,9 +255,9 @@ export function Ficha({
 
   return (
     <div>
-      <button className="link" onClick={onBack}>
+      <Link className="link" to="/oportunidades">
         ← Oportunidades
-      </button>
+      </Link>
       <p className="kicker">{opportunity.code}</p>
       <h2>{opportunity.title}</h2>
       <p className="sub">
@@ -200,6 +270,8 @@ export function Ficha({
         </span>
         {trace === null && <Chip tone="neutral">sin corrida</Chip>}
         {trace !== null && <StatusChip status={trace.status} />}
+        {trace !== null && <Chip tone="neutral">{MODE_LABELS[modeOf(trace)]}</Chip>}
+        {trace !== null && <Chip tone="info">⏱ {elapsedLabel(trace, now)}</Chip>}
         {models.map((model) => (
           <Chip key={model}>{model}</Chip>
         ))}
@@ -222,9 +294,25 @@ export function Ficha({
             {runButtonLabel}
           </button>
         )}
+        <label className="muted">
+          Modo{' '}
+          <select
+            value={mode}
+            onChange={(event) => setMode(event.target.value as RunMode)}
+            disabled={running}
+          >
+            <option value="lite">Rápido · requisitos clave (~2-3 min)</option>
+            <option value="full">Completo · pliego entero (10-20 min)</option>
+          </select>
+        </label>
+        {trace !== null && !running && (
+          <button className="btn btn-ghost" onClick={() => void onReset()}>
+            Reiniciar análisis
+          </button>
+        )}
         <span className="muted">
-          Corre los 6 agentes sobre el expediente real con Muse Spark; el veredicto y los precios
-          pasan por reglas deterministas auditables.
+          6 agentes sobre el expediente real con Muse Spark; veredicto y precios pasan por reglas
+          deterministas auditables.
         </span>
         {error !== null && <span className="error">{error}</span>}
       </div>
@@ -248,7 +336,7 @@ export function Ficha({
 
       <div className="stats">
         <Stat label="Referencial" value={`RD$ ${formatMoney(opportunity.amount)}`} />
-        <Stat label="Cierre ofertas" value={opportunity.closeDateRd ?? '—'} />
+        <Stat label="Cierre ofertas" value={formatRdLocal(opportunity.closeDateRd)} />
         <Stat
           label="Veredicto"
           value={<VerdictChip verdict={artifacts.verdict?.verdict ?? null} />}
@@ -257,14 +345,14 @@ export function Ficha({
       </div>
 
       <nav className="tabs">
-        {TABS.map((name) => {
+        {TABS.map((entry) => {
           let className = 'tab';
-          if (name === tab) {
+          if (entry.slug === tab) {
             className = 'tab active';
           }
           return (
-            <button key={name} className={className} onClick={() => setTab(name)}>
-              {name}
+            <button key={entry.slug} className={className} onClick={() => goToTab(entry.slug)}>
+              {entry.label}
             </button>
           );
         })}
@@ -275,24 +363,24 @@ export function Ficha({
           Esta oportunidad aún no tiene análisis. Corre el análisis en vivo para llenarla.
         </p>
       )}
-      {trace !== null && tab === 'Resumen' && (
+      {trace !== null && tab === 'resumen' && (
         <SummaryTab opportunity={opportunity} artifacts={artifacts} />
       )}
-      {trace !== null && tab === 'Análisis' && <AnalysisTab artifacts={artifacts} />}
-      {trace !== null && tab === 'Requisitos' && (
+      {trace !== null && tab === 'analisis' && <AnalysisTab artifacts={artifacts} />}
+      {trace !== null && tab === 'requisitos' && (
         <RequirementsTab artifacts={artifacts} onOpenEvidence={openEvidence} />
       )}
-      {trace !== null && tab === 'Productos' && (
+      {trace !== null && tab === 'productos' && (
         <ProductsTab artifacts={artifacts} onOpenEvidence={openEvidence} />
       )}
-      {trace !== null && tab === 'Costos' && (
+      {trace !== null && tab === 'costos' && (
         <CostsTab opportunity={opportunity} artifacts={artifacts} />
       )}
-      {trace !== null && tab === 'Traza' && <TraceTab trace={trace} />}
-      {trace !== null && tab === 'Formularios' && (
+      {trace !== null && tab === 'traza' && <TraceTab trace={trace} />}
+      {trace !== null && tab === 'formularios' && (
         <FormsTab runId={trace.id} artifacts={artifacts} opportunityId={opportunity.id} />
       )}
-      {trace !== null && tab === 'Documentos' && (
+      {trace !== null && tab === 'documentos' && (
         <DocumentsTab runId={trace.id} artifacts={artifacts} opportunityId={opportunity.id} />
       )}
       {evidenceTarget !== null && (

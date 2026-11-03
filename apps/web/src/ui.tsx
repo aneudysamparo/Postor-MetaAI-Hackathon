@@ -15,11 +15,101 @@ export function formatMoney(amount: number | null | undefined): string {
   });
 }
 
+const MONTH_NAMES = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+];
+const NOON_HOUR = 12;
+const MINUTE_DIGITS = 2;
+// Tender dates and run times are shown in Dominican Republic time.
+const RD_TIME_ZONE = 'America/Santo_Domingo';
+const RD_LOCAL_PATTERN = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/;
+
+interface DateParts {
+  year: number;
+  month: number;
+  day: number;
+  hour: number | null;
+  minute: number | null;
+}
+
+// "noviembre 5, 2026, 3:00 p.m." (the time part only when known).
+function renderDate(parts: DateParts): string {
+  const monthName = MONTH_NAMES[parts.month - 1] ?? String(parts.month);
+  const datePart = `${monthName} ${parts.day}, ${parts.year}`;
+  if (parts.hour === null || parts.minute === null) {
+    return datePart;
+  }
+  let suffix = 'a.m.';
+  if (parts.hour >= NOON_HOUR) {
+    suffix = 'p.m.';
+  }
+  let hour12 = parts.hour % NOON_HOUR;
+  if (hour12 === 0) {
+    hour12 = NOON_HOUR;
+  }
+  const minutes = String(parts.minute).padStart(MINUTE_DIGITS, '0');
+  return `${datePart}, ${hour12}:${minutes} ${suffix}`;
+}
+
+// Tender close dates arrive as RD local text ("2026-11-05 15:00"): they are
+// already in Dominican time, so they are reformatted without any timezone
+// conversion.
+export function formatRdLocal(text: string | null | undefined): string {
+  if (text === null || text === undefined) {
+    return '—';
+  }
+  const match = RD_LOCAL_PATTERN.exec(text);
+  if (match === null) {
+    return text;
+  }
+  let hour: number | null = null;
+  let minute: number | null = null;
+  if (match[4] !== undefined && match[5] !== undefined) {
+    hour = Number(match[4]);
+    minute = Number(match[5]);
+  }
+  return renderDate({
+    year: Number(match[1]),
+    month: Number(match[2]),
+    day: Number(match[3]),
+    hour,
+    minute,
+  });
+}
+
+// Server timestamps (UTC ISO) shown in Dominican time.
 export function formatDateTime(iso: string | null | undefined): string {
   if (iso === null || iso === undefined) {
     return '—';
   }
-  return new Date(iso).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' });
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: RD_TIME_ZONE,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(iso));
+  const value = (type: string): number => Number(parts.find((part) => part.type === type)?.value);
+  return renderDate({
+    year: value('year'),
+    month: value('month'),
+    day: value('day'),
+    hour: value('hour'),
+    minute: value('minute'),
+  });
 }
 
 export function Chip({
