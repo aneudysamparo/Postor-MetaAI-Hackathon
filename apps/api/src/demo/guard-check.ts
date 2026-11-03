@@ -1,13 +1,15 @@
 // Document guard check for any file (demo + diagnostics):
 //   node dist/demo/guard-check.js <file.pdf|file.docx|file.txt>
 // Extracts the text per page, chunks it like the pipeline does, scores it
-// with Meta Llama Prompt Guard 2 (POSTOR_GUARD_URL) and prints the result.
+// with the configured guard backend (Muse Spark judge by default, Llama
+// Prompt Guard 2 when POSTOR_GUARD_URL is set) and prints the result.
 import 'reflect-metadata';
 import { readFileSync } from 'node:fs';
 import { extname } from 'node:path';
 import { DocxTextExtractor } from '../documents/docx-text-extractor';
 import { PdfTextExtractor } from '../documents/pdf-text-extractor';
 import { DocumentGuardService, chunkForGuard } from '../models/document-guard.service';
+import { MetaModelService } from '../models/meta-model.service';
 import { loadRuntimeEnv } from '../runtime-env';
 
 const PERCENT_SCALE = 100;
@@ -36,14 +38,16 @@ async function main(): Promise<void> {
   const chunks = pages.flatMap((text, index) =>
     chunkForGuard(text).map((chunk) => ({ fileName: path, page: index + 1, text: chunk })),
   );
-  const scan = await new DocumentGuardService().scan(chunks);
+  const scan = await new DocumentGuardService(new MetaModelService()).scan(chunks);
   process.stdout.write(
-    `${scan.model}: ${scan.scannedChunks} chunks, threshold ${scan.threshold}, flagged ${scan.flagged.length}\n`,
+    `${scan.backend} (${scan.model}): ${scan.scannedChunks} chunks, ${scan.escalatedChunks} judged, ` +
+      `threshold ${scan.threshold}, flagged ${scan.flagged.length}\n`,
   );
   for (const finding of scan.flagged) {
     const percent = Math.round(finding.score * PERCENT_SCALE);
     process.stdout.write(
-      `  FLAGGED p${finding.page} ${percent}%: ${finding.text.slice(0, EXCERPT_CHARS)}…\n`,
+      `  FLAGGED p${finding.page} ${percent}%: ${finding.text.slice(0, EXCERPT_CHARS)}…\n` +
+        `    ${finding.reason ?? ''}\n`,
     );
   }
 }

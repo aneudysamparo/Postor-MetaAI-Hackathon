@@ -85,8 +85,6 @@ const COST_SUMMARY_DECIMALS = 6;
 const META_PROVIDER = 'meta';
 // Characters of a flagged chunk kept in the artifact for the reviewer.
 const GUARD_EXCERPT_CHARS = 300;
-// Meta open-weights model self-hosted on Modal (document guard).
-const MODAL_PROVIDER = 'modal';
 // 30 minutes without any workflow event: far beyond the slowest model call.
 const STALE_RUN_MS = 1_800_000;
 const INTERRUPTED_REASON = 'Interrupted: the API process stopped while this run was executing.';
@@ -417,8 +415,9 @@ export class WorkflowRunner {
     }
   }
 
-  // Document guard (Meta Llama Prompt Guard 2 on Modal): scores every page
-  // chunk the agents read for prompt-injection intent. Non-blocking: a
+  // Document guard (Muse Spark judge, or Llama Prompt Guard 2 on Modal):
+  // checks every page chunk the agents read for prompt-injection intent.
+  // Non-blocking: a
   // flagged chunk is reported (artifact + trace) and stays plain data; an
   // unreachable guard is recorded as a failed step, never a silent pass.
   private async runGuard(runId: string, context: LoadedContext): Promise<void> {
@@ -426,7 +425,7 @@ export class WorkflowRunner {
       await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'orchestrator', null, {
         step: 'guard.scan',
         skipped: true,
-        reason: 'Document guard not deployed (POSTOR_GUARD_URL unset).',
+        reason: 'Document guard disabled (POSTOR_GUARD=off).',
       });
       return;
     }
@@ -450,17 +449,17 @@ export class WorkflowRunner {
           {
             agentName: 'document_guard',
             taskName: 'scan',
-            promptVersion: 'prompt-guard-2',
-            systemPrompt: '',
-            taskPrompt: `${call.texts} page chunks of the pliego and amendments (classifier input)`,
-            modelRequested: scan.model,
-            modelReturned: scan.model,
-            usage: { inputTokens: null, outputTokens: null },
+            promptVersion: call.promptVersion,
+            systemPrompt: call.systemPrompt,
+            taskPrompt: call.taskPrompt,
+            modelRequested: call.modelRequested,
+            modelReturned: call.modelReturned,
+            usage: call.usage,
             durationMs: call.durationMs,
-            rawResponse: null,
+            rawResponse: call.rawResponse,
           },
-          { texts: call.texts, threshold: scan.threshold, flagged: scan.flagged.length },
-          MODAL_PROVIDER,
+          call.summary,
+          call.provider,
         );
       }
       const artifact = await this.prisma.artifact.create({
@@ -469,13 +468,16 @@ export class WorkflowRunner {
           type: 'document_guard',
           producedBy: 'document_guard',
           data: {
+            backend: scan.backend,
             model: scan.model,
             scannedChunks: scan.scannedChunks,
+            escalatedChunks: scan.escalatedChunks,
             threshold: scan.threshold,
             flagged: scan.flagged.map((finding) => ({
               fileName: finding.fileName,
               page: finding.page,
               score: finding.score,
+              reason: finding.reason,
               excerpt: finding.text.slice(0, GUARD_EXCERPT_CHARS),
             })),
           } as unknown as Prisma.InputJsonValue,
@@ -484,7 +486,9 @@ export class WorkflowRunner {
       await this.finishAgentRun(agentRun.id, [artifact.id], null);
       await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'document_guard', agentRun.id, {
         step: 'guard.scan',
+        backend: scan.backend,
         scannedChunks: scan.scannedChunks,
+        escalatedChunks: scan.escalatedChunks,
         flagged: scan.flagged.length,
       });
     } catch (error) {

@@ -87,7 +87,7 @@ const TERMINAL_STATUSES = new Set(['completed', 'needs_review', 'failed']);
 // Steps in pipeline order, with their Spanish labels for the live list.
 const PIPELINE_STEPS: { step: string; label: string }[] = [
   { step: 'load_context', label: 'Cargar expediente y empresa' },
-  { step: 'guard.scan', label: 'Guardia de documentos (Llama Prompt Guard 2)' },
+  { step: 'guard.scan', label: 'Guardia de documentos (Muse Spark)' },
   { step: 'opportunity.evaluate', label: 'Agente de Oportunidad' },
   { step: 'tender_analyst.extract', label: 'Analista del pliego' },
   { step: 'consolidate', label: 'Consolidar requisitos' },

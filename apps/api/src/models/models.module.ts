@@ -9,7 +9,11 @@ import { MetaModelService } from './meta-model.service';
 @Module({
   providers: [
     { provide: MetaModelService, useFactory: () => new MetaModelService() },
-    { provide: DocumentGuardService, useFactory: () => new DocumentGuardService() },
+    {
+      provide: DocumentGuardService,
+      useFactory: (metaModel: MetaModelService) => new DocumentGuardService(metaModel),
+      inject: [MetaModelService],
+    },
   ],
   exports: [MetaModelService, DocumentGuardService],
 })

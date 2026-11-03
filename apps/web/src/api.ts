@@ -157,10 +157,19 @@ export interface RunArtifacts {
 }
 
 export interface DocumentGuardResult {
+  // Older runs (Prompt Guard 2 only) carry no backend / escalatedChunks.
+  backend?: 'muse_spark' | 'prompt_guard_2';
   model: string;
   scannedChunks: number;
+  escalatedChunks?: number;
   threshold: number;
-  flagged: { fileName: string; page: number; score: number; excerpt: string }[];
+  flagged: {
+    fileName: string;
+    page: number;
+    score: number;
+    reason?: string | null;
+    excerpt: string;
+  }[];
 }
 
 export interface TenderDocumentRow {

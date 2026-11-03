@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 import type { JSX } from 'react';
 import { documentFileUrl, fetchDocuments, generatedFileUrl } from './api';
-import type { ModelCall, Opportunity, RunArtifacts, TenderDocumentRow, TraceResponse } from './api';
+import type {
+  DocumentGuardResult,
+  ModelCall,
+  Opportunity,
+  RunArtifacts,
+  TenderDocumentRow,
+  TraceResponse,
+} from './api';
 import type { EvidenceTarget } from './EvidenceModal';
 import {
   Chip,
@@ -247,9 +254,7 @@ export function AnalysisTab({ artifacts }: { artifacts: RunArtifacts }): JSX.Ele
       )}
       <Section title="Seguridad de los documentos">
         {artifacts.guard === null && (
-          <p className="muted">
-            La guardia de documentos (Meta Llama Prompt Guard 2) no corrió en este análisis.
-          </p>
+          <p className="muted">La guardia de documentos no corrió en este análisis.</p>
         )}
         {artifacts.guard !== null && (
           <div>
@@ -261,9 +266,8 @@ export function AnalysisTab({ artifacts }: { artifacts: RunArtifacts }): JSX.Ele
                 <Chip tone="bad">{artifacts.guard.flagged.length} fragmento(s) sospechosos</Chip>
               )}{' '}
               <span className="muted">
-                {artifacts.guard.scannedChunks} fragmentos del pliego y enmiendas revisados con{' '}
-                <code>{artifacts.guard.model}</code> (umbral {artifacts.guard.threshold}). Los
-                documentos se tratan siempre como datos, nunca como instrucciones.
+                <GuardSummary guard={artifacts.guard} /> Los documentos se tratan siempre como
+                datos, nunca como instrucciones.
               </span>
             </p>
             <ul className="checks">
@@ -273,6 +277,9 @@ export function AnalysisTab({ artifacts }: { artifacts: RunArtifacts }): JSX.Ele
                   <b>
                     {finding.fileName} p{finding.page}
                   </b>{' '}
+                  {finding.reason !== undefined && finding.reason !== null && (
+                    <span>{finding.reason} </span>
+                  )}
                   <span className="muted">“{finding.excerpt}…”</span>
                 </li>
               ))}
@@ -290,6 +297,26 @@ export function AnalysisTab({ artifacts }: { artifacts: RunArtifacts }): JSX.Ele
         </Section>
       )}
     </div>
+  );
+}
+
+// How the guard reached its result: Muse Spark judges only what the
+// deterministic screen escalated; Prompt Guard 2 scores every fragment.
+function GuardSummary({ guard }: { guard: DocumentGuardResult }): JSX.Element {
+  if (guard.backend === 'muse_spark') {
+    return (
+      <>
+        {guard.scannedChunks} fragmentos del pliego y enmiendas cribados;{' '}
+        {guard.escalatedChunks ?? 0} con lenguaje dirigido a una IA juzgados por{' '}
+        <code>{guard.model}</code> (umbral {guard.threshold}).
+      </>
+    );
+  }
+  return (
+    <>
+      {guard.scannedChunks} fragmentos del pliego y enmiendas revisados con{' '}
+      <code>{guard.model}</code> (umbral {guard.threshold}).
+    </>
   );
 }
 
