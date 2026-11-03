@@ -5,8 +5,81 @@ opportunity to an honest, evidence-backed answer: **bid here, bid with
 conditions, don't bid, or let a human decide** — plus a first draft of the
 technical proposal when bidding makes sense.
 
-Built for the Meta AI Developer Hackathon. All agent reasoning runs on
-`muse-spark-1.3`; `sam-3.1` localizes visual regions on scanned pages.
+Built for the Meta AI Developer Hackathon (Startup track, _Build for Your
+World_) with **four Meta models**, each with one job: **Muse Spark** reads and
+drafts, **Muse Wonder** audits, **SAM 3.1** localizes official marks on scanned
+pages, and **Llama Prompt Guard 2** screens every document for prompt injection.
+
+## For judges — start here
+
+1. **Try it live:** **https://demo.postor.do** (access token in our
+   submission). The four tenders already show real recorded runs; to run a new
+   analysis, paste your own Meta API key in the ficha (it is used for that run
+   only, never stored).
+2. **Follow the 3-minute walkthrough** below.
+3. **See how each Meta model is used** in the map and table below (also in the
+   app: **Cómo funciona**).
+4. **Run it locally** (optional): see [Run it locally](#run-it-locally).
+
+### 3-minute walkthrough
+
+| #   | Where                                                                  | What to look at                                                                                                   |
+| --- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1   | **Oportunidades**                                                      | 4 real DGCP tenders with verdict, match level, amount and close date.                                             |
+| 2   | **Company Brain**                                                      | The fictional bidder: certifications with expiry dates, projects, finances, known gaps.                           |
+| 3   | Case A → **Ver ficha** → modo _Rápido_ → **▶ Correr análisis en vivo** | Live progress per step and a clock (≈1.5–2.5 min).                                                                |
+| 4   | **Análisis**                                                           | Verdict, conditions with owner + deadline, financial ratios, document safety (Prompt Guard).                      |
+| 5   | **Requisitos** → click any `pliego pN`                                 | The cited page of the ORIGINAL PDF, rendered, with the requirement text.                                          |
+| 6   | **Productos** → open a scanned page                                    | SAM 3.1 boxes over the original page + Muse Spark's reading.                                                      |
+| 7   | **Traza**                                                              | Every model call: model, prompt sent, response, tokens, duration, estimated cost.                                 |
+| 8   | **Formularios / Documentos**                                           | SNCC forms and the tender's own F.033 pre-filled; prices and signatures stay `[PENDING]` for a human.             |
+| 9   | Cases C and D → **Análisis**                                           | Same system, different verdicts: NO GO (manufacturer authorization) and NEEDS REVIEW (contract ≈ 86% of revenue). |
+
+### Meta models in the pipeline
+
+```mermaid
+flowchart LR
+  P["Real tender<br/>(DGCP pliego + amendments)"] --> G{{"Llama Prompt Guard 2<br/>injection screen"}}
+  P --> AN["Tender Analyst<br/>requirements + page"]
+  P --> V["Visual reader"]
+  V --> S["SAM 3.1<br/>signatures · logos (boxes)"]
+  V --> SV["Muse Spark vision<br/>reads scanned page"]
+  B["Company Brain<br/>(fictional SMB)"] --> C
+  AN --> C["Compliance<br/>met / not met / unknown"]
+  C --> D{"Deterministic verdict<br/>+ financial ratios"}
+  AN --> PR["Pricing<br/>+ price guard"]
+  D --> W["Bid Writer"]
+  PR --> W
+  W --> R["Bid Reviewer<br/>Muse Wonder"]
+  R --> F["SNCC forms + F.033<br/>[PENDING] for humans"]
+  O["Opportunity fit"] -.-> D
+
+  classDef spark fill:#e4eefb,stroke:#1d5fb8,color:#10294d;
+  classDef wonder fill:#efe7fb,stroke:#6b3fb8,color:#2a1050;
+  classDef sam fill:#fde7f1,stroke:#e11d74,color:#5a0a2c;
+  classDef guard fill:#e3f2e9,stroke:#1c7a3d,color:#0b3a1d;
+  classDef code fill:#f2f2f2,stroke:#777,color:#222;
+  class AN,SV,C,PR,W,O spark;
+  class R wonder;
+  class S sam;
+  class G guard;
+  class D,F code;
+```
+
+Blue = Muse Spark · purple = Muse Wonder · pink = SAM 3.1 · green = Llama
+Prompt Guard 2 · grey = deterministic code (no model).
+
+| Meta model                 | Hosted                             | Used by                                                                                                 | How                                                                                                                                | Code                                                                            |
+| -------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `muse-spark-1.3`           | Meta Model API                     | Opportunity, Tender Analyst (full mode), Compliance, Pricing, Bid Writer, vision reads of scanned pages | JSON-only prompts validated with Zod (one schema retry); 12-page windows and requirement batches run 4 in parallel                 | `apps/api/src/agents/*`, `apps/api/src/models/meta-model.service.ts`            |
+| `muse-wonder-1.0`          | Meta Model API                     | Bid Reviewer                                                                                            | A different model audits the draft Muse Spark wrote: omissions, unsupported claims, contradictions (live: ~16 s)                   | `apps/api/src/agents/reviewer/reviewer.agent.ts`                                |
+| `sam-3.1`                  | Meta Model API (`/responses`)      | Visual reader                                                                                           | One concept per call ("handwritten signature", "logo") on the rendered page; returns pixel boxes drawn over the original in the UI | `apps/api/src/agents/visual/visual-evidence.service.ts`                         |
+| `Llama-Prompt-Guard-2-86M` | Open weights, self-hosted on Modal | Document guard                                                                                          | Every pliego/amendment page chunk scored for prompt-injection intent before agents read it; flagged chunks shown, never obeyed     | `apps/api/src/models/document-guard.service.ts`, `deploy/modal/prompt_guard.py` |
+
+What is deliberately **not** a model: the Go/No-Go verdict, financial ratios
+and revenue concentration, price validation, mandatory-requirement coverage,
+and form filling are deterministic code, so the model can never invent a
+price or flip a verdict on its own.
 
 ## The demo
 
@@ -14,18 +87,17 @@ One fictional IT company (**NovaTech Solutions SRL** — every company record is
 invented and DEMO-marked, never a real bidder) is evaluated against 4 real,
 open Dominican public tenders (DGCP portal, unmodified originals):
 
-| Case                           | Tender                                 | Verdict                |
-| ------------------------------ | -------------------------------------- | ---------------------- |
-| A · CNE software on Azure      | Fits experience, staff, and docs       | **GO**                 |
-| B · INDOTEL Wi-Fi deployment   | Two fixable gaps before closing        | **GO_WITH_CONDITIONS** |
-| C · UAF Microsoft 365 renewal  | Mandatory manufacturer letter missing  | **NO_GO**              |
-| D · ISFODOSU network equipment | Ratios pass, contract ≈ 86% of revenue | **NEEDS_REVIEW**       |
+| Case                           | Design intent      | Live verdict     | Why (cited by the system)                                                       |
+| ------------------------------ | ------------------ | ---------------- | ------------------------------------------------------------------------------- |
+| A · CNE software on Azure      | GO                 | **GO**           | experience, 2 reference letters, Azure CV + certification, RPE/TSS/DGII current |
+| B · INDOTEL Wi-Fi deployment   | GO_WITH_CONDITIONS | **NO_GO**        | the real pliego requires 2+ similar Wi-Fi projects; the company has 1           |
+| C · UAF Microsoft 365 renewal  | NO_GO              | **NO_GO**        | Microsoft partner/CSP authorization required; a distributor quote is not one    |
+| D · ISFODOSU network equipment | NEEDS_REVIEW       | **NEEDS_REVIEW** | ratios pass (2.68 / 1.8 / 0.60) but the contract ≈ 86% of annual revenue        |
 
 The point: the same pipeline says _go_ and _don't go_ **for the right reasons**,
-with every claim traced to a tender clause and a company document. The table
-shows the verdicts the dataset was designed for; on the real documents cases B
-and D turned out stricter and the system says so — see
-[`EXECUTION-SUMMARY.md`](EXECUTION-SUMMARY.md).
+with every claim traced to a tender clause and a company document. Where the
+real pliego is stricter than the dataset's design (case B), the system follows
+the document — see [`EXECUTION-SUMMARY.md`](EXECUTION-SUMMARY.md).
 
 ## Why this matters (Dominican Republic)
 
@@ -67,7 +139,7 @@ text, and nothing invented ever becomes a fact: unknowns are `[PENDING: ...]`.
 Every AI call is logged and inspectable in the **Trace** view: prompt sent,
 response received, tokens, duration, and cost estimate. No black boxes.
 
-## Quickstart (judges)
+## Run it locally
 
 Requirements: Node 22+ (`.nvmrc`), npm. Docker is optional (Postgres); without
 it everything runs on a disposable local SQLite database.
@@ -99,26 +171,6 @@ container, access token, visitors bring their own Meta key).
 
 `npm run seed` validates the dataset offline (no key, no model calls);
 `npm run doctor` diagnoses the environment. Tests: `npm test`.
-
-## What runs where
-
-| Step                            | Agent / module                                                                                    | Model                                                                |
-| ------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| Load tender + company           | orchestrator, `documents/` (per-page quality: text/mixed/scanned)                                 | —                                                                    |
-| Document guard                  | Every pliego/amendment page chunk scored for prompt injection before use (parallel, non-blocking) | Meta `Llama-Prompt-Guard-2-86M` (open weights, self-hosted on Modal) |
-| Opportunity fit                 | Opportunity agent                                                                                 | `muse-spark-1.3`                                                     |
-| Requirements with page evidence | Tender Analyst (12-page windows, 4 in parallel)                                                   | `muse-spark-1.3`                                                     |
-| Scanned pages                   | Visual reader: page render → `sam-3.1` marks + vision read (parallel)                             | `sam-3.1`* + `muse-spark-1.3`                                        |
-| Requirement × Company Brain     | Compliance agent + **deterministic** verdict and financial ratios                                 | `muse-spark-1.3`                                                     |
-| Item prices                     | Research & Pricing + deterministic guard (price must literally appear in a valid quotation)       | `muse-spark-1.3`                                                     |
-| Proposal draft                  | Bid Writer → Bid Reviewer → one correction round → re-review                                      | `muse-spark-1.3`                                                     |
-| Bid package                     | SNCC forms + the tender's own F.033 filled, `[PENDING]` where unknown                             | —                                                                    |
-
-\* `sam-3.1` is called through the Responses API with one concept phrase per
-request ("handwritten signature", "logo") and returns pixel boxes; Postor uses
-it to localize the official marks (committee initials, institutional logos)
-on scanned pliego pages and draws them over the original page in the UI,
-while Muse Spark reads the text. Each SAM call appears in the Trace.
 
 ## Repository layout
 
