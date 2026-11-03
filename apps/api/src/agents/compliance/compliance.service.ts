@@ -15,6 +15,7 @@ import {
 import { NormalizedTender } from '../../documents/tender-source';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AgentCallTrace } from '../base/base-agent';
+import { mapWithConcurrency } from '../base/concurrency';
 import { ComplianceAgent, ComplianceBatchRequirement } from './compliance.agent';
 import {
   FinancialCheck,
@@ -47,6 +48,8 @@ export interface ComplianceEvaluation {
 // its evidence in context, large enough to bound the call count.
 const COMPLIANCE_BATCH_SIZE = 8;
 const CORRECTION_RETRIES = 1;
+// Batch calls in flight at once (see mapWithConcurrency).
+const COMPLIANCE_CONCURRENCY = 4;
 // Compliance needs facts AND verbatim excerpts: the default budget fits the
 // ~5.8k-char fact block but starves excerpts to zero (seen live), so the
 // model would judge from facts alone. 12k chars holds both.
@@ -86,7 +89,9 @@ export class ComplianceService {
     const batchFindings: ComplianceFinding[][] = [];
     const retrievalTraceIds: string[] = [];
     const batches = chunkArray(requirements, COMPLIANCE_BATCH_SIZE);
-    for (const batch of batches) {
+    // Batches are independent: a bounded pool runs them concurrently and
+    // returns results in batch order, so findings keep requirement order.
+    const results = await mapWithConcurrency(batches, COMPLIANCE_CONCURRENCY, async (batch) => {
       const retrieval = await this.retrieval.retrieveCompanyContext({
         companyId: input.companyId,
         query: this.batchQuery(batch),
@@ -95,7 +100,6 @@ export class ComplianceService {
         workflowId: input.workflowId,
         agentRunId: input.agentRunId,
       });
-      retrievalTraceIds.push(retrieval.retrievalTraceId);
       const context = await this.contextBuilder.buildAgentContext({
         retrieval,
         maxChars: COMPLIANCE_CONTEXT_CHARS,
@@ -104,6 +108,10 @@ export class ComplianceService {
         financialContextText,
         closeDateRd: input.tender.closeDateRd ?? 'unknown',
       });
+      return { ...result, retrievalTraceId: retrieval.retrievalTraceId };
+    });
+    for (const result of results) {
+      retrievalTraceIds.push(result.retrievalTraceId);
       traces.push(result.trace);
       batchFindings.push(result.findings);
       findings.push(...result.findings);

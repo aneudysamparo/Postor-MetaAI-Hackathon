@@ -10,6 +10,7 @@ import { PdfTextExtractor } from '../../documents/pdf-text-extractor';
 import { TENDER_SOURCE, TenderFileRef, TenderSource } from '../../documents/tender-source';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AgentCallTrace } from '../base/base-agent';
+import { mapWithConcurrency } from '../base/concurrency';
 import { AnalystPageInput, TenderAnalystAgent } from './tender-analyst.agent';
 
 export interface PageWindow {
@@ -42,6 +43,10 @@ interface StoredPageQuality {
 const ANALYST_WINDOW_PAGES = 12;
 const ANALYST_WINDOW_OVERLAP = 2;
 const UNKNOWN_QUALITY = 'unknown';
+// Window calls in flight at once (see mapWithConcurrency).
+const ANALYST_CONCURRENCY = 4;
+
+type AnalystWindowJobInput = Parameters<TenderAnalystAgent['run']>[0];
 
 // Windows slide with overlap so requirements spanning a boundary are seen
 // whole by at least one call. Overlap must stay smaller than the window.
@@ -137,8 +142,9 @@ export class TenderAnalystService {
     const contradictionLists: unknown[][] = [];
     const traces: AgentCallTrace[] = [];
     const windowOutputs: AnalystWindowOutput[] = [];
-    let windowsRun = 0;
-    let order = 0;
+    // Build every window job first, then call the model with a bounded pool.
+    // Results come back in job order, so merge order stays deterministic.
+    const jobs: { input: AnalystWindowJobInput; documentId: string; pageCount: number }[] = [];
     for (const file of targets) {
       const row = rowByFile.get(file.fileName);
       if (row === undefined) {
@@ -146,25 +152,42 @@ export class TenderAnalystService {
       }
       const pages = await this.fullPageTexts(file);
       const qualities = this.pageQualitiesOf(row.extraction);
+      let documentLabel = 'amendment';
+      if (file.role === 'pliego') {
+        documentLabel = 'pliego de condiciones';
+      }
       for (const window of buildWindows(pages.length)) {
-        const input = {
-          documentLabel: file.role === 'pliego' ? 'pliego de condiciones' : 'amendment',
-          fileName: file.fileName,
-          startPage: window.startPage,
-          endPage: window.endPage,
-          pages: this.sliceWindow(pages, qualities, window),
-        };
-        const result = await this.agent.run(input);
-        traces.push(result.trace);
-        windowOutputs.push(result.data);
-        windowsRun += 1;
-        for (const draft of result.data.requirements) {
-          order += 1;
-          tagged.push({ draft, documentId: row.id, pageCount: row.pageCount, order });
-        }
-        contradictionLists.push(result.data.contradictions);
+        jobs.push({
+          input: {
+            documentLabel,
+            fileName: file.fileName,
+            startPage: window.startPage,
+            endPage: window.endPage,
+            pages: this.sliceWindow(pages, qualities, window),
+          },
+          documentId: row.id,
+          pageCount: row.pageCount,
+        });
       }
     }
+    const results = await mapWithConcurrency(jobs, ANALYST_CONCURRENCY, (job) =>
+      this.agent.run(job.input),
+    );
+    let order = 0;
+    results.forEach((result, index) => {
+      const job = jobs[index];
+      if (job === undefined) {
+        return;
+      }
+      traces.push(result.trace);
+      windowOutputs.push(result.data);
+      for (const draft of result.data.requirements) {
+        order += 1;
+        tagged.push({ draft, documentId: job.documentId, pageCount: job.pageCount, order });
+      }
+      contradictionLists.push(result.data.contradictions);
+    });
+    const windowsRun = jobs.length;
     const merged = mergeDrafts(tagged);
     const requirements = merged.map((entry, index) =>
       toTenderRequirement(

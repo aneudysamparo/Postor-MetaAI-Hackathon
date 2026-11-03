@@ -57,3 +57,22 @@ describe('workflow state machine', () => {
     assert.ok(first.includes('doc-p2-0-ev'));
   });
 });
+
+describe('bounded concurrency pool', async () => {
+  const { mapWithConcurrency } = await import('../dist/agents/base/concurrency.js');
+
+  it('keeps input order and never exceeds the limit', async () => {
+    let inFlight = 0;
+    let peak = 0;
+    const delays = [30, 5, 20, 1, 10];
+    const results = await mapWithConcurrency(delays, 2, async (delay, index) => {
+      inFlight += 1;
+      peak = Math.max(peak, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      inFlight -= 1;
+      return index;
+    });
+    assert.deepEqual(results, [0, 1, 2, 3, 4]);
+    assert.equal(peak, 2);
+  });
+});
