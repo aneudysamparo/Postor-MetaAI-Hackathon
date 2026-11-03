@@ -51,10 +51,17 @@ async-local context and never stores, logs or returns it.
 The feed has **↺ Reiniciar demo**: it hides earlier analyses (nothing is
 deleted) so each judge can run a tender from a clean card.
 
-## Document guard (Meta Llama Prompt Guard 2 on Modal)
+## Document guard
 
-Optional but recommended: every tender page is scored for prompt injection
-before the agents read it.
+By default the guard needs no setup: a deterministic screen looks for
+AI-directed language in every tender page and Muse Spark judges what it
+escalates. Check it with
+`npm run guard:check -- data/guard-fixtures/pliego-trampa-DEMO.txt`.
+
+### Optional: Meta Llama Prompt Guard 2 on Modal
+
+Scores every chunk with Meta's open-weights classifier instead. The model is
+gated on Hugging Face: your account must be granted access first.
 
 1. Accept the license of `meta-llama/Llama-Prompt-Guard-2-86M` on Hugging Face.
 2. Install the Modal CLI (`uv tool install modal` or `pip install modal`) and run `modal setup`.

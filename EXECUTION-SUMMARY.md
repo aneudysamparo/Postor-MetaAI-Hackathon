@@ -76,12 +76,13 @@ full mode stays one click away.
 
 ## Meta models in use
 
-| Model                      | Where                              | Role                                                                   |
-| -------------------------- | ---------------------------------- | ---------------------------------------------------------------------- |
-| `muse-spark-1.3`           | Meta Model API                     | analyst, compliance, pricing, writer, vision reads                     |
-| `muse-wonder-1.0`          | Meta Model API                     | Bid Reviewer (max-effort reasoning audits Spark's draft; 16 s live)    |
-| `sam-3.1`                  | Meta Model API                     | localizes signatures/initials and logos on scanned pages (pixel boxes) |
-| `Llama-Prompt-Guard-2-86M` | open weights, self-hosted on Modal | scores every tender page chunk for prompt injection                    |
+| Model                       | Where                              | Role                                                                   |
+| --------------------------- | ---------------------------------- | ---------------------------------------------------------------------- |
+| `muse-spark-1.3`            | Meta Model API                     | analyst, compliance, pricing, writer, vision reads                     |
+| `muse-wonder-1.0`           | Meta Model API                     | Bid Reviewer (max-effort reasoning audits Spark's draft; 16 s live)    |
+| `sam-3.1`                   | Meta Model API                     | localizes signatures/initials and logos on scanned pages (pixel boxes) |
+| `muse-spark-1.3` (guard)    | Meta Model API                     | judges chunks a deterministic screen escalates for prompt injection    |
+| `muse-voice-transcribe-1.0` | Meta Model API (`/asr/transcribe`) | transcribes voice answers to `[PENDING]` items (Spark maps them)       |
 
 ## Found by live runs (each fixed with a regression test)
 
