@@ -51,7 +51,8 @@ npm run dev                     # API on :3000 + web on http://localhost:5173
 ```
 
 Then: **Oportunidades** → pick a case → **Ver ficha** → **▶ Correr análisis en
-vivo** and watch each agent step complete (real 2 s polling, no fake
+vivo** (mode **Rápido**: the key-requirements dossier, ~1–2 min; **Completo**: the
+whole pliego, 10–20 min) and watch each agent step complete (real 2 s polling, no fake
 animations). When it finishes, walk the tabs: Análisis (verdict, conditions
 with owner + deadline), Requisitos (click any `pliego pN` to open the cited
 page of the original PDF), Productos/Costos (prices only from company

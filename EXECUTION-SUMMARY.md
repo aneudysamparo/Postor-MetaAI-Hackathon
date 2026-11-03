@@ -41,6 +41,28 @@ instead of tuning prompts toward the oracle.
 Run time per full pipeline: 9–19 minutes (A 544 s, B 638 s, C 628 s, D
 1140 s; D's pliego + amendments yield ~300 requirements).
 
+## Lite mode (live demo path, under 3 minutes)
+
+The full pipeline reads entire pliegos (150–300 requirements, 10–19 min). For
+live demos, **lite mode** runs the same agents, guards and trace on a curated
+key-requirements dossier per tender (`data/lite/`, each requirement citing the
+original file + page) and the 21 decisive Company Brain documents. The
+dossiers were written alongside the design oracle, so the parser strips every
+answer column ("Estado esperado", evidence notes, "Lectura del caso",
+review-point rows) before any agent sees them (unit-tested on all four).
+Opportunity runs beside the evidence lane; the draft is short with one
+review.
+
+| Case         | Lite time | Lite verdict     | Decisive reasons                                                  |
+| ------------ | --------- | ---------------- | ----------------------------------------------------------------- |
+| A · CNE      | 2:10      | **GO**           | references, Azure CV + cert, RPE/TSS/DGII; review `pass`          |
+| B · INDOTEL  | 1:45      | **NO_GO**        | 2+ similar Wi-Fi projects required, 1 on file                     |
+| C · UAF      | 1:13      | **NO_GO**        | Microsoft partner/CSP channel required; quotation ≠ authorization |
+| D · ISFODOSU | 1:34      | **NEEDS_REVIEW** | all key requirements hold; contract = 86% of annual revenue       |
+
+Lite mode is the default (`POSTOR_MODE`, or the mode selector on the ficha);
+full mode stays one click away.
+
 ## Per-agent timings (average over live runs)
 
 | Agent             | Wall time | Avg model call | Notes                                 |
