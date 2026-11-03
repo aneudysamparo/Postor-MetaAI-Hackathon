@@ -99,16 +99,17 @@ tender's own F.033, downloadable after human validation).
 | Load tender + company           | orchestrator, `documents/` (per-page quality: text/mixed/scanned)                           | —                             |
 | Opportunity fit                 | Opportunity agent                                                                           | `muse-spark-1.3`              |
 | Requirements with page evidence | Tender Analyst (12-page windows, 4 in parallel)                                             | `muse-spark-1.3`              |
-| Scanned pages                   | Visual reader: page render → `sam-3.1` region step → vision read                            | `sam-3.1`* + `muse-spark-1.3` |
+| Scanned pages                   | Visual reader: page render → `sam-3.1` marks + vision read (parallel)                       | `sam-3.1`* + `muse-spark-1.3` |
 | Requirement × Company Brain     | Compliance agent + **deterministic** verdict and financial ratios                           | `muse-spark-1.3`              |
 | Item prices                     | Research & Pricing + deterministic guard (price must literally appear in a valid quotation) | `muse-spark-1.3`              |
 | Proposal draft                  | Bid Writer → Bid Reviewer → one correction round → re-review                                | `muse-spark-1.3`              |
 | Bid package                     | SNCC forms + the tender's own F.033 filled, `[PENDING]` where unknown                       | —                             |
 
-\* `sam-3.1` segmentation is wired behind a fail-closed interface: its
-region-box contract could not be verified on the hackathon account, so the
-trace records the gap and pages are read whole and cited by page number —
-never with invented coordinates.
+\* `sam-3.1` is called through the Responses API with one concept phrase per
+request ("handwritten signature", "logo") and returns pixel boxes; Postor uses
+it to localize the official marks (committee initials, institutional logos)
+on scanned pliego pages and draws them over the original page in the UI,
+while Muse Spark reads the text. Each SAM call appears in the Trace.
 
 ## Repository layout
 

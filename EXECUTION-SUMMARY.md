@@ -92,10 +92,11 @@ full mode stays one click away.
 
 ## Out of scope / P1
 
-- **SAM 3.1 region boxes**: the segmentation contract could not be verified
-  on the hackathon account (chat endpoint 404, responses endpoint returns no
-  boxes). The interface is wired and fails closed; pages are read whole by
-  Muse Spark and cited by page. No coordinates are ever invented.
+- **SAM 3.1 beyond marks**: SAM is live (Responses API, verified
+  2026-11-03) and localizes signatures/initials and logos on scanned pages,
+  cited by pixel coordinates. Concepts like "table" or "text" return no
+  instances on document scans, so table regions are still read whole by Muse
+  Spark; cropping SAM regions for targeted reads is P1.
 - Embeddings: deterministic hash baseline behind the interface; multilingual
   transformer and pgvector are P1.
 - External tender API (`ApiTenderSource`) is a stub; the demo reads fixtures.
