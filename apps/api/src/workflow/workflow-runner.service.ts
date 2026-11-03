@@ -870,6 +870,7 @@ export class WorkflowRunner {
           findings: compliance.findings,
           verdict: compliance.verdict,
           pricing: await this.loadPricing(runId),
+          offer: await this.loadOffer(runId),
           facts: context.facts,
         },
         options,

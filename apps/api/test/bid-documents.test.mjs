@@ -161,9 +161,117 @@ describe('F.033 with a computed offer', () => {
 
 describe('F.033 words when label and dots share one run', () => {
   it('replaces the dots after "en letras:" in place', () => {
-    const xml =
-      '<w:p><w:r><w:t>Valor total de la oferta en letras:…………………</w:t></w:r></w:p>';
+    const xml = '<w:p><w:r><w:t>Valor total de la oferta en letras:…………………</w:t></w:r></w:p>';
     const filled = fillF033(xml, [], 'N', { totalDop: 1, amountInWords: 'UN PESOS' });
     assert.ok(filled.includes('en letras: UN PESOS'));
+  });
+});
+
+describe("tender's own forms", async () => {
+  const { fillTenderForm, fillLabeledBlanks, isFillableTenderForm } =
+    await import('../dist/documents/tender-form-filler.js');
+  const values = {
+    legalName: 'NovaTech Solutions, SRL',
+    rpe: '882145',
+    address: 'Av. Tiradentes 456',
+    phones: '809',
+    email: 'info@x.do',
+    representativeName: 'Miguel Peralta',
+    representativePosition: 'Gerente General',
+    institution: 'INDOTEL',
+    tenderCode: 'INDOTEL-DAF-CM-2026-0041',
+    rnc: '131-48271-9',
+    dateText: '3 de noviembre de 2026',
+    amendmentsText: 'Circular 001',
+    itemsText: '3 Unidad — AP',
+    representativeId: '001-0000000-2',
+    representativeNationality: 'Dominicano',
+    tenderTitle: 'Plataforma Azure',
+    city: 'Santo Domingo',
+    province: 'Distrito Nacional',
+    day: '3',
+    month: 'noviembre',
+    year: '2026',
+  };
+  const p = (text) => `<w:p><w:r><w:t>${text}</w:t></w:r></w:p>`;
+
+  it('fills header controls and empty labels where the form asks', () => {
+    const xml = [
+      p('Click here to enter text.'),
+      p('Seleccione la fecha'),
+      p('3.  RNC/ Cédula/ Pasaporte del Oferente: '),
+      p('5.  Domicilio legal del Oferente: '),
+    ].join('');
+    const filled = fillTenderForm(xml, values);
+    assert.ok(filled.includes('INDOTEL-DAF-CM-2026-0041'));
+    assert.ok(filled.includes('3 de noviembre de 2026'));
+    assert.ok(filled.includes('del Oferente:  131-48271-9'));
+    assert.ok(filled.includes('Av. Tiradentes 456'));
+  });
+
+  it('fills F.034 amendment and item lines after their sentences', () => {
+    const xml = [
+      p('Hemos examinado y no tenemos reservas'),
+      p('________'),
+      p('De conformidad con los Pliegos de Condiciones'),
+      p('_______'),
+    ].join('');
+    const filled = fillTenderForm(xml, values);
+    assert.ok(filled.includes('Circular 001'));
+    assert.ok(filled.includes('3 Unidad — AP'));
+  });
+
+  it('fills declaration blanks by the words before them, numbers in words', () => {
+    const out = fillLabeledBlanks(
+      'Quien suscribe, Señor (a) ____ _____, de Nacionalidad ____, actuando en nombre de ______, a los ____ (    ) días del mes de ____ del año ____ (   ). Otro ____',
+      values,
+    );
+    assert.ok(
+      out.startsWith('Quien suscribe, Señor (a) Miguel Peralta, de Nacionalidad Dominicano'),
+    );
+    assert.ok(out.includes('actuando en nombre de NovaTech Solutions, SRL'));
+    assert.ok(
+      out.includes('a los 3 (tres) días del mes de noviembre del año 2026 (dos mil veintiséis)'),
+    );
+    assert.ok(out.endsWith('Otro ____'));
+  });
+
+  it('handles the ethics-commitment wording too', () => {
+    const out = fillLabeledBlanks(
+      'Quien suscribe, ______, realizada en la ciudad ______, provincia ______, a los 3 (______) de ______ del año 2026 (_____).',
+      values,
+    );
+    assert.equal(
+      out,
+      'Quien suscribe, Miguel Peralta, realizada en la ciudad Santo Domingo, provincia Distrito Nacional, a los 3 (tres) de noviembre del año 2026 (dos mil veintiséis).',
+    );
+  });
+
+  it('fills the ethics-commitment number blanks ("núm.")', () => {
+    const out = fillLabeledBlanks(
+      'pasaporte núm. ______, actuando como persona física o en representación de la persona jurídica o consorcio ______, del Registro Nacional del Contribuyente (RNC) núm. ____ y del Registro de Proveedores del Estado (RPE) núm. ____, que participa en el procedimiento de contratación pública núm. ____, relativo a ____, llevado a cabo por la institución contratante ____, reconoce',
+      values,
+    );
+    for (const expected of [
+      '001-0000000-2',
+      'consorcio NovaTech',
+      '(RNC) núm. 131-48271-9',
+      '(RPE) núm. 882145',
+      'núm. INDOTEL-DAF-CM-2026-0041',
+      'relativo a Plataforma Azure',
+      'contratante INDOTEL',
+    ]) {
+      assert.ok(out.includes(expected), expected);
+    }
+  });
+
+  it('treats only bidder forms as fillable', () => {
+    assert.equal(isFillableTenderForm('B-SNCC_F042_Informacion_Oferente.docx'), true);
+    assert.equal(
+      isFillableTenderForm('C-MODELO DE CONTRATO DE EJECUCIÓN DE SERVICIOS.docx'),
+      false,
+    );
+    assert.equal(isFillableTenderForm('B-SNCC_F033_Of_Economica.docx'), false);
+    assert.equal(isFillableTenderForm('A-Pliego de condiciones.pdf'), false);
   });
 });

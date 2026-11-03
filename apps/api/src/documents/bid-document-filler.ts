@@ -226,6 +226,17 @@ export function insertDemoBanner(documentXml: string): string {
   return documentXml.replace(/<w:body>/, `<w:body>${banner}`);
 }
 
+export function insertDemoBannerAtEnd(documentXml: string): string {
+  const banner =
+    '<w:p><w:r><w:rPr><w:b/><w:color w:val="C00000"/></w:rPr>' +
+    `<w:t xml:space="preserve">${escapeXml(DEMO_BANNER)}</w:t></w:r></w:p>`;
+  const sectionProperties = documentXml.lastIndexOf('<w:sectPr');
+  if (sectionProperties < 0) {
+    return documentXml.replace('</w:body>', `${banner}</w:body>`);
+  }
+  return `${documentXml.slice(0, sectionProperties)}${banner}${documentXml.slice(sectionProperties)}`;
+}
+
 function writeIntoEmptyCell(cell: string, text: string): string {
   const run = `<w:r><w:t xml:space="preserve">${escapeXml(text)}</w:t></w:r>`;
   const closing = cell.indexOf('</w:p>');

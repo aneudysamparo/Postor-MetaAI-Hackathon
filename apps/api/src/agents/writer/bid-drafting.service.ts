@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  EconomicOffer,
   ComplianceFinding,
   ComplianceVerdict,
   DraftOffer,
@@ -19,6 +20,8 @@ export interface DraftingInput {
   findings: ComplianceFinding[];
   verdict: ComplianceVerdict | null;
   pricing: PricingFinding[];
+  // The computed economic offer (SNCC.F.033), when the tender was priced.
+  offer?: EconomicOffer | null;
   facts: StructuredFact[];
 }
 
@@ -89,19 +92,29 @@ export function renderFindings(findings: ComplianceFinding[]): string {
     .join('\n');
 }
 
-export function renderPricing(items: PricingFinding[]): string {
+export function renderPricing(items: PricingFinding[], offer: EconomicOffer | null = null): string {
   if (items.length === 0) {
     return NOT_AVAILABLE;
   }
-  return items
-    .map((item) => {
-      let price = '[PENDING: price]';
-      if (item.unitPrice !== null) {
-        price = `RD$ ${item.unitPrice} (${item.sourceDocCode ?? 'quote'})`;
-      }
-      return `- ${item.item} x${item.quantity ?? '?'} ${item.unit ?? ''}: ${price} [${item.status}]`;
-    })
-    .join('\n');
+  let offerLine = '';
+  if (offer !== null && offer.status !== 'incomplete') {
+    offerLine =
+      `SNCC.F.033 already prepared by Postor: total offer RD$ ${offer.offerTotalDop} with ITBIS ` +
+      `(${offer.pctOfBudget ?? '?'}% of the reference budget; ${offer.amountInWords}). ` +
+      'Refer to it; do not mark the economic offer as pending.\n';
+  }
+  return (
+    offerLine +
+    items
+      .map((item) => {
+        let price = '[PENDING: price]';
+        if (item.unitPrice !== null) {
+          price = `RD$ ${item.unitPrice} (${item.sourceDocCode ?? 'quote'})`;
+        }
+        return `- ${item.item} x${item.quantity ?? '?'} ${item.unit ?? ''}: ${price} [${item.status}]`;
+      })
+      .join('\n')
+  );
 }
 
 export function renderVerdict(verdict: ComplianceVerdict | null): string {
@@ -215,7 +228,7 @@ export class BidDraftingService {
       tenderHeader: renderTenderHeader(input.tender),
       requirementsText: renderRequirements(input.requirements),
       findingsText: renderFindings(input.findings),
-      pricingText: renderPricing(input.pricing),
+      pricingText: renderPricing(input.pricing, input.offer ?? null),
     };
     const writerBase = {
       ...shared,

@@ -860,6 +860,13 @@ export function FormsTab({
   );
 }
 
+const FILE_KIND_LABELS: Record<string, string> = {
+  tender_form: 'tender form, filled',
+  form: 'SNCC template',
+  f033: 'priced F.033',
+  draft: 'technical offer',
+};
+
 export function DocumentsTab({
   runId,
   artifacts,
@@ -893,7 +900,8 @@ export function DocumentsTab({
                 <span>{file.fileName}</span>
               )}{' '}
               <span className="muted">
-                · {file.pendingMarkers} [PENDING] · base: {file.source}
+                · {FILE_KIND_LABELS[file.kind] ?? file.kind} · {file.pendingMarkers} [PENDING] ·
+                from: {file.source}
               </span>
             </li>
           ))}

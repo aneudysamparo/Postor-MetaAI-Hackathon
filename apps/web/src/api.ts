@@ -126,7 +126,7 @@ export interface FinancialCheck {
 
 export interface GeneratedFile {
   fileName: string;
-  kind: 'form' | 'f033' | 'draft';
+  kind: 'form' | 'tender_form' | 'f033' | 'draft';
   source: string;
   pendingMarkers: number;
 }

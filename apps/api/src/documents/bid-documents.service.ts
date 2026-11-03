@@ -7,16 +7,24 @@ import {
   F033Line,
   F033Totals,
   FillValues,
+  escapeXml,
   fillF033,
   fillRedRuns,
   insertDemoBanner,
+  insertDemoBannerAtEnd,
   replaceForeignLeftovers,
 } from './bid-document-filler';
 import { NormalizedTender } from './tender-source';
+import {
+  fillTenderForm,
+  isFillableTenderForm,
+  spanishLongDate,
+  type TenderFormValues,
+} from './tender-form-filler';
 
 export interface GeneratedFile {
   fileName: string;
-  kind: 'form' | 'f033' | 'draft';
+  kind: 'form' | 'tender_form' | 'f033' | 'draft';
   source: string;
   pendingMarkers: number;
 }
@@ -92,6 +100,99 @@ export function fillValuesFrom(profile: unknown, tender: NormalizedTender): Fill
     institution: tender.institution,
     tenderCode: tender.code,
   };
+}
+
+// Values only the tender's own forms ask for: RNC, today's date in
+// Spanish, the amendments examined (F.034 a) and the items offered (b).
+export function tenderFormValuesFrom(
+  profile: unknown,
+  tender: NormalizedTender,
+  values: FillValues,
+  offer: EconomicOffer | null,
+): TenderFormValues {
+  let company: unknown;
+  if (isRecord(profile)) {
+    company = profile.company;
+  }
+  let amendmentsText = 'Ninguna enmienda/adenda publicada a la fecha.';
+  if (tender.amendments.length > 0) {
+    amendmentsText = tender.amendments
+      .map((file) => file.fileName.replace(/\.[a-z]+$/i, ''))
+      .join('; ');
+  }
+  let itemsText = '[PENDING: bienes/servicios ofertados según el pliego]';
+  if (offer !== null && offer.lines.length > 0) {
+    itemsText = offer.lines
+      .map((line) => `${line.quantity ?? ''} ${line.unit ?? ''} — ${line.description}`.trim())
+      .join('; ');
+  }
+  let representative: unknown;
+  if (isRecord(profile)) {
+    representative = profile.legal_representative;
+  }
+  const dateText = spanishLongDate(new Date());
+  const [day = '', , month = '', , year = ''] = dateText.split(' ');
+  return {
+    ...values,
+    rnc: readString(company, 'rnc_fictional'),
+    dateText,
+    amendmentsText,
+    itemsText,
+    representativeId: readString(representative, 'cedula_fictional'),
+    representativeNationality: readString(representative, 'nationality'),
+    tenderTitle: tender.title,
+    city: 'Santo Domingo',
+    // The fictional address (Naco) is in the Distrito Nacional.
+    province: 'Distrito Nacional',
+    day,
+    month,
+    year,
+  };
+}
+
+// Word sizes are in half-points: 16 pt title, 13 pt sections, 11 pt body.
+const TITLE_HALF_POINTS = 32;
+const SECTION_HALF_POINTS = 26;
+const SUBSECTION_HALF_POINTS = 24;
+const HEADING_HALF_POINTS = [TITLE_HALF_POINTS, SECTION_HALF_POINTS, SUBSECTION_HALF_POINTS];
+const BODY_HALF_POINTS = 22;
+
+// Minimal Word package for the technical offer draft: headings (#, ##),
+// bullets (-) and paragraphs, with the DEMO banner first.
+export async function markdownToDocx(markdown: string): Promise<Buffer> {
+  const paragraphs = markdown
+    .split('\n')
+    .filter((line) => line.trim().length > 0 && !line.startsWith('_Responde a:'))
+    .map((line) => {
+      const heading = /^(#{1,3})\s+(.*)$/.exec(line);
+      if (heading !== null) {
+        const level = (heading[1] ?? '#').length;
+        const size = HEADING_HALF_POINTS[level - 1] ?? BODY_HALF_POINTS;
+        return `<w:p><w:pPr><w:spacing w:before="240" w:after="120"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="${size}"/></w:rPr><w:t xml:space="preserve">${escapeXml(heading[2] ?? '')}</w:t></w:r></w:p>`;
+      }
+      const text = line
+        .replace(/^[-*]\s+/, '• ')
+        .replace(/^>\s*/, '')
+        .replace(/\*\*|_/g, '');
+      return `<w:p><w:r><w:t xml:space="preserve">${escapeXml(text)}</w:t></w:r></w:p>`;
+    })
+    .join('');
+  const zip = new JSZip();
+  zip.file(
+    '[Content_Types].xml',
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
+  );
+  zip.file(
+    '_rels/.rels',
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>',
+  );
+  zip.file(
+    'word/document.xml',
+    insertDemoBanner(
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${paragraphs}</w:body></w:document>`,
+    ),
+  );
+  return zip.generateAsync({ type: 'nodebuffer' });
 }
 
 // Offer mode: one F.033 line per pliego item with the computed prices.
@@ -179,7 +280,39 @@ export class BidDocumentsService {
     const values = fillValuesFrom(input.profile, input.tender);
     const files: GeneratedFile[] = [];
     const templatesDir = join(resolveDataDir(), 'templates');
-    for (const name of readdirSync(templatesDir).filter((entry) => entry.endsWith('.docx'))) {
+    // The tender's own forms, filled where they ask (tender-form-filler.ts).
+    const tenderForms = input.tender.files.filter((file) => isFillableTenderForm(file.fileName));
+    const formValues = tenderFormValuesFrom(
+      input.profile,
+      input.tender,
+      values,
+      input.offer ?? null,
+    );
+    for (const form of tenderForms) {
+      const result = await this.fillDocx(form.absolutePath, (xml, isBody) => {
+        let filled = fillTenderForm(fillRedRuns(xml, values), formValues);
+        if (isBody) {
+          // At the end: official forms float their header shapes at the top.
+          filled = insertDemoBannerAtEnd(filled);
+        }
+        return filled;
+      });
+      const outputName = `Licitacion_${form.fileName.replace(/[^\w.\-() ]+/g, '_')}`;
+      writeFileSync(join(outputDir, outputName), result.buffer);
+      files.push({
+        fileName: outputName,
+        kind: 'tender_form',
+        source: form.fileName,
+        pendingMarkers: result.pending,
+      });
+    }
+    // Generic SNCC templates are only a fallback for a tender that ships no
+    // forms of its own; when it does, its forms are the bid package.
+    let templates: string[] = [];
+    if (tenderForms.length === 0) {
+      templates = readdirSync(templatesDir).filter((entry) => entry.endsWith('.docx'));
+    }
+    for (const name of templates) {
       const result = await this.fillDocx(join(templatesDir, name), (xml, isBody) => {
         let filled = replaceForeignLeftovers(
           fillRedRuns(xml, values),
@@ -232,6 +365,16 @@ export class BidDocumentsService {
       writeFileSync(join(outputDir, outputName), markdown, 'utf8');
       files.push({
         fileName: outputName,
+        kind: 'draft',
+        source: 'writer',
+        pendingMarkers: countPending(markdown),
+      });
+      // The same draft as an editable Word document, the format bidders
+      // submit (Markdown stays for reading in the browser).
+      const docxName = 'Oferta_Tecnica_BORRADOR.docx';
+      writeFileSync(join(outputDir, docxName), await markdownToDocx(markdown));
+      files.push({
+        fileName: docxName,
         kind: 'draft',
         source: 'writer',
         pendingMarkers: countPending(markdown),
