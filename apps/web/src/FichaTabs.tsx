@@ -404,11 +404,15 @@ export function ProductsTab({
           contra el texto de la cotización y su vigencia. Lo demás queda como [PENDING].
         </p>
       </Section>
-      <Section title={`Lectura visual de páginas escaneadas (${artifacts.visual.length})`}>
+      <Section title={`Lectura visual: SAM 3.1 + Muse Spark (${artifacts.visual.length})`}>
+        <p className="muted">
+          SAM 3.1 localiza marcas oficiales (firmas, rúbricas, logos) y Muse Spark lee la página
+          escaneada. Abre una página para ver las regiones sobre el original.
+        </p>
         {artifacts.samGap !== null && (
           <p className="banner">
-            SAM 3.1 (localización de regiones) no disponible en esta cuenta: la página se lee
-            completa con Muse Spark y se cita con su número de página. Detalle: {artifacts.samGap}
+            SAM 3.1 no respondió en esta corrida; la página se leyó completa con Muse Spark y se
+            cita por número de página. Detalle: {artifacts.samGap}
           </p>
         )}
         <ul className="checks">
@@ -417,12 +421,15 @@ export function ProductsTab({
               <button className="link" onClick={() => onOpenEvidence({ kind: 'visual', item })}>
                 {item.fileName} · p{item.page}
               </button>{' '}
+              {item.regions.length > 0 && (
+                <Chip tone="info">SAM: {item.regions.length} región(es)</Chip>
+              )}{' '}
               {item.requiresHumanReview && <Chip tone="warn">revisión humana</Chip>}{' '}
               <span className="muted">{item.reading?.summary ?? item.note}</span>
             </li>
           ))}
           {artifacts.visual.length === 0 && (
-            <li className="muted">No hubo páginas escaneadas citadas por requisitos.</li>
+            <li className="muted">Esta corrida no revisó páginas escaneadas.</li>
           )}
         </ul>
       </Section>

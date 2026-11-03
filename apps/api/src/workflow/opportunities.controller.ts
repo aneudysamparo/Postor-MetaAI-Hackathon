@@ -1,6 +1,9 @@
 import { Body, Controller, Get, Inject, NotFoundException, Param, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { createReadStream } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { PdfPageRenderer } from '../documents/pdf-page-renderer';
+import { resolveRepoRoot } from '../runtime-env';
 import { TENDER_SOURCE, TenderSource } from '../documents/tender-source';
 import { PrismaService } from '../prisma/prisma.service';
 import { DemoResetService } from './demo-reset.service';
@@ -29,6 +32,7 @@ export class OpportunitiesController {
     private readonly prisma: PrismaService,
     @Inject(TENDER_SOURCE) private readonly tenderSource: TenderSource,
     private readonly demoReset: DemoResetService,
+    private readonly renderer: PdfPageRenderer,
   ) {}
 
   // Hides earlier analyses (all, or one opportunity) so the demo can start
@@ -134,6 +138,45 @@ export class OpportunitiesController {
       `inline; filename="${encodeURIComponent(file.fileName)}"`,
     );
     createReadStream(file.absolutePath).pipe(response);
+  }
+
+  // One page of an ORIGINAL tender PDF as PNG, rendered exactly like the
+  // image sent to sam-3.1 and the vision model, so SAM boxes (pixel
+  // coordinates) overlay it 1:1. Cached under storage/pages/.
+  @Get('documents/:id/pages/:page')
+  public async page(
+    @Param('id') id: string,
+    @Param('page') pageParam: string,
+    @Res() response: Response,
+  ) {
+    const pageNumber = Number.parseInt(pageParam, 10);
+    const row = await this.prisma.tenderDocument.findUnique({
+      where: { id },
+      include: { opportunity: true },
+    });
+    if (
+      row === null ||
+      !Number.isInteger(pageNumber) ||
+      pageNumber < 1 ||
+      pageNumber > row.pageCount
+    ) {
+      throw new NotFoundException(`No page ${pageParam} for document ${id}.`);
+    }
+    const cacheDir = join(resolveRepoRoot(), 'storage', 'pages');
+    const cachePath = join(cacheDir, `${row.id}-p${pageNumber}.png`);
+    if (!existsSync(cachePath)) {
+      const tenders = await this.tenderSource.listTenders();
+      const tender = tenders.find((entry) => entry.code === row.opportunity.code);
+      const file = tender?.files.find((entry) => entry.fileName === row.fileName);
+      if (file === undefined || file.kind !== 'pdf') {
+        throw new NotFoundException(`Document ${id} is not a PDF in the tender source.`);
+      }
+      const rendered = await this.renderer.renderPage(file.absolutePath, pageNumber);
+      mkdirSync(cacheDir, { recursive: true });
+      writeFileSync(cachePath, Buffer.from(rendered.dataUrl.split(',')[1] ?? '', 'base64'));
+    }
+    response.setHeader('Content-Type', 'image/png');
+    response.send(readFileSync(cachePath));
   }
 
   // Company Brain profile view (INSTRUCCIONES-6): the fictional company the

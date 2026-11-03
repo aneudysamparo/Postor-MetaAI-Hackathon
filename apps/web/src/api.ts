@@ -253,6 +253,11 @@ export function documentFileUrl(documentId: string, page: number | null): string
   return `${API_BASE}/documents/${documentId}/file${anchor}`;
 }
 
+// Rendered page PNG (same pixels SAM saw, so its boxes overlay 1:1).
+export function pageImageUrl(documentId: string, page: number): string {
+  return `${API_BASE}/documents/${documentId}/pages/${page}`;
+}
+
 export function generatedFileUrl(runId: string, fileName: string): string {
   return `${API_BASE}/workflows/${runId}/files/${encodeURIComponent(fileName)}`;
 }

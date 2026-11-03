@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 import type { VisualEvidence } from '@postor/contracts';
 import { documentFileUrl, fetchEvidence } from './api';
 import type { EvidenceDetail } from './api';
+import { PageView } from './PageView';
 import { Chip } from './ui';
 
 export type EvidenceTarget =
@@ -70,6 +71,7 @@ export function EvidenceModal({
                     <pre>{detail.pagePreview.text}</pre>
                   </div>
                 )}
+                <PageView documentId={detail.document.id} page={detail.evidence.page} />
                 <a
                   className="btn"
                   href={documentFileUrl(detail.document.id, detail.evidence.page)}
@@ -103,6 +105,11 @@ export function EvidenceModal({
                 </ul>
               </div>
             )}
+            <PageView
+              documentId={target.item.documentId}
+              page={target.item.page}
+              regions={target.item.regions}
+            />
             <a
               className="btn"
               href={documentFileUrl(target.item.documentId, target.item.page)}
