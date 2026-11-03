@@ -51,6 +51,7 @@ interface LoadedContext {
 const SINGLE_COMPANY_COUNT = 1;
 const FIRST_ATTEMPT = 1;
 const COST_SUMMARY_DECIMALS = 6;
+const INTERRUPTED_REASON = 'Interrupted: the API process stopped while this run was executing.';
 
 // BidOrchestrator (TECH section 8): runs the agent pipeline for one tender,
 // persists every step as AgentRun/ModelCall/Artifact/Evidence rows, and emits
@@ -108,6 +109,34 @@ export class WorkflowRunner {
       this.logger.error(`Workflow ${run.id} crashed outside the state machine: ${String(error)}`);
     });
     return run;
+  }
+
+  // Runs execute in-process, so any run still queued/running when the API
+  // boots lost its executor (process killed or restarted). They are closed
+  // as failed with an explicit event instead of showing "running" forever.
+  public async recoverInterruptedRuns(): Promise<number> {
+    const orphans = await this.prisma.workflowRun.findMany({
+      where: { status: { in: [WORKFLOW_STATUS.QUEUED, WORKFLOW_STATUS.RUNNING] } },
+      select: { id: true },
+    });
+    for (const orphan of orphans) {
+      await this.prisma.workflowRun.update({
+        where: { id: orphan.id },
+        data: { status: WORKFLOW_STATUS.FAILED, finishedAt: new Date() },
+      });
+      await this.prisma.agentRun.updateMany({
+        where: { workflowId: orphan.id, status: AGENT_RUN_STATUS.RUNNING },
+        data: {
+          status: AGENT_RUN_STATUS.FAILED,
+          finishedAt: new Date(),
+          error: INTERRUPTED_REASON,
+        },
+      });
+      await this.emit(orphan.id, WORKFLOW_EVENT.FAILED, null, null, {
+        error: INTERRUPTED_REASON,
+      });
+    }
+    return orphans.length;
   }
 
   public async getRun(runId: string) {

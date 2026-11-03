@@ -15,6 +15,8 @@ interface LatestRunSummary {
 }
 
 const PDF_MIME = 'application/pdf';
+// Terminal statuses that carry results worth showing on the feed.
+const USABLE_STATUSES = new Set(['completed', 'needs_review']);
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 // Feed + tender documents for the UI. WorkflowRun holds a plain
@@ -37,9 +39,15 @@ export class OpportunitiesController {
     });
     const tenders = await this.tenderSource.listTenders();
     const runs = await this.prisma.workflowRun.findMany({ orderBy: { startedAt: 'desc' } });
+    // The card shows the latest run that finished with results; a newer
+    // failed or interrupted run must not hide the last usable analysis.
     const latestByOpportunity = new Map<string, (typeof runs)[number]>();
     for (const run of runs) {
-      if (!latestByOpportunity.has(run.opportunityId)) {
+      const current = latestByOpportunity.get(run.opportunityId);
+      const usable = USABLE_STATUSES.has(run.status);
+      if (current === undefined) {
+        latestByOpportunity.set(run.opportunityId, run);
+      } else if (usable && !USABLE_STATUSES.has(current.status)) {
         latestByOpportunity.set(run.opportunityId, run);
       }
     }

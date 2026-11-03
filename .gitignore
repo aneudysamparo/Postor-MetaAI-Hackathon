@@ -22,3 +22,6 @@ apps/api/prisma/schema.sqlite.prisma
 # Logs and OS artifacts
 *.log
 .DS_Store
+
+# Local Claude Code session config
+.claude/
