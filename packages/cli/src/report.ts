@@ -22,6 +22,13 @@ const FAIL_MARK = 'FAIL';
 
 export const JSON_INDENT_SPACES = 2;
 
+// process.argv[0] is node and [1] is the script: user flags start at [2].
+export const ARGV_USER_ARGS_START = 2;
+
+export function userArgv(): string[] {
+  return process.argv.slice(ARGV_USER_ARGS_START);
+}
+
 export class StepRunner {
   private readonly steps: StepOutcome[] = [];
 

@@ -14,7 +14,9 @@
     "typecheck": "turbo run typecheck",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
+    "test": "npm run test -w @postor/api",
     "seed": "tsx packages/cli/src/seed.ts",
+    "brain:load": "tsx packages/cli/src/brain-load.ts",
     "init": "tsx packages/cli/src/init.ts",
     "demo:init": "tsx packages/cli/src/init.ts",
     "doctor": "tsx packages/cli/src/doctor.ts"

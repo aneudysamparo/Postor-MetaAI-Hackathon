@@ -42,6 +42,7 @@ import {
   printJson,
   printSummary,
   readOption,
+  userArgv,
 } from './report.js';
 
 const execFileAsync = promisify(execFile);
@@ -58,8 +59,6 @@ const PRISMA_TIMEOUT_MS = 120_000;
 const BUILD_TIMEOUT_MS = 300_000;
 const ERROR_TAIL_LINES = 20;
 const API_ENV_LINK_TARGET = '../../.env';
-// process.argv[0] is node and [1] is the script: user flags start at [2].
-const ARGV_USER_ARGS_START = 2;
 
 interface CommandResult {
   stdout: string;
@@ -283,7 +282,7 @@ function printUsage(): void {
 }
 
 async function main(): Promise<void> {
-  const argv = process.argv.slice(ARGV_USER_ARGS_START);
+  const argv = userArgv();
   if (argv.includes('--help') || argv.includes('-h')) {
     printUsage();
     return;
@@ -387,6 +386,20 @@ async function main(): Promise<void> {
     return 'turbo build green';
   });
   if (!buildOk) {
+    return finish(runner, startedAt, paths, jsonOutput, dbMode);
+  }
+
+  // dist is fresh after the build above, so run the compiled loader directly.
+  const brainOk = await runner.runStep('brain-load', async () => {
+    const loader = join(paths.root, 'packages', 'cli', 'dist', 'brain-load.js');
+    await runCommand('node', [loader, `--db=${dbMode}`], {
+      cwd: paths.root,
+      env: mergedEnv(paths),
+      timeoutMs: BUILD_TIMEOUT_MS,
+    });
+    return `company brain loaded (${dbMode})`;
+  });
+  if (!brainOk) {
     return finish(runner, startedAt, paths, jsonOutput, dbMode);
   }
 
