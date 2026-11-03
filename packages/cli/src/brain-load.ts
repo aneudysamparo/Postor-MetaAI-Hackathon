@@ -4,6 +4,7 @@
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
+import { runCommand } from './exec.js';
 import { resolveRepoPaths } from './paths.js';
 import { parseDotEnvFile } from './probes.js';
 import { StepRunner, hasFlag, printJson, printSummary, readOption, userArgv } from './report.js';
@@ -11,6 +12,7 @@ import { StepRunner, hasFlag, printJson, printSummary, readOption, userArgv } fr
 type DbMode = 'sqlite' | 'postgres';
 
 const SQLITE_FILE = 'postor.sqlite';
+const GENERATE_TIMEOUT_MS = 120_000;
 
 function resolveDbMode(paths: ReturnType<typeof resolveRepoPaths>, flag: string): DbMode {
   if (flag === 'sqlite' || flag === 'postgres') {
@@ -28,7 +30,7 @@ async function main(): Promise<void> {
   const paths = resolveRepoPaths();
   const runner = new StepRunner('brain:load');
   const jsonOutput = hasFlag(argv, '--json');
-  const mode = resolveDbMode(paths, readOption(argv, '--db') ?? 'auto');
+  const mode = resolveDbMode(paths, readOption(argv, 'db') ?? 'auto');
 
   if (mode === 'sqlite') {
     process.env.DATABASE_URL = `file:${join(paths.storageDir, SQLITE_FILE)}`;
@@ -40,6 +42,29 @@ async function main(): Promise<void> {
     }
     process.env.DATABASE_URL = url;
   }
+
+  // The generated client is branch-specific: regenerate it for the active
+  // branch so a stale client can never talk to the wrong database.
+  await runner.runStep('client', async () => {
+    const prismaBin = join(paths.root, 'node_modules', '.bin', 'prisma');
+    const schema =
+      mode === 'sqlite'
+        ? 'apps/api/prisma/schema.sqlite.prisma'
+        : 'apps/api/prisma/schema.prisma';
+    if (mode === 'sqlite') {
+      await runCommand('node', [join(paths.apiPrismaDir, 'derive-sqlite-schema.mjs')], {
+        cwd: paths.root,
+        env: { ...process.env },
+        timeoutMs: GENERATE_TIMEOUT_MS,
+      });
+    }
+    await runCommand(prismaBin, ['generate', `--schema=${schema}`], {
+      cwd: paths.root,
+      env: { ...process.env },
+      timeoutMs: GENERATE_TIMEOUT_MS,
+    });
+    return `client generated for ${mode}`;
+  });
 
   // The API ships as CommonJS: load it through require, no Nest context needed.
   const requireApi = createRequire(join(paths.root, 'apps', 'api', 'package.json'));

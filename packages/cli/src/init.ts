@@ -6,7 +6,6 @@
 //   --check                     validate only, change nothing
 //   --force                     recreate the disposable database
 //   --json                      machine-readable report
-import { execFile } from 'node:child_process';
 import {
   copyFileSync,
   existsSync,
@@ -17,8 +16,8 @@ import {
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { Socket } from 'node:net';
-import { promisify } from 'node:util';
 import { join } from 'node:path';
+import { runCommand } from './exec.js';
 import {
   checkCompanyProfile,
   checkDocsGraph,
@@ -45,8 +44,6 @@ import {
   userArgv,
 } from './report.js';
 
-const execFileAsync = promisify(execFile);
-
 type DbMode = 'postgres' | 'sqlite';
 
 const POSTGRES_HOST = '127.0.0.1';
@@ -57,38 +54,7 @@ const NPM_INSTALL_TIMEOUT_MS = 600_000;
 const DOCKER_TIMEOUT_MS = 300_000;
 const PRISMA_TIMEOUT_MS = 120_000;
 const BUILD_TIMEOUT_MS = 300_000;
-const ERROR_TAIL_LINES = 20;
 const API_ENV_LINK_TARGET = '../../.env';
-
-interface CommandResult {
-  stdout: string;
-}
-
-async function runCommand(
-  command: string,
-  args: string[],
-  options: { cwd: string; env: Record<string, string | undefined>; timeoutMs: number },
-): Promise<CommandResult> {
-  try {
-    const { stdout } = await execFileAsync(command, args, {
-      cwd: options.cwd,
-      env: options.env,
-      timeout: options.timeoutMs,
-      maxBuffer: 4_096_000,
-    });
-    return { stdout };
-  } catch (error) {
-    const output =
-      error instanceof Error ? ((error as Error & { stderr?: string }).stderr ?? '') : '';
-    const tail = output
-      .split('\n')
-      .filter((line) => line.trim().length > 0)
-      .slice(-ERROR_TAIL_LINES)
-      .join('\n');
-    const detail = error instanceof Error ? error.message : String(error);
-    throw new Error(`${command} ${args.join(' ')} failed: ${tail.length > 0 ? tail : detail}`);
-  }
-}
 
 function waitForTcp(host: string, port: number, budgetMs: number): Promise<void> {
   const deadline = Date.now() + budgetMs;
@@ -222,7 +188,7 @@ async function setupSqlite(
     ],
     { cwd: paths.root, env, timeoutMs: PRISMA_TIMEOUT_MS },
   );
-  writeFileSync(paths.sqliteBaselineFile, baseline.stdout);
+  writeFileSync(paths.sqliteBaselineFile, baseline);
   await runCommand(prismaBin, ['generate', '--schema=apps/api/prisma/schema.sqlite.prisma'], {
     cwd: paths.root,
     env,
@@ -293,7 +259,7 @@ async function main(): Promise<void> {
   const jsonOutput = hasFlag(argv, '--json');
   const checkOnly = hasFlag(argv, '--check');
   const force = hasFlag(argv, '--force');
-  const dbFlag = readOption(argv, '--db') ?? 'auto';
+  const dbFlag = readOption(argv, 'db') ?? 'auto';
 
   // Read-only probes first: cheap failures before any writes.
   const nodeProbe = probeNodeVersion();
