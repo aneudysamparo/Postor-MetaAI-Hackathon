@@ -255,3 +255,45 @@ export function toTenderRequirement(
     status: pageValid ? 'verified' : 'unknown',
   });
 }
+
+// ---- T5: visual evidence route (TECH section 6 step 4c) ----
+
+// What the vision model returns after reading one rendered page. The model
+// transcribes; it never judges compliance here.
+export const VisualPageReadingSchema = z.object({
+  readable: z.boolean(),
+  summary: z.string(),
+  keyFacts: z.array(z.string()),
+  tableRows: z.array(z.string()),
+});
+export type VisualPageReading = z.infer<typeof VisualPageReadingSchema>;
+
+// sam-3.1 outcome per page: the segmentation contract is not verified on the
+// live account yet, so "unavailable" is the honest default (no fake boxes).
+export const SamStatusSchema = z.enum(['unavailable', 'no_region', 'regions_found']);
+export type SamStatus = z.infer<typeof SamStatusSchema>;
+
+export const VisualRegionBoxSchema = z.object({
+  label: z.string(),
+  x: z.number(),
+  y: z.number(),
+  width: z.number(),
+  height: z.number(),
+});
+export type VisualRegionBox = z.infer<typeof VisualRegionBoxSchema>;
+
+export const VisualEvidenceSchema = z.object({
+  evidenceId: z.string().min(1),
+  documentId: z.string().min(1),
+  fileName: z.string().min(1),
+  page: z.number().int().positive(),
+  pageQuality: z.string(),
+  method: EvidenceMethodSchema,
+  samStatus: SamStatusSchema,
+  regions: z.array(VisualRegionBoxSchema),
+  reading: VisualPageReadingSchema.nullable(),
+  requirementIds: z.array(z.string()),
+  requiresHumanReview: z.boolean(),
+  note: z.string(),
+});
+export type VisualEvidence = z.infer<typeof VisualEvidenceSchema>;

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { PositionedWord } from './page-quality';
+import { pdfjsAssetOptions } from './pdf-page-renderer';
 
 export interface PdfPageData {
   page: number;
@@ -37,7 +38,7 @@ export class PdfTextExtractor {
     // The legacy build is the documented Node.js entry point (v6 warns on other builds).
     const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
     const data = new Uint8Array(readFileSync(absolutePath));
-    const document = await pdfjs.getDocument({ data }).promise;
+    const document = await pdfjs.getDocument({ data, ...pdfjsAssetOptions() }).promise;
     try {
       const pages: PdfPageData[] = [];
       for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {

@@ -36,6 +36,7 @@ export const IMPLEMENTED_STEPS = [
   'opportunity.evaluate',
   'tender_analyst.extract',
   'consolidate',
+  'visual.read',
   'compliance.evaluate',
 ] as const;
 

@@ -5,6 +5,7 @@ import { AgentCallTrace } from '../agents/base/base-agent';
 import { ComplianceService } from '../agents/compliance/compliance.service';
 import { OpportunityAgent, OpportunityInput } from '../agents/opportunity/opportunity.agent';
 import { TenderAnalystService } from '../agents/tender-analyst/tender-analyst.service';
+import { VisualEvidenceService } from '../agents/visual/visual-evidence.service';
 import { StructuredFact, buildStructuredFacts } from '../brain/structured-facts';
 import { DocumentIngestionService } from '../documents/document-ingestion.service';
 import { NormalizedTender, TENDER_SOURCE, TenderSource } from '../documents/tender-source';
@@ -60,6 +61,7 @@ export class WorkflowRunner {
     private readonly opportunity: OpportunityAgent,
     private readonly analyst: TenderAnalystService,
     private readonly compliance: ComplianceService,
+    private readonly visual: VisualEvidenceService,
   ) {}
 
   public async startWorkflow(input: StartWorkflowInput) {
@@ -149,6 +151,21 @@ export class WorkflowRunner {
         });
       } else {
         await this.consolidate(runId);
+      }
+      // Step 3b (T5): visual reading of the few requirement pages the text
+      // layer reads poorly. Same skip rule as consolidation.
+      if (analystFailed) {
+        await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'orchestrator', null, {
+          step: 'visual.read',
+          skipped: true,
+          reason: 'tender_analyst failed; no requirement pages to read.',
+        });
+      } else {
+        try {
+          await this.runVisual(runId, context);
+        } catch {
+          failures.push('visual_reader');
+        }
       }
       // Step 4 runs sequentially: it consumes the consolidated requirements.
       // Without them it is skipped like consolidation, not failed.
@@ -358,6 +375,72 @@ export class WorkflowRunner {
       await this.failAgentRun(runId, agentRun.id, 'compliance', 'compliance.evaluate', error);
       throw error;
     }
+  }
+
+  // Step 3b (T5, TECH section 6 step 4c): renders requirement pages whose
+  // stored quality is scanned/poor/mixed, records the sam-3.1 outcome, and
+  // reads them with the vision model. Each page becomes an Evidence row with
+  // method vision (or sam_region when sam returns boxes).
+  private async runVisual(runId: string, context: LoadedContext): Promise<void> {
+    const agentRun = await this.startAgentRun(runId, 'visual_reader', 'read_page', []);
+    await this.emit(runId, WORKFLOW_EVENT.STEP_STARTED, 'visual_reader', agentRun.id, {
+      step: 'visual.read',
+    });
+    try {
+      const requirements = await this.loadRequirements(runId);
+      const result = await this.visual.collect(context.tender, requirements);
+      for (let index = 0; index < result.traces.length; index += 1) {
+        const trace = result.traces[index];
+        if (trace !== undefined) {
+          await this.saveModelCall(agentRun.id, trace, result.readings[index] ?? null);
+        }
+      }
+      const artifact = await this.prisma.artifact.create({
+        data: {
+          workflowId: runId,
+          type: 'visual_evidence',
+          producedBy: 'visual_reader',
+          data: {
+            evidence: result.evidence,
+            samGap: result.samGap,
+          } as unknown as Prisma.InputJsonValue,
+        },
+      });
+      for (const item of result.evidence) {
+        await this.prisma.artifactEvidence.create({
+          data: {
+            id: evidenceRowId(artifact.id, item.evidenceId),
+            artifactId: artifact.id,
+            documentId: item.documentId,
+            page: item.page,
+            section: item.reading?.summary ?? null,
+            method: item.method,
+            region: item.regions as unknown as Prisma.InputJsonValue,
+          },
+        });
+      }
+      await this.finishAgentRun(agentRun.id, [artifact.id], null);
+      await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'visual_reader', agentRun.id, {
+        step: 'visual.read',
+        pagesRead: result.evidence.length,
+        humanReview: result.evidence.filter((item) => item.requiresHumanReview).length,
+        samGap: result.samGap,
+      });
+    } catch (error) {
+      await this.failAgentRun(runId, agentRun.id, 'visual_reader', 'visual.read', error);
+      throw error;
+    }
+  }
+
+  private async loadRequirements(runId: string): Promise<TenderRequirement[]> {
+    const artifact = await this.prisma.artifact.findFirst({
+      where: { workflowId: runId, type: 'requirements' },
+    });
+    if (artifact === null) {
+      return [];
+    }
+    const payload = artifact.data as { requirements?: unknown };
+    return TenderRequirementSchema.array().parse(payload.requirements ?? []);
   }
 
   // Step 3: re-validates the merged requirements (defense in depth: the

@@ -4,6 +4,7 @@ import { ComplianceService } from '../agents/compliance/compliance.service';
 import { OpportunityAgent } from '../agents/opportunity/opportunity.agent';
 import { TenderAnalystAgent } from '../agents/tender-analyst/tender-analyst.agent';
 import { TenderAnalystService } from '../agents/tender-analyst/tender-analyst.service';
+import { VisualEvidenceService } from '../agents/visual/visual-evidence.service';
 import { BrainModule } from '../brain/brain.module';
 import { DocumentsModule } from '../documents/documents.module';
 import { ModelsModule } from '../models/models.module';
@@ -24,6 +25,7 @@ import { WorkflowRunner } from './workflow-runner.service';
     TenderAnalystService,
     ComplianceAgent,
     ComplianceService,
+    VisualEvidenceService,
   ],
 })
 export class WorkflowModule {}
