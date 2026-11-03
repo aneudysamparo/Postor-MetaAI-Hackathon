@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { DraftOffer, PricingFinding, ReviewReport } from '@postor/contracts';
+import { DraftOffer, EconomicOffer, PricingFinding, ReviewReport } from '@postor/contracts';
 import JSZip from 'jszip';
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import {
   F033Line,
+  F033Totals,
   FillValues,
   fillF033,
   fillRedRuns,
@@ -25,6 +26,8 @@ export interface BidDocumentsInput {
   tender: NormalizedTender;
   profile: unknown;
   pricing: PricingFinding[];
+  // Economic offer computed in offer mode; null keeps prices [PENDING].
+  offer?: EconomicOffer | null;
   draft: DraftOffer | null;
   review: ReviewReport | null;
 }
@@ -89,6 +92,28 @@ export function fillValuesFrom(profile: unknown, tender: NormalizedTender): Fill
     institution: tender.institution,
     tenderCode: tender.code,
   };
+}
+
+// Offer mode: one F.033 line per pliego item with the computed prices.
+export function toF033OfferLines(offer: EconomicOffer): F033Line[] {
+  return offer.lines.map((line) => {
+    let priced: F033Line['offer'] = null;
+    if (line.unitOfferDop !== null && line.itbisDop !== null && line.unitFinalDop !== null) {
+      priced = {
+        unitOfferDop: line.unitOfferDop,
+        itbisDop: line.itbisDop,
+        unitFinalDop: line.unitFinalDop,
+      };
+    }
+    return {
+      description: line.description,
+      unit: line.unit,
+      quantity: line.quantity,
+      referenceCostDop: line.unitCostDop,
+      sourceDocCode: line.costSource,
+      offer: priced,
+    };
+  });
 }
 
 export function toF033Lines(pricing: PricingFinding[]): F033Line[] {
@@ -176,13 +201,22 @@ export class BidDocumentsService {
     }
     const f033 = input.tender.files.find((file) => F033_FILE_PATTERN.test(file.fileName));
     if (f033 !== undefined) {
-      const lines = toF033Lines(input.pricing);
+      const offer = input.offer ?? null;
+      let lines = toF033Lines(input.pricing);
+      let totals: F033Totals | null = null;
+      if (offer !== null) {
+        lines = toF033OfferLines(offer);
+        const complete = offer.status !== 'incomplete';
+        if (complete) {
+          totals = { totalDop: offer.offerTotalDop, amountInWords: offer.amountInWords };
+        }
+      }
       const outputName = 'SNCC_F033_Oferta_Economica_BORRADOR.docx';
       const result = await this.fillDocx(f033.absolutePath, (xml, isBody) => {
         if (!isBody) {
           return xml;
         }
-        return insertDemoBanner(fillF033(xml, lines, values.legalName));
+        return insertDemoBanner(fillF033(xml, lines, values.legalName, totals));
       });
       writeFileSync(join(outputDir, outputName), result.buffer);
       files.push({

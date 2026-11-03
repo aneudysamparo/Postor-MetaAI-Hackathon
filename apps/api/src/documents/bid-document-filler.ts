@@ -26,6 +26,15 @@ export interface F033Line {
   // price adds the company's margin, which is a human decision.
   referenceCostDop: number | null;
   sourceDocCode: string | null;
+  // Set when the economic offer was computed (offer-pricing.ts): unit price
+  // before ITBIS, ITBIS and final unit price, as the form's columns ask.
+  offer?: { unitOfferDop: number; itbisDop: number; unitFinalDop: number } | null;
+}
+
+// Totals of the economic offer, written below the item table.
+export interface F033Totals {
+  totalDop: number;
+  amountInWords: string;
 }
 
 type RedRunAction =
@@ -45,6 +54,11 @@ const INSTRUCTION_MIN_CHARS = 100;
 const TITLE_MAX_CHARS = 60;
 const F033_HEADER_MARKER = 'Precio Unitario';
 const F033_OFFERER_LABEL = 'NOMBRE DEL OFERENTE:';
+const F033_TOTAL_LABEL = 'TOTAL DE LA OFERTA:';
+const F033_WORDS_LABEL = 'en letras';
+const PARAGRAPH_PATTERN = /<w:p[ >][\s\S]*?<\/w:p>/g;
+// A run made only of leader dots ("………", "....") is a blank to write on.
+const LEADER_DOTS_PATTERN = /^[\s.…]+$/;
 const DEMO_BANNER =
   'BORRADOR GENERADO POR POSTOR (DEMO) — EMPRESA FICTICIA. Revisar, completar los [PENDING], firmar y sellar manualmente. No se envía a ninguna entidad.';
 const MONEY_FRACTION_DIGITS = 2;
@@ -229,6 +243,21 @@ function formatDop(amount: number): string {
 }
 
 export function f033Cells(line: F033Line, itemNumber: number): string[] {
+  let quantityText = '[PENDING: cantidad]';
+  if (line.quantity !== null) {
+    quantityText = String(line.quantity);
+  }
+  if (line.offer !== undefined && line.offer !== null) {
+    return [
+      String(itemNumber),
+      line.description,
+      line.unit ?? '[PENDING: unidad]',
+      quantityText,
+      `RD$ ${formatDop(line.offer.unitOfferDop)}`,
+      `RD$ ${formatDop(line.offer.itbisDop)}`,
+      `RD$ ${formatDop(line.offer.unitFinalDop)}`,
+    ];
+  }
   let priceCell = '[PENDING: precio de oferta]';
   if (line.referenceCostDop !== null) {
     priceCell = `[PENDING: precio de oferta; costo ref. RD$ ${formatDop(line.referenceCostDop)} ${line.sourceDocCode ?? ''}]`;
@@ -251,8 +280,14 @@ export function f033Cells(line: F033Line, itemNumber: number): string[] {
 // T6.4: the tender's own blank F.033 is the layout authority. Its item table
 // (the one whose header holds "Precio Unitario") keeps every row; empty rows
 // receive one line each, and extra lines clone the last empty row.
-export function fillF033(xml: string, lines: F033Line[], legalName: string): string {
-  const withOfferer = xml.replace(
+export function fillF033(
+  xml: string,
+  lines: F033Line[],
+  legalName: string,
+  totals: F033Totals | null = null,
+): string {
+  const withTotals = fillF033Totals(xml, totals);
+  const withOfferer = withTotals.replace(
     new RegExp(`(${F033_OFFERER_LABEL}[\\s\\S]*?)(</w:t>)`),
     `$1 ${escapeXml(legalName)}$2`,
   );
@@ -295,4 +330,59 @@ export function fillF033(xml: string, lines: F033Line[], legalName: string): str
     }
     return rebuilt;
   });
+}
+
+// "VALOR TOTAL DE LA OFERTA: ……… RD$" gets the amount after "RD$"; the
+// leader dots after "en letras:" become the amount in words. Without a
+// computed offer both stay pending for a person.
+function fillF033Totals(xml: string, totals: F033Totals | null): string {
+  let totalText = '[PENDING: valor total]';
+  let wordsText = '[PENDING: valor total en letras]';
+  if (totals !== null) {
+    totalText = formatDop(totals.totalDop);
+    wordsText = totals.amountInWords;
+  }
+  return xml.replace(PARAGRAPH_PATTERN, (paragraph) => {
+    if (paragraph.includes(F033_TOTAL_LABEL)) {
+      return appendToLastText(paragraph, ` ${escapeXml(totalText)}`);
+    }
+    if (paragraph.includes(F033_WORDS_LABEL)) {
+      return replaceLeaderDots(paragraph, escapeXml(wordsText));
+    }
+    return paragraph;
+  });
+}
+
+function appendToLastText(paragraph: string, suffix: string): string {
+  const texts = [...paragraph.matchAll(TEXT_PATTERN)];
+  const last = texts[texts.length - 1];
+  if (last === undefined || last.index === undefined) {
+    return paragraph;
+  }
+  const closing = last.index + last[0].length - '</w:t>'.length;
+  return `${paragraph.slice(0, closing)}${suffix}${paragraph.slice(closing)}`;
+}
+
+// The first dots-only run receives the words; later dots-only runs empty.
+// Some templates keep label and dots in one run ("en letras:………"): then
+// the dots after the colon are replaced in place.
+function replaceLeaderDots(paragraph: string, words: string): string {
+  let written = false;
+  const inlineLabel = /(en letras\s*:)[\s.…]+/;
+  const replaced = paragraph.replace(TEXT_PATTERN, (run, content: string) => {
+    if (!written && inlineLabel.test(content)) {
+      written = true;
+      return run.replace(inlineLabel, `$1 ${words}`);
+    }
+    if (!LEADER_DOTS_PATTERN.test(content)) {
+      return run;
+    }
+    const opening = run.slice(0, run.indexOf('>') + 1);
+    if (written) {
+      return `${opening}</w:t>`;
+    }
+    written = true;
+    return `${opening.replace('<w:t>', '<w:t xml:space="preserve">')} ${words}</w:t>`;
+  });
+  return replaced;
 }

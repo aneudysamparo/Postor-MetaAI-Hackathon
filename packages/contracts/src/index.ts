@@ -138,8 +138,57 @@ export const PricingFindingSchema = z.object({
   validUntil: z.string().nullish(),
   requirementIds: z.array(z.string()).nullish(),
   tenderPage: z.number().int().positive().nullish(),
+  // Offer pricing: the pliego item this line prices (items.json id), and for
+  // services the estimated effort per role; the unit cost of a service is
+  // computed in code from the company's rate card, never by the model.
+  itemId: z.string().nullish(),
+  effort: z.array(z.object({ role: z.string().min(1), hours: z.number().nonnegative() })).nullish(),
 });
 export type PricingFinding = z.infer<typeof PricingFindingSchema>;
+
+// The economic offer (SNCC.F.033) computed by deterministic code from the
+// priced costs, the company's pricing policy and the tender budget.
+export const OfferStatusSchema = z.enum([
+  'in_band',
+  'margin_floor',
+  'over_budget',
+  'incomplete',
+  'no_budget',
+]);
+export type OfferStatus = z.infer<typeof OfferStatusSchema>;
+
+export const OfferLineSchema = z.object({
+  itemId: z.string().nullable(),
+  description: z.string(),
+  unit: z.string().nullable(),
+  quantity: z.number().nullable(),
+  unitCostDop: z.number().nullable(),
+  costSource: z.string().nullable(),
+  unitOfferDop: z.number().nullable(),
+  itbisDop: z.number().nullable(),
+  unitFinalDop: z.number().nullable(),
+  lineTotalDop: z.number().nullable(),
+  estimatedUnitPriceDop: z.number().nullable(),
+  tenderPage: z.number().nullable(),
+});
+export type OfferLine = z.infer<typeof OfferLineSchema>;
+
+export const EconomicOfferSchema = z.object({
+  status: OfferStatusSchema,
+  lines: z.array(OfferLineSchema),
+  budgetDop: z.number().nullable(),
+  costTotalDop: z.number(),
+  offerTotalDop: z.number(),
+  pctOfBudget: z.number().nullable(),
+  marginPct: z.number().nullable(),
+  itbisPct: z.number(),
+  targetPctOfBudget: z.number(),
+  bandPctOfBudget: z.object({ min: z.number(), max: z.number() }),
+  minMarginPct: z.number(),
+  amountInWords: z.string(),
+  notes: z.array(z.string()),
+});
+export type EconomicOffer = z.infer<typeof EconomicOfferSchema>;
 
 // What the pricing model returns: one entry per item the tender asks to
 // price. The service re-checks every price against the quotation text.

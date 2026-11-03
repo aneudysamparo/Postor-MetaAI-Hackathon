@@ -3,6 +3,7 @@ import {
   ComplianceFinding,
   ComplianceVerdict,
   DraftOffer,
+  EconomicOffer,
   PricingFinding,
   ReviewReport,
   TenderRequirement,
@@ -830,6 +831,7 @@ export class WorkflowRunner {
           data: {
             items: result.items,
             totals: result.totals,
+            offer: result.offer,
           } as unknown as Prisma.InputJsonValue,
         },
       });
@@ -955,6 +957,7 @@ export class WorkflowRunner {
       tender: context.tender,
       profile: company.profile,
       pricing: await this.loadPricing(runId),
+      offer: await this.loadOffer(runId),
       draft: draftPayload.draft ?? null,
       review: reviewPayload.review ?? null,
     });
@@ -987,6 +990,14 @@ export class WorkflowRunner {
       verdict?: ComplianceVerdict;
     };
     return { findings: payload.findings ?? [], verdict: payload.verdict ?? null };
+  }
+
+  private async loadOffer(runId: string): Promise<EconomicOffer | null> {
+    const artifact = await this.prisma.artifact.findFirst({
+      where: { workflowId: runId, type: 'pricing' },
+    });
+    const payload = (artifact?.data ?? {}) as { offer?: EconomicOffer | null };
+    return payload.offer ?? null;
   }
 
   private async loadPricing(runId: string): Promise<PricingFinding[]> {

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  EconomicOffer,
   PricingFinding,
   PricingFindingSchema,
   TenderRequirement,
@@ -9,7 +10,18 @@ import { extractDocCode } from '../../brain/company-brain-retrieval.service';
 import { NormalizedTender } from '../../documents/tender-source';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AgentCallTrace } from '../base/base-agent';
+import { buildEconomicOffer } from './offer-pricing';
+import { PricingOfferAgent } from './pricing-offer.agent';
 import { PricingAgent } from './pricing.agent';
+import {
+  loadPricingPolicy,
+  loadStores,
+  loadTenderItems,
+  priceServiceEffort,
+  rateCardText,
+  storeText,
+} from './pricing-catalog';
+import type { TenderItem } from './pricing-catalog';
 
 export interface QuotationText {
   docCode: string;
@@ -21,6 +33,8 @@ export interface PricingResult {
   totals: PricingTotals;
   trace: AgentCallTrace;
   rawItems: PricingFinding[];
+  // Offer mode only (the tender has an items.json): the SNCC.F.033 offer.
+  offer: EconomicOffer | null;
 }
 
 export interface PricingTotals {
@@ -139,6 +153,7 @@ export class PricingService {
   public constructor(
     private readonly prisma: PrismaService,
     private readonly agent: PricingAgent,
+    private readonly offerAgent: PricingOfferAgent,
   ) {}
 
   public async research(input: {
@@ -147,8 +162,12 @@ export class PricingService {
     requirements: TenderRequirement[];
     visualEvidence: VisualEvidence[];
   }): Promise<PricingResult> {
-    const quotations = await this.loadQuotations(input.companyId);
     const todayIso = new Date().toISOString().slice(0, ISO_DATE_LENGTH);
+    const tenderItems = loadTenderItems(input.tender.caseKey);
+    if (tenderItems !== null) {
+      return this.priceOffer(input.tender, tenderItems, todayIso);
+    }
+    const quotations = await this.loadQuotations(input.companyId);
     const priced = input.requirements.filter((requirement) =>
       PRICED_CATEGORIES.has(requirement.category),
     );
@@ -175,6 +194,72 @@ export class PricingService {
       totals: computeTotals(items),
       trace: result.trace,
       rawItems: result.data.items,
+      offer: null,
+    };
+  }
+
+  // Offer mode: the pliego's item list x DEMO store catalogs + the company
+  // rate card, then the deterministic economic offer (offer-pricing.ts).
+  private async priceOffer(
+    tender: NormalizedTender,
+    tenderItems: TenderItem[],
+    todayIso: string,
+  ): Promise<PricingResult> {
+    const stores = loadStores();
+    const policy = loadPricingPolicy();
+    const catalogs: QuotationText[] = stores.map((store) => ({
+      docCode: store.id,
+      text: storeText(store),
+    }));
+    const result = await this.offerAgent.run({
+      tenderCode: tender.code,
+      tenderTitle: tender.title,
+      todayIso,
+      itemsText: tenderItems
+        .map(
+          (item) =>
+            `- ${item.id} | ${item.kind} | ${item.quantity} ${item.unit} | ${item.description} | pliego p${item.page}`,
+        )
+        .join('\n'),
+      quotationsText: catalogs
+        .map((catalog) => `[${catalog.docCode}] ${catalog.text}`)
+        .join('\n\n'),
+      rateCardText: rateCardText(policy),
+    });
+    const kindById = new Map(tenderItems.map((item) => [item.id, item.kind]));
+    // Quantities and units come from the pliego item list, never the model.
+    const byId = new Map(tenderItems.map((item) => [item.id, item]));
+    const normalized = result.data.items.map((finding) => {
+      const item = byId.get(finding.itemId ?? '');
+      if (item === undefined) {
+        return finding;
+      }
+      return { ...finding, quantity: item.quantity, unit: item.unit, tenderPage: item.page };
+    });
+    const goods = guardPrices(
+      normalized.filter((finding) => kindById.get(finding.itemId ?? '') !== 'service'),
+      catalogs,
+      todayIso,
+    );
+    const services = normalized
+      .filter((finding) => kindById.get(finding.itemId ?? '') === 'service')
+      .map((finding) => priceServiceEffort(finding, policy));
+    const priced = [...goods, ...services];
+    const ordered = tenderItems
+      .map((item) => priced.find((finding) => finding.itemId === item.id))
+      .filter((finding): finding is PricingFinding => finding !== undefined);
+    const offer = buildEconomicOffer({
+      items: tenderItems,
+      pricing: ordered,
+      budgetDop: tender.estimatedAmountDop,
+      policy,
+    });
+    return {
+      items: ordered,
+      totals: computeTotals(ordered),
+      trace: result.trace,
+      rawItems: result.data.items,
+      offer,
     };
   }
 

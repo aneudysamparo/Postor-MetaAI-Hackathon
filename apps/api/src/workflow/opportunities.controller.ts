@@ -7,6 +7,7 @@ import { resolveRepoRoot } from '../runtime-env';
 import { TENDER_SOURCE, TenderSource } from '../documents/tender-source';
 import { PrismaService } from '../prisma/prisma.service';
 import { DemoResetService } from './demo-reset.service';
+import { loadPricingPolicy, loadStores } from '../agents/pricing/pricing-catalog';
 
 interface LatestRunSummary {
   id: string;
@@ -181,6 +182,13 @@ export class OpportunitiesController {
 
   // Company Brain profile view (INSTRUCCIONES-6): the fictional company the
   // demo bids for, plus its indexed documents. Marked fictional end to end.
+  // DEMO store catalogs + the company's pricing policy (the price sources
+  // of the economic offer), for the "Tiendas" page.
+  @Get('stores')
+  public stores() {
+    return { stores: loadStores(), policy: loadPricingPolicy() };
+  }
+
   @Get('company')
   public async company() {
     const company = await this.prisma.company.findFirst({ orderBy: { createdAt: 'asc' } });

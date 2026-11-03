@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ComplianceAgent } from '../agents/compliance/compliance.agent';
 import { ComplianceService } from '../agents/compliance/compliance.service';
+import { PricingOfferAgent } from '../agents/pricing/pricing-offer.agent';
 import { PricingAgent } from '../agents/pricing/pricing.agent';
 import { PricingService } from '../agents/pricing/pricing.service';
 import { ReviewerAgent } from '../agents/reviewer/reviewer.agent';
@@ -36,6 +37,7 @@ import { WorkflowRunner } from './workflow-runner.service';
     ComplianceService,
     VisualEvidenceService,
     PricingAgent,
+    PricingOfferAgent,
     PricingService,
     WriterAgent,
     ReviewerAgent,

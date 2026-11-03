@@ -117,3 +117,53 @@ describe('F.033', () => {
     assert.equal(lines[1].referenceCostDop, null);
   });
 });
+
+describe('F.033 with a computed offer', () => {
+  const cell = '<w:tc><w:p></w:p></w:tc>';
+  const header = `<w:tr><w:tc><w:p><w:r><w:t>Precio Unitario</w:t></w:r></w:p></w:tc></w:tr>`;
+  const empty = `<w:tr>${cell.repeat(7)}</w:tr>`;
+  const totalParagraph =
+    '<w:p><w:r><w:t>VALOR  TOTAL DE LA OFERTA: ……</w:t></w:r><w:r><w:t>……… RD$</w:t></w:r></w:p>';
+  const wordsParagraph =
+    '<w:p><w:r><w:t>Valor total de la oferta en letras</w:t></w:r><w:r><w:t>:</w:t></w:r><w:r><w:t>…………</w:t></w:r><w:r><w:t>……</w:t></w:r></w:p>';
+  const xml = `<w:p><w:r><w:t>NOMBRE DEL OFERENTE:</w:t></w:r></w:p><w:tbl>${header}${empty}</w:tbl>${totalParagraph}${wordsParagraph}`;
+
+  it('prints unit price, ITBIS, final price, total and the total in words', () => {
+    const filled = fillF033(
+      xml,
+      [
+        {
+          description: 'AP interior',
+          unit: 'Unidad',
+          quantity: 110,
+          referenceCostDop: 33900,
+          sourceDocCode: 'TIENDA-01',
+          offer: { unitOfferDop: 41034.53, itbisDop: 7386.22, unitFinalDop: 48420.75 },
+        },
+      ],
+      'NovaTech Solutions, SRL',
+      { totalDop: 5326282.5, amountInWords: 'CINCO MILLONES ... CON 50/100' },
+    );
+    assert.ok(filled.includes('RD$ 41,034.53'));
+    assert.ok(filled.includes('RD$ 7,386.22'));
+    assert.ok(filled.includes('RD$ 48,420.75'));
+    assert.ok(filled.includes('RD$ 5,326,282.50'));
+    assert.ok(filled.includes('CINCO MILLONES ... CON 50/100'));
+    assert.ok(!filled.includes('[PENDING: precio de oferta'));
+  });
+
+  it('keeps the totals pending when no offer was computed', () => {
+    const filled = fillF033(xml, [], 'NovaTech Solutions, SRL');
+    assert.ok(filled.includes('[PENDING: valor total]'));
+    assert.ok(filled.includes('[PENDING: valor total en letras]'));
+  });
+});
+
+describe('F.033 words when label and dots share one run', () => {
+  it('replaces the dots after "en letras:" in place', () => {
+    const xml =
+      '<w:p><w:r><w:t>Valor total de la oferta en letras:…………………</w:t></w:r></w:p>';
+    const filled = fillF033(xml, [], 'N', { totalDop: 1, amountInWords: 'UN PESOS' });
+    assert.ok(filled.includes('en letras: UN PESOS'));
+  });
+});
