@@ -8,7 +8,7 @@
     "start": "node dist/main.js",
     "lint": "eslint src --max-warnings 0",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "npm run build && node --test test/brain-regression.test.mjs",
+    "test": "npm run build && node --test test/brain-regression.test.mjs test/boot.test.mjs",
     "prisma:generate": "prisma generate",
     "prisma:validate": "prisma validate --schema=prisma/schema.prisma",
     "prisma:sqlite:prepare": "node prisma/derive-sqlite-schema.mjs",
@@ -27,6 +27,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@nestjs/testing": "^10.4.22",
     "@types/express": "^4.17.21",
     "@types/node": "^22.10.0",
     "prisma": "^6.19.3",
