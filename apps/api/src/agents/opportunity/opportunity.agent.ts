@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OpportunityAssessment, OpportunityAssessmentSchema } from '@postor/contracts';
+import { OpportunityAssessmentDraft, OpportunityAssessmentDraftSchema } from '@postor/contracts';
 import { MetaModelService } from '../../models/meta-model.service';
 import { StructuredFact } from '../../brain/structured-facts';
 import { BaseAgent } from '../base/base-agent';
@@ -19,12 +19,12 @@ export interface OpportunityInput {
 // eligibility from a description, so its recommendation stays preliminary
 // until document and compliance analysis confirm it.
 @Injectable()
-export class OpportunityAgent extends BaseAgent<OpportunityInput, OpportunityAssessment> {
+export class OpportunityAgent extends BaseAgent<OpportunityInput, OpportunityAssessmentDraft> {
   protected readonly agentName = 'opportunity';
   protected readonly agentRole = 'Opportunity Agent';
   protected readonly taskName = 'evaluate';
   protected readonly promptVersion = 'opportunity-v1';
-  protected readonly outputSchema = OpportunityAssessmentSchema;
+  protected readonly outputSchema = OpportunityAssessmentDraftSchema;
 
   public constructor(metaModel: MetaModelService) {
     super(metaModel);

@@ -200,6 +200,44 @@ export const OpportunityAssessmentSchema = z.object({
 });
 export type OpportunityAssessment = z.infer<typeof OpportunityAssessmentSchema>;
 
+// What the model actually returns: live runs (case B) showed list entries
+// coming back as objects. The agent validates this lenient shape and
+// toOpportunityAssessment normalizes every entry to text, so one stray
+// object never fails the whole step.
+export const OpportunityAssessmentDraftSchema = OpportunityAssessmentSchema.extend({
+  relevantCapabilities: z.array(z.unknown()),
+  incompatibilities: z.array(z.unknown()),
+  missingInformation: z.array(z.unknown()),
+});
+export type OpportunityAssessmentDraft = z.infer<typeof OpportunityAssessmentDraftSchema>;
+
+function entryToText(entry: unknown): string | null {
+  if (typeof entry === 'string') {
+    return entry;
+  }
+  if (typeof entry === 'object' && entry !== null) {
+    const parts = Object.values(entry).filter((value) => typeof value === 'string');
+    if (parts.length > 0) {
+      return parts.join(' — ');
+    }
+    return JSON.stringify(entry);
+  }
+  return null;
+}
+
+function entriesToText(entries: unknown[]): string[] {
+  return entries.map(entryToText).filter((entry): entry is string => entry !== null);
+}
+
+export function toOpportunityAssessment(draft: OpportunityAssessmentDraft): OpportunityAssessment {
+  return OpportunityAssessmentSchema.parse({
+    ...draft,
+    relevantCapabilities: entriesToText(draft.relevantCapabilities),
+    incompatibilities: entriesToText(draft.incompatibilities),
+    missingInformation: entriesToText(draft.missingInformation),
+  });
+}
+
 // What the analyst model returns per window: no ids (the service mints them),
 // page as cited (the mapper validates it against the real page count).
 export const RequirementDraftSchema = z.object({

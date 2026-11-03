@@ -8,6 +8,7 @@ import {
   TenderRequirement,
   TenderRequirementSchema,
   VisualEvidence,
+  toOpportunityAssessment,
 } from '@postor/contracts';
 import { Prisma } from '@prisma/client';
 import { AgentCallTrace } from '../agents/base/base-agent';
@@ -332,19 +333,20 @@ export class WorkflowRunner {
     try {
       const input = this.opportunityInputOf(context);
       const result = await this.opportunity.run(input);
-      await this.saveModelCall(agentRun.id, result.trace, result.data);
+      const assessment = toOpportunityAssessment(result.data);
+      await this.saveModelCall(agentRun.id, result.trace, assessment);
       const artifact = await this.prisma.artifact.create({
         data: {
           workflowId: runId,
           type: 'opportunity_assessment',
           producedBy: 'opportunity',
-          data: result.data as unknown as Prisma.InputJsonValue,
+          data: assessment as unknown as Prisma.InputJsonValue,
         },
       });
       await this.finishAgentRun(agentRun.id, [artifact.id], null);
       await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'opportunity', agentRun.id, {
         step: 'opportunity.evaluate',
-        recommendation: result.data.recommendation,
+        recommendation: assessment.recommendation,
       });
     } catch (error) {
       await this.failAgentRun(runId, agentRun.id, 'opportunity', 'opportunity.evaluate', error);

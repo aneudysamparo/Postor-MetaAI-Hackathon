@@ -107,3 +107,21 @@ describe('draft merge', () => {
     ]);
   });
 });
+
+describe('opportunity assessment normalization', async () => {
+  const { toOpportunityAssessment } = await import('@postor/contracts');
+
+  it('turns object entries into text instead of failing the step', () => {
+    const assessment = toOpportunityAssessment({
+      summary: 's',
+      matchLevel: 'medium',
+      recommendation: 'go',
+      justification: 'j',
+      relevantCapabilities: [{ capability: 'Wi-Fi 6', evidence: 'PROJECT-004' }, 'Azure'],
+      incompatibilities: [null],
+      missingInformation: [],
+    });
+    assert.deepEqual(assessment.relevantCapabilities, ['Wi-Fi 6 — PROJECT-004', 'Azure']);
+    assert.deepEqual(assessment.incompatibilities, []);
+  });
+});
