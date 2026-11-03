@@ -89,6 +89,11 @@ quotations), **Traza** (every model call: prompt sent, response, tokens,
 duration, estimated cost), Formularios/Documentos (filled SNCC forms and the
 tender's own F.033, downloadable after human validation).
 
+**No API key?** Run `npm run init -- --db=sqlite --offline` instead: it skips
+the key check and loads real recorded runs of all four tenders
+(`data/demo-runs/snapshot.json`), so the feed, verdicts, evidence, SAM regions
+and the full Trace are explorable; only **Correr análisis en vivo** needs a key.
+
 `npm run seed` validates the dataset offline (no key, no model calls);
 `npm run doctor` diagnoses the environment. Tests: `npm test`.
 
