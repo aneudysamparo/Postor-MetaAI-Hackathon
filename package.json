@@ -13,13 +13,18 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "format": "prettier --check .",
-    "format:write": "prettier --write ."
+    "format:write": "prettier --write .",
+    "seed": "tsx packages/cli/src/seed.ts",
+    "init": "tsx packages/cli/src/init.ts",
+    "demo:init": "tsx packages/cli/src/init.ts",
+    "doctor": "tsx packages/cli/src/doctor.ts"
   },
   "devDependencies": {
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.14.0",
     "prettier": "^3.4.2",
+    "tsx": "^4.23.15",
     "turbo": "^2.4.0",
     "typescript": "~5.7.3",
     "typescript-eslint": "^8.20.0"
