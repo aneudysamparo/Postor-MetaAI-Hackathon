@@ -285,6 +285,22 @@ export class TenderAnalystService {
     };
   }
 
+  // Page texts of the pliego + amendments: exactly what the analyst reads,
+  // so the document guard scans the same input the agents see.
+  public async readPageTexts(
+    caseKey: string,
+  ): Promise<{ fileName: string; page: number; text: string }[]> {
+    const tender = await this.tenderSource.getTender(caseKey);
+    const pages: { fileName: string; page: number; text: string }[] = [];
+    for (const file of [tender.pliego, ...tender.amendments]) {
+      const texts = await this.fullPageTexts(file);
+      texts.forEach((text, index) =>
+        pages.push({ fileName: file.fileName, page: index + 1, text }),
+      );
+    }
+    return pages;
+  }
+
   private async fullPageTexts(file: TenderFileRef): Promise<string[]> {
     if (file.kind === 'pdf') {
       const pdf = await this.pdfExtractor.extract(file.absolutePath);

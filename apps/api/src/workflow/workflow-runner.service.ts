@@ -37,6 +37,11 @@ import { BidDocumentsService } from '../documents/bid-documents.service';
 import { DocumentIngestionService } from '../documents/document-ingestion.service';
 import { NormalizedTender, TENDER_SOURCE, TenderSource } from '../documents/tender-source';
 import { estimateCallCost, loadCostRates } from '../observability/cost-estimate';
+import {
+  DocumentGuardService,
+  chunkForGuard,
+  guardConfigured,
+} from '../models/document-guard.service';
 import { runWithMetaKey } from '../models/request-meta-key';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -77,6 +82,11 @@ function loadLiteDocCodes(): string[] {
 }
 const FIRST_ATTEMPT = 1;
 const COST_SUMMARY_DECIMALS = 6;
+const META_PROVIDER = 'meta';
+// Characters of a flagged chunk kept in the artifact for the reviewer.
+const GUARD_EXCERPT_CHARS = 300;
+// Meta open-weights model self-hosted on Modal (document guard).
+const MODAL_PROVIDER = 'modal';
 // 30 minutes without any workflow event: far beyond the slowest model call.
 const STALE_RUN_MS = 1_800_000;
 const INTERRUPTED_REASON = 'Interrupted: the API process stopped while this run was executing.';
@@ -109,6 +119,7 @@ export class WorkflowRunner {
     private readonly pricing: PricingService,
     private readonly drafting: BidDraftingService,
     private readonly bidDocuments: BidDocumentsService,
+    private readonly guard: DocumentGuardService,
   ) {}
 
   public async startWorkflow(input: StartWorkflowInput) {
@@ -263,6 +274,7 @@ export class WorkflowRunner {
       await this.transition(runId, WORKFLOW_STATUS.RUNNING);
       await this.emit(runId, WORKFLOW_EVENT.STARTED, null, null, { mode });
       const context = await this.loadContext(runId);
+      const guardLane = this.runGuard(runId, context);
       const outcomes = await Promise.allSettled([
         this.runOpportunity(runId, context),
         this.runAnalyst(runId, context),
@@ -342,6 +354,7 @@ export class WorkflowRunner {
           failures.push('documents');
         }
       }
+      await guardLane;
       await this.finish(runId, failures);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -381,6 +394,7 @@ export class WorkflowRunner {
       // Two independent lanes. The opportunity agent (metadata fit) feeds
       // nothing downstream, so it runs beside the whole evidence lane
       // instead of holding the writer back.
+      const guardLane = this.runGuard(runId, context);
       const opportunityLane = this.runOpportunity(runId, context).then(
         () => null,
         () => 'opportunity',
@@ -390,6 +404,7 @@ export class WorkflowRunner {
         evidenceLane = this.runLiteEvidenceLane(runId, context);
       }
       const [opportunityFailure, laneFailures] = await Promise.all([opportunityLane, evidenceLane]);
+      await guardLane;
       if (opportunityFailure !== null) {
         failures.push(opportunityFailure);
       }
@@ -399,6 +414,81 @@ export class WorkflowRunner {
       const message = error instanceof Error ? error.message : String(error);
       await this.transition(runId, WORKFLOW_STATUS.FAILED);
       await this.emit(runId, WORKFLOW_EVENT.FAILED, null, null, { error: message });
+    }
+  }
+
+  // Document guard (Meta Llama Prompt Guard 2 on Modal): scores every page
+  // chunk the agents read for prompt-injection intent. Non-blocking: a
+  // flagged chunk is reported (artifact + trace) and stays plain data; an
+  // unreachable guard is recorded as a failed step, never a silent pass.
+  private async runGuard(runId: string, context: LoadedContext): Promise<void> {
+    if (!guardConfigured()) {
+      await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'orchestrator', null, {
+        step: 'guard.scan',
+        skipped: true,
+        reason: 'Document guard not deployed (POSTOR_GUARD_URL unset).',
+      });
+      return;
+    }
+    const agentRun = await this.startAgentRun(runId, 'document_guard', 'scan', context.documentIds);
+    await this.emit(runId, WORKFLOW_EVENT.STEP_STARTED, 'document_guard', agentRun.id, {
+      step: 'guard.scan',
+    });
+    try {
+      const pages = await this.analyst.readPageTexts(context.caseKey);
+      const chunks = pages.flatMap((page) =>
+        chunkForGuard(page.text).map((text) => ({
+          fileName: page.fileName,
+          page: page.page,
+          text,
+        })),
+      );
+      const scan = await this.guard.scan(chunks);
+      for (const call of scan.calls) {
+        await this.saveModelCall(
+          agentRun.id,
+          {
+            agentName: 'document_guard',
+            taskName: 'scan',
+            promptVersion: 'prompt-guard-2',
+            systemPrompt: '',
+            taskPrompt: `${call.texts} page chunks of the pliego and amendments (classifier input)`,
+            modelRequested: scan.model,
+            modelReturned: scan.model,
+            usage: { inputTokens: null, outputTokens: null },
+            durationMs: call.durationMs,
+            rawResponse: null,
+          },
+          { texts: call.texts, threshold: scan.threshold, flagged: scan.flagged.length },
+          MODAL_PROVIDER,
+        );
+      }
+      const artifact = await this.prisma.artifact.create({
+        data: {
+          workflowId: runId,
+          type: 'document_guard',
+          producedBy: 'document_guard',
+          data: {
+            model: scan.model,
+            scannedChunks: scan.scannedChunks,
+            threshold: scan.threshold,
+            flagged: scan.flagged.map((finding) => ({
+              fileName: finding.fileName,
+              page: finding.page,
+              score: finding.score,
+              excerpt: finding.text.slice(0, GUARD_EXCERPT_CHARS),
+            })),
+          } as unknown as Prisma.InputJsonValue,
+        },
+      });
+      await this.finishAgentRun(agentRun.id, [artifact.id], null);
+      await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'document_guard', agentRun.id, {
+        step: 'guard.scan',
+        scannedChunks: scan.scannedChunks,
+        flagged: scan.flagged.length,
+      });
+    } catch (error) {
+      await this.failAgentRun(runId, agentRun.id, 'document_guard', 'guard.scan', error);
     }
   }
 
@@ -1036,11 +1126,12 @@ export class WorkflowRunner {
     agentRunId: string,
     trace: AgentCallTrace,
     responseNorm: unknown,
+    provider: string = META_PROVIDER,
   ): Promise<void> {
     await this.prisma.modelCall.create({
       data: {
         agentRunId,
-        provider: 'meta',
+        provider,
         modelRequested: trace.modelRequested,
         modelReturned: trace.modelReturned,
         promptSystem: trace.systemPrompt,
