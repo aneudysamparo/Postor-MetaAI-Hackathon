@@ -5,6 +5,7 @@ import { PricingAgent } from '../agents/pricing/pricing.agent';
 import { PricingService } from '../agents/pricing/pricing.service';
 import { ReviewerAgent } from '../agents/reviewer/reviewer.agent';
 import { BidDraftingService } from '../agents/writer/bid-drafting.service';
+import { VoiceNoteAgent } from '../agents/voice-note/voice-note.agent';
 import { WriterAgent } from '../agents/writer/writer.agent';
 import { OpportunityAgent } from '../agents/opportunity/opportunity.agent';
 import { TenderAnalystAgent } from '../agents/tender-analyst/tender-analyst.agent';
@@ -18,6 +19,7 @@ import { DemoResetService } from './demo-reset.service';
 import { EvidenceController } from './evidence.controller';
 import { OpportunitiesController } from './opportunities.controller';
 import { WorkflowController } from './workflow.controller';
+import { VoiceNoteService } from './voice-note.service';
 import { WorkflowRunner } from './workflow-runner.service';
 
 // Agents live here until T6 grows enough of them to deserve their own module.
@@ -38,6 +40,8 @@ import { WorkflowRunner } from './workflow-runner.service';
     WriterAgent,
     ReviewerAgent,
     BidDraftingService,
+    VoiceNoteAgent,
+    VoiceNoteService,
   ],
 })
 export class WorkflowModule {}

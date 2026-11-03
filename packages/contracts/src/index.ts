@@ -163,6 +163,25 @@ export const DraftOfferSchema = z.object({
 });
 export type DraftOffer = z.infer<typeof DraftOfferSchema>;
 
+// Voice answers to [PENDING] items (Muse Voice Transcribe -> Muse Spark).
+// Every answer is a declaration by the user, never verified evidence: it
+// names the document that would prove it, and the draft keeps the marker
+// until a person attaches that document.
+export const VoiceNoteAnswerSchema = z.object({
+  pendingIndex: z.number().int().nonnegative(),
+  pending: z.string().min(1),
+  answer: z.string().min(1),
+  proofNeeded: z.string().nullish(),
+});
+export type VoiceNoteAnswer = z.infer<typeof VoiceNoteAnswerSchema>;
+
+export const VoiceNoteMappingSchema = z.object({
+  answers: z.array(VoiceNoteAnswerSchema),
+  // What the speaker said that answers no pending item (kept, not dropped).
+  unmatched: z.array(z.string()),
+});
+export type VoiceNoteMapping = z.infer<typeof VoiceNoteMappingSchema>;
+
 export const ReviewVerdictSchema = z.enum(['pass', 'needs_revision', 'blocked']);
 export type ReviewVerdict = z.infer<typeof ReviewVerdictSchema>;
 

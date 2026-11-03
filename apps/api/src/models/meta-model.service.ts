@@ -70,7 +70,31 @@ export interface VisualRegion {
 const CHAT_COMPLETIONS_PATH = '/chat/completions';
 const RESPONSES_PATH = '/responses';
 const DEFAULT_SAM_MODEL = 'sam-3.1';
+// Muse Voice Transcribe: one-shot speech-to-text. Multipart body with two
+// parts: `request` (JSON settings) and `audio` (mono 16-bit PCM WAV at 16 or
+// 24 kHz, at most 10 minutes / 32 MB). PUSH_TO_TALK = one turn per clip.
+const ASR_TRANSCRIBE_PATH = '/asr/transcribe';
+const DEFAULT_VOICE_MODEL = 'muse-voice-transcribe-1.0';
+const VOICE_MODE = 'PUSH_TO_TALK';
+const WAV_ENCODING = 'WAV';
+const WAV_MIME_TYPE = 'audio/wav';
 const SAM_BOX_PATTERN = /<\|box;x1=(\d+);y1=(\d+);x2=(\d+);y2=(\d+);w=(\d+);h=(\d+)\|>/g;
+
+export interface TranscriptionRequest {
+  wav: Uint8Array;
+  // Recognition hints: languages by name (e.g. "Spanish") and domain terms
+  // the model would otherwise mishear (cert names, DOC codes, brands).
+  languageBias?: string[];
+  keywords?: string[];
+}
+
+export interface Transcription {
+  transcript: string;
+  audioDurationMs: number | null;
+  sessionId: string | null;
+  modelRequested: string;
+  durationMs: number;
+}
 
 export interface SegmentationResult {
   regions: VisualRegion[];
@@ -330,6 +354,45 @@ export class MetaModelService {
     };
   }
 
+  // Speech -> text with Muse Voice Transcribe. The settings go as a JSON
+  // part named `request`, the clip as a WAV part named `audio`. The model
+  // only transcribes; turning the words into structured data is a separate
+  // Muse Spark call made by the caller.
+  public async transcribeAudio(request: TranscriptionRequest): Promise<Transcription> {
+    const startedAt = Date.now();
+    const config = loadMetaModelsConfig();
+    const model = (process.env.META_MODEL_VOICE ?? '').trim() || DEFAULT_VOICE_MODEL;
+    const settings = {
+      model,
+      audioEncoding: WAV_ENCODING,
+      mode: VOICE_MODE,
+      languageBias: request.languageBias,
+      keywords: request.keywords,
+    };
+    const form = new FormData();
+    form.append('request', new Blob([JSON.stringify(settings)], { type: JSON_MIME_TYPE }));
+    form.append('audio', new Blob([request.wav], { type: WAV_MIME_TYPE }), 'note.wav');
+    const raw = await this.postWithRetry(config, ASR_TRANSCRIBE_PATH, form);
+    if (typeof raw.transcript !== 'string') {
+      throw new MetaResponseError('Muse Voice Transcribe returned no transcript.');
+    }
+    let audioDurationMs: number | null = null;
+    if (typeof raw.audioDurationMs === 'number') {
+      audioDurationMs = raw.audioDurationMs;
+    }
+    let sessionId: string | null = null;
+    if (typeof raw.sessionId === 'string') {
+      sessionId = raw.sessionId;
+    }
+    return {
+      transcript: raw.transcript.trim(),
+      audioDurationMs,
+      sessionId,
+      modelRequested: model,
+      durationMs: Date.now() - startedAt,
+    };
+  }
+
   private async postChatWithRetry(
     config: ReturnType<typeof loadMetaModelsConfig>,
     body: Record<string, unknown>,
@@ -342,7 +405,7 @@ export class MetaModelService {
   private async postWithRetry(
     config: ReturnType<typeof loadMetaModelsConfig>,
     path: string,
-    body: Record<string, unknown>,
+    body: Record<string, unknown> | FormData,
   ): Promise<Record<string, unknown>> {
     let attempt = 0;
     for (;;) {
@@ -357,20 +420,28 @@ export class MetaModelService {
     }
   }
 
+  // JSON bodies for chat/responses; FormData (multipart, the runtime sets
+  // the boundary header) for the audio endpoint.
   private async postOnce(
     config: ReturnType<typeof loadMetaModelsConfig>,
     path: string,
-    body: Record<string, unknown>,
+    body: Record<string, unknown> | FormData,
   ): Promise<Record<string, unknown>> {
+    const headers: Record<string, string> = {
+      Accept: JSON_MIME_TYPE,
+      Authorization: `Bearer ${config.apiKey}`,
+    };
+    let encodedBody: string | FormData = body as FormData;
+    if (!(body instanceof FormData)) {
+      headers['Content-Type'] = JSON_MIME_TYPE;
+      encodedBody = JSON.stringify(body);
+    }
     let response: Response;
     try {
       response = await this.httpFetch(`${config.baseUrl}${path}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': JSON_MIME_TYPE,
-          Authorization: `Bearer ${config.apiKey}`,
-        },
-        body: JSON.stringify(body),
+        headers,
+        body: encodedBody,
         signal: AbortSignal.timeout(config.timeoutMs),
       });
     } catch (networkError) {

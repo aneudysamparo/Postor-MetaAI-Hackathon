@@ -7,6 +7,8 @@ import { ACCESS_HEADER, configuredAccessToken, isRequestAllowed } from './access
 import { resolveRepoRoot } from './runtime-env';
 
 export const API_PREFIX = 'api';
+// Voice notes arrive as raw WAV bodies (POST /api/workflows/:id/voice-notes).
+const WAV_BODY_LIMIT = '5mb';
 
 // HTTP surface for both dev and production:
 // - every API route lives under /api (the web dev server proxies /api);
@@ -15,6 +17,7 @@ export const API_PREFIX = 'api';
 //   an SPA fallback, so one container serves the whole demo.
 export function configureHttp(app: NestExpressApplication): { servesWeb: boolean } {
   app.setGlobalPrefix(API_PREFIX);
+  app.useBodyParser('raw', { type: 'audio/wav', limit: WAV_BODY_LIMIT });
   app.use((request: Request, response: Response, next: NextFunction) => {
     const allowed = isRequestAllowed({
       path: request.path,
