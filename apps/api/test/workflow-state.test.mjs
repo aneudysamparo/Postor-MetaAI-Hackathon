@@ -46,7 +46,7 @@ describe('workflow state machine', () => {
     const overlap = IMPLEMENTED_STEPS.filter((step) => PENDING_STEPS.includes(step));
     assert.equal(overlap.length, 0);
     assert.ok(IMPLEMENTED_STEPS.includes('compliance.evaluate'));
-    assert.ok(PENDING_STEPS.includes('pricing.research'));
+    assert.ok(IMPLEMENTED_STEPS.includes('pricing.research'));
   });
 
   it('scopes evidence rows per run so re-runs never collide', () => {

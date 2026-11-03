@@ -125,8 +125,22 @@ export const PricingFindingSchema = z.object({
   sourceDate: z.string().nullable(),
   assumptions: z.array(z.string()),
   status: PricingStatusSchema,
+  // T6.1 traceability (nullish: the model emits explicit nulls). The
+  // company-brain quotation that backs the price, its validity end date,
+  // the tender requirements that ask for the item, and the pliego page.
+  sourceDocCode: z.string().nullish(),
+  validUntil: z.string().nullish(),
+  requirementIds: z.array(z.string()).nullish(),
+  tenderPage: z.number().int().positive().nullish(),
 });
 export type PricingFinding = z.infer<typeof PricingFindingSchema>;
+
+// What the pricing model returns: one entry per item the tender asks to
+// price. The service re-checks every price against the quotation text.
+export const PricingOutputSchema = z.object({
+  items: z.array(PricingFindingSchema),
+});
+export type PricingOutput = z.infer<typeof PricingOutputSchema>;
 
 export const DraftOfferSectionSchema = z.object({
   title: z.string().min(1),

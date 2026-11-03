@@ -1,8 +1,9 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { TenderRequirement, TenderRequirementSchema } from '@postor/contracts';
+import { TenderRequirement, TenderRequirementSchema, VisualEvidence } from '@postor/contracts';
 import { Prisma } from '@prisma/client';
 import { AgentCallTrace } from '../agents/base/base-agent';
 import { ComplianceService } from '../agents/compliance/compliance.service';
+import { PricingService } from '../agents/pricing/pricing.service';
 import { OpportunityAgent, OpportunityInput } from '../agents/opportunity/opportunity.agent';
 import { TenderAnalystService } from '../agents/tender-analyst/tender-analyst.service';
 import { VisualEvidenceService } from '../agents/visual/visual-evidence.service';
@@ -62,6 +63,7 @@ export class WorkflowRunner {
     private readonly analyst: TenderAnalystService,
     private readonly compliance: ComplianceService,
     private readonly visual: VisualEvidenceService,
+    private readonly pricing: PricingService,
   ) {}
 
   public async startWorkflow(input: StartWorkflowInput) {
@@ -180,6 +182,13 @@ export class WorkflowRunner {
           await this.runCompliance(runId, context);
         } catch {
           failures.push('compliance');
+        }
+        // Step 5 (T6.1): pricing reads requirements + visual evidence, not
+        // compliance, so a compliance crash does not block it.
+        try {
+          await this.runPricing(runId, context);
+        } catch {
+          failures.push('pricing');
         }
       }
       if (failures.length > 0) {
@@ -430,6 +439,58 @@ export class WorkflowRunner {
       await this.failAgentRun(runId, agentRun.id, 'visual_reader', 'visual.read', error);
       throw error;
     }
+  }
+
+  // Step 5 (T6.1, PRD section 7 Agent 4): tender items x company quotations.
+  // Prices are copied from quotations only and re-checked by guardPrices.
+  private async runPricing(runId: string, context: LoadedContext): Promise<void> {
+    const agentRun = await this.startAgentRun(runId, 'pricing', 'research', []);
+    await this.emit(runId, WORKFLOW_EVENT.STEP_STARTED, 'pricing', agentRun.id, {
+      step: 'pricing.research',
+    });
+    try {
+      const requirements = await this.loadRequirements(runId);
+      const visualEvidence = await this.loadVisualEvidence(runId);
+      const result = await this.pricing.research({
+        companyId: context.companyId,
+        tender: context.tender,
+        requirements,
+        visualEvidence,
+      });
+      await this.saveModelCall(agentRun.id, result.trace, { items: result.rawItems });
+      const artifact = await this.prisma.artifact.create({
+        data: {
+          workflowId: runId,
+          type: 'pricing',
+          producedBy: 'pricing',
+          data: {
+            items: result.items,
+            totals: result.totals,
+          } as unknown as Prisma.InputJsonValue,
+        },
+      });
+      await this.finishAgentRun(agentRun.id, [artifact.id], null);
+      await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'pricing', agentRun.id, {
+        step: 'pricing.research',
+        items: result.items.length,
+        priced: result.totals.pricedItems,
+        pending: result.totals.pendingItems,
+      });
+    } catch (error) {
+      await this.failAgentRun(runId, agentRun.id, 'pricing', 'pricing.research', error);
+      throw error;
+    }
+  }
+
+  private async loadVisualEvidence(runId: string): Promise<VisualEvidence[]> {
+    const artifact = await this.prisma.artifact.findFirst({
+      where: { workflowId: runId, type: 'visual_evidence' },
+    });
+    if (artifact === null) {
+      return [];
+    }
+    const payload = artifact.data as { evidence?: VisualEvidence[] };
+    return payload.evidence ?? [];
   }
 
   private async loadRequirements(runId: string): Promise<TenderRequirement[]> {

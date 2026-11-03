@@ -38,11 +38,12 @@ export const IMPLEMENTED_STEPS = [
   'consolidate',
   'visual.read',
   'compliance.evaluate',
+  'pricing.research',
 ] as const;
 
 // Agents that join in T6. Listed on results so the UI can label the run
 // as a partial pipeline instead of a final verdict.
-export const PENDING_STEPS = ['pricing.research', 'writer.draft', 'reviewer.review'] as const;
+export const PENDING_STEPS = ['writer.draft', 'reviewer.review'] as const;
 
 const TERMINAL_STATUSES: readonly WorkflowStatus[] = [
   WORKFLOW_STATUS.COMPLETED,
