@@ -106,3 +106,10 @@ an external procurement API behind the same `TenderSource` interface.
 
 Hackathon build (Oct 26 – Nov 4, 2026). See [`EXECUTION-SUMMARY.md`](EXECUTION-SUMMARY.md)
 for live results per case, per-agent timings, and what remained out of scope.
+
+## License
+
+Code: [MIT](LICENSE). The tender documents under `data/tenders/` are public
+records from the Dominican DGCP procurement portal, included unmodified for
+traceability; they are not covered by this license. All company data
+(NovaTech Solutions SRL) is fictional and DEMO-marked.
