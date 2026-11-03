@@ -27,6 +27,35 @@ shows the verdicts the dataset was designed for; on the real documents cases B
 and D turned out stricter and the system says so — see
 [`EXECUTION-SUMMARY.md`](EXECUTION-SUMMARY.md).
 
+## Why this matters (Dominican Republic)
+
+Figures from Postor's market research (Oct 2026), built on DGCP official
+data; each is labeled with its origin.
+
+- **The market:** the public procurement system (SECP) transacted
+  **RD$262,654 M in 2024** (≈ US$4.3 B, own calculation) across **64,851
+  processes** and **173,004 offers** — _official, DGCP 2024 bulletin_.
+- **The funnel is the problem:** **129,813** companies are registered as state
+  suppliers, but only **38,943** participate actively (_press, 2025_); **14,536**
+  bid in 2024 and **11,672** won at least once (_official_). Most registered
+  businesses never turn registration into a bid.
+- **SMBs are the policy target:** MIPYMES won **34.42%** of the 2024 amount
+  (RD$90,419 M, _official_). Law 47-25 (in force Jan 2026) raises the MIPYME
+  reserve to **30%** and removes the bid-security guarantee for them — more
+  small businesses will be invited to compete.
+- **Bids are lost on paperwork:** DGCP returns ~**1 in 5** supplier
+  registrations and ~**1 in 3** updates for documentation problems, and its
+  monitoring flags expired legal documents and suppliers bidding outside their
+  registered activity as recurring errors (_official, DGCP 2025 report_).
+- **No tooling for the bidder:** existing tools are official discovery apps;
+  the research found no documented Dominican product that analyzes a pliego
+  against a company's own evidence.
+
+**Postor's answer:** read the real tender, check it against the company's own
+documents (validity dates included), say _go / go with conditions / no go /
+needs review_ with page-level evidence, and pre-fill the official forms —
+leaving prices, signatures and anything unproven to a human.
+
 ## How it works
 
 A Bid Orchestrator coordinates six specialized agents — Opportunity, Tender
