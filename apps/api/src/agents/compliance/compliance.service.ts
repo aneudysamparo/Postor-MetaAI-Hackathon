@@ -55,6 +55,16 @@ const COMPLIANCE_CONCURRENCY = 4;
 // model would judge from facts alone. 12k chars holds both.
 const COMPLIANCE_CONTEXT_CHARS = 12000;
 
+// A blocker without an explicit basis counts as clear (the v1-v3 meaning);
+// non-blockers carry no basis.
+export function blockerBasisOf(finding: ComplianceFinding): 'clear' | 'disputed' | null {
+  const isBlocker = finding.blocker ?? false;
+  if (!isBlocker) {
+    return null;
+  }
+  return finding.blockerBasis ?? 'clear';
+}
+
 export function chunkArray<T>(items: T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let start = 0; start < items.length; start += size) {
@@ -245,6 +255,7 @@ export class ComplianceService {
       ComplianceFindingSchema.parse({
         ...finding,
         blocker: finding.blocker ?? false,
+        blockerBasis: blockerBasisOf(finding),
         suggestedOwner: finding.suggestedOwner ?? null,
       }),
     );

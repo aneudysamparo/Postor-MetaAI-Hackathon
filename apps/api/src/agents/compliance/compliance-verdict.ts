@@ -58,14 +58,36 @@ export function buildVerdict(input: VerdictInput): ComplianceVerdict {
   };
   const deadline = input.closeDateRd ?? UNKNOWN_DEADLINE;
 
-  if (blockers.length > 0) {
-    const reasons = blockers.map((finding) => finding.reason).join(' ');
+  // Disputed blockers (might be met through a partner, or the wording is
+  // ambiguous) never produce no_go alone: they need a human reading first.
+  const clearBlockers = blockers.filter((finding) => finding.blockerBasis !== 'disputed');
+  const disputedBlockers = blockers.filter((finding) => finding.blockerBasis === 'disputed');
+  if (clearBlockers.length > 0) {
+    const reasons = clearBlockers.map((finding) => finding.reason).join(' ');
     return {
       verdict: 'no_go',
       rationale:
-        `Structural blocker${blockers.length > 1 ? 's' : ''} that cannot be closed before ` +
+        `Structural blocker${clearBlockers.length > 1 ? 's' : ''} that cannot be closed before ` +
         `the tender closes: ${reasons}`,
       conditions: [],
+      counts,
+    };
+  }
+  if (disputedBlockers.length > 0) {
+    const reasons = disputedBlockers
+      .map((finding) => `${finding.requirementId}: ${finding.reason}`)
+      .join(' ');
+    return {
+      verdict: 'needs_review',
+      rationale:
+        `Possible blockers that need a human reading of the tender before deciding ` +
+        `(they might be met through a partner or the wording is ambiguous): ${reasons}`,
+      conditions: disputedBlockers.map((finding) => ({
+        requirementId: finding.requirementId,
+        description: finding.recommendedAction,
+        owner: finding.suggestedOwner ?? DEFAULT_CONDITION_OWNER,
+        deadline,
+      })),
       counts,
     };
   }

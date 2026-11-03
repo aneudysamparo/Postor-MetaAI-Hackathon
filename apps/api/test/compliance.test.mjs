@@ -104,6 +104,32 @@ describe('compliance verdict', () => {
     assert.equal(verdict.conditions.length, 0);
   });
 
+  it('sends disputed-only blockers to human review, not no_go', () => {
+    const requirements = [requirement('r1'), requirement('r2')];
+    const findings = [
+      finding('r1', {
+        status: 'not_met',
+        blocker: true,
+        blockerBasis: 'disputed',
+        reason: 'Fiber coverage file might come from a partner ISP.',
+        recommendedAction: 'Confirm with the entity whether a partner coverage file is accepted.',
+      }),
+      finding('r2'),
+    ];
+    const verdict = verdictOf(findings, requirements, 2000000);
+    assert.equal(verdict.verdict, 'needs_review');
+    assert.equal(verdict.conditions.length, 1);
+  });
+
+  it('still says no_go when one blocker is clear', () => {
+    const requirements = [requirement('r1'), requirement('r2')];
+    const findings = [
+      finding('r1', { status: 'not_met', blocker: true, blockerBasis: 'disputed' }),
+      finding('r2', { status: 'not_met', blocker: true, blockerBasis: 'clear' }),
+    ];
+    assert.equal(verdictOf(findings, requirements, 2000000).verdict, 'no_go');
+  });
+
   it('degrades an optional blocker to a condition', () => {
     const requirements = [requirement('r1', false)];
     const findings = [finding('r1', { status: 'not_met', blocker: true })];

@@ -71,6 +71,12 @@ export const ComplianceFindingSchema = z.object({
   // tender demands as admissibility). Nullish: the model emits explicit
   // nulls, the service normalizes them to false.
   blocker: z.boolean().nullish(),
+  // Only meaningful when blocker is true. "clear": the bidder plainly lacks
+  // what the tender demands. "disputed": the requirement might be met
+  // another way (partner, subcontractor, consortium) or its wording is
+  // ambiguous for this bidder. Disputed-only blockers send the verdict to
+  // needs_review instead of no_go. Nullish: missing means "clear".
+  blockerBasis: z.enum(['clear', 'disputed']).nullish(),
   // Role that should own the fix (null when no action is needed).
   suggestedOwner: z.string().nullish(),
 });

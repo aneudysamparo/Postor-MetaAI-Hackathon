@@ -32,7 +32,7 @@ export class ComplianceAgent extends BaseAgent<ComplianceAgentInput, ComplianceO
   protected readonly agentName = 'compliance';
   protected readonly agentRole = 'Compliance Agent';
   protected readonly taskName = 'evaluate';
-  protected readonly promptVersion = 'compliance-v3';
+  protected readonly promptVersion = 'compliance-v4';
   protected readonly outputSchema = ComplianceOutputSchema;
 
   public constructor(metaModel: MetaModelService) {
@@ -86,6 +86,10 @@ export class ComplianceAgent extends BaseAgent<ComplianceAgentInput, ComplianceO
       '    channel program such as Microsoft CSP, years of experience, number',
       '    of past contracts), or the criterion is CUMPLE/NO CUMPLE and no',
       '    route to the document exists.',
+      '- blockerBasis (only when blocker is true): "clear" when the company',
+      '  plainly lacks what the tender demands of the bidder; "disputed" when',
+      '  it might be met another way (partner, subcontractor, consortium) or',
+      '  the wording is ambiguous for this bidder. Use null when not a blocker.',
       '- Technical specifications of GOODS to be supplied (models, speeds,',
       '  ports, standards, warranty of the equipment) describe the product the',
       '  bidder will offer, not the company. They are met by quoting a',
@@ -116,6 +120,7 @@ export class ComplianceAgent extends BaseAgent<ComplianceAgentInput, ComplianceO
       '  "recommendedAction": "<concrete next step, or \'No action needed.\'>",',
       '  "requiresHumanReview": true,',
       '  "blocker": false,',
+      '  "blockerBasis": null,',
       '  "suggestedOwner": "<role or null>"}]}',
     ];
     if (input.correctionNote !== undefined && input.correctionNote.length > 0) {
