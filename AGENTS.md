@@ -15,8 +15,9 @@ DGCP tenders resolving to 4 verdicts: GO, GO_WITH_CONDITIONS, NO_GO, NEEDS_REVIE
   `apps/web` (TypeScript) WITHOUT its dummy/placeholder copy (exact strings are
   listed in the roadmap, T7.2). "insumos" expandables in its Traza tab are the
   pattern for per-call AI logging.
-- `data/` (planned) — `company-brain/` vs `tenders/` (local fixtures; production
-  feeds tenders from an external API) vs `templates/` vs `expected-results/`.
+- `data/` — `company-brain/` vs `tenders/` (local fixtures; production feeds
+  tenders from an external API) vs `templates/` vs `expected-results/`.
+  See `data/README.md` for the rules.
 
 ## Session protocol
 
