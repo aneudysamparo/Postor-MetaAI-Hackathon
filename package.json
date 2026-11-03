@@ -21,7 +21,8 @@
     "demo:init": "tsx packages/cli/src/init.ts",
     "doctor": "tsx packages/cli/src/doctor.ts",
     "demo:export": "node apps/api/dist/demo/demo-cli.js export",
-    "demo:import": "node apps/api/dist/demo/demo-cli.js import"
+    "demo:import": "node apps/api/dist/demo/demo-cli.js import",
+    "guard:check": "node apps/api/dist/demo/guard-check.js"
   },
   "devDependencies": {
     "eslint": "^9.18.0",

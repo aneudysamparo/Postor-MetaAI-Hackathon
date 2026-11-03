@@ -50,3 +50,23 @@ async-local context and never stores, logs or returns it.
 
 The feed has **↺ Reiniciar demo**: it hides earlier analyses (nothing is
 deleted) so each judge can run a tender from a clean card.
+
+## Document guard (Meta Llama Prompt Guard 2 on Modal)
+
+Optional but recommended: every tender page is scored for prompt injection
+before the agents read it.
+
+1. Accept the license of `meta-llama/Llama-Prompt-Guard-2-86M` on Hugging Face.
+2. Install the Modal CLI (`uv tool install modal` or `pip install modal`) and run `modal setup`.
+3. Create the secrets and deploy:
+
+   ```bash
+   modal secret create huggingface-secret HF_TOKEN=hf_...
+   modal secret create postor-guard GUARD_TOKEN=<long random token>
+   modal deploy deploy/modal/prompt_guard.py
+   ```
+
+4. Set `POSTOR_GUARD_URL` (the `…modal.run` URL Modal prints) and
+   `POSTOR_GUARD_TOKEN` in the app environment.
+5. Check it: `npm run guard:check -- data/guard-fixtures/pliego-trampa-DEMO.txt`
+   (a DEMO file with a hidden "ignore your instructions" note) should flag it.

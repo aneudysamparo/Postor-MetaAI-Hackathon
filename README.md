@@ -102,16 +102,17 @@ container, access token, visitors bring their own Meta key).
 
 ## What runs where
 
-| Step                            | Agent / module                                                                              | Model                         |
-| ------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------- |
-| Load tender + company           | orchestrator, `documents/` (per-page quality: text/mixed/scanned)                           | —                             |
-| Opportunity fit                 | Opportunity agent                                                                           | `muse-spark-1.3`              |
-| Requirements with page evidence | Tender Analyst (12-page windows, 4 in parallel)                                             | `muse-spark-1.3`              |
-| Scanned pages                   | Visual reader: page render → `sam-3.1` marks + vision read (parallel)                       | `sam-3.1`* + `muse-spark-1.3` |
-| Requirement × Company Brain     | Compliance agent + **deterministic** verdict and financial ratios                           | `muse-spark-1.3`              |
-| Item prices                     | Research & Pricing + deterministic guard (price must literally appear in a valid quotation) | `muse-spark-1.3`              |
-| Proposal draft                  | Bid Writer → Bid Reviewer → one correction round → re-review                                | `muse-spark-1.3`              |
-| Bid package                     | SNCC forms + the tender's own F.033 filled, `[PENDING]` where unknown                       | —                             |
+| Step                            | Agent / module                                                                                    | Model                                                                |
+| ------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Load tender + company           | orchestrator, `documents/` (per-page quality: text/mixed/scanned)                                 | —                                                                    |
+| Document guard                  | Every pliego/amendment page chunk scored for prompt injection before use (parallel, non-blocking) | Meta `Llama-Prompt-Guard-2-86M` (open weights, self-hosted on Modal) |
+| Opportunity fit                 | Opportunity agent                                                                                 | `muse-spark-1.3`                                                     |
+| Requirements with page evidence | Tender Analyst (12-page windows, 4 in parallel)                                                   | `muse-spark-1.3`                                                     |
+| Scanned pages                   | Visual reader: page render → `sam-3.1` marks + vision read (parallel)                             | `sam-3.1`* + `muse-spark-1.3`                                        |
+| Requirement × Company Brain     | Compliance agent + **deterministic** verdict and financial ratios                                 | `muse-spark-1.3`                                                     |
+| Item prices                     | Research & Pricing + deterministic guard (price must literally appear in a valid quotation)       | `muse-spark-1.3`                                                     |
+| Proposal draft                  | Bid Writer → Bid Reviewer → one correction round → re-review                                      | `muse-spark-1.3`                                                     |
+| Bid package                     | SNCC forms + the tender's own F.033 filled, `[PENDING]` where unknown                             | —                                                                    |
 
 \* `sam-3.1` is called through the Responses API with one concept phrase per
 request ("handwritten signature", "logo") and returns pixel boxes; Postor uses

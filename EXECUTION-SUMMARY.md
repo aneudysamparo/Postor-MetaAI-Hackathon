@@ -74,6 +74,15 @@ full mode stays one click away.
 | Pricing           | 41 s      | 39 s           | one call + deterministic guard        |
 | Writer + Reviewer | 130 s     | 63 / 93 s      | one correction round when needed      |
 
+## Meta models in use
+
+| Model                      | Where                              | Role                                                                   |
+| -------------------------- | ---------------------------------- | ---------------------------------------------------------------------- |
+| `muse-spark-1.3`           | Meta Model API                     | analyst, compliance, pricing, writer, vision reads                     |
+| `muse-wonder-1.0`          | Meta Model API                     | Bid Reviewer (max-effort reasoning audits Spark's draft; 16 s live)    |
+| `sam-3.1`                  | Meta Model API                     | localizes signatures/initials and logos on scanned pages (pixel boxes) |
+| `Llama-Prompt-Guard-2-86M` | open weights, self-hosted on Modal | scores every tender page chunk for prompt injection                    |
+
 ## Found by live runs (each fixed with a regression test)
 
 1. Explicit `null`s and objects where strings were expected → lenient
