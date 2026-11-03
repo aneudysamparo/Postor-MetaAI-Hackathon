@@ -1,0 +1,224 @@
+// Canonical Prisma schema (PostgreSQL). Single source of truth for both
+// database branches: the SQLite fallback is derived from this file by
+// derive-sqlite-schema.mjs, never maintained by hand.
+//
+// Portability notes (both branches must stay valid):
+// - Reference amounts are Float, not Decimal: SQLite has no Decimal type and
+//   the two branches must share identical field types. Exact money math for
+//   the economic offer happens in code with integer cents.
+// - BrainChunk.embedding is Json (pgvector stays P1): portable across
+//   providers, similarity computed in-app. The demo corpus is tiny (41 docs).
+// - companyId fields are indexed logical references, not FK relations, so
+//   brain/trace rows can be bulk-loaded without join churn on either branch.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---- Demo catalog ----
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  rnc         String
+  profile     Json
+  isFictional Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model Opportunity {
+  id        String           @id @default(cuid())
+  code      String           @unique
+  title     String
+  entity    String
+  amount    Float?
+  deadline  DateTime?
+  documents TenderDocument[]
+}
+
+model TenderDocument {
+  id            String      @id @default(cuid())
+  opportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  fileName      String
+  pageCount     Int         @default(0)
+  sha256        String?
+  extraction    Json?
+  createdAt     DateTime    @default(now())
+
+  @@index([opportunityId])
+}
+
+// ---- Execution (Agent Trace) ----
+
+model WorkflowRun {
+  id            String   @id @default(cuid())
+  opportunityId String
+  companyId     String
+  status        String   @default("queued")
+  startedAt     DateTime @default(now())
+  finishedAt    DateTime?
+  agentRuns     AgentRun[]
+  events        WorkflowEvent[]
+  artifacts     Artifact[]
+
+  @@index([opportunityId])
+  @@index([companyId])
+}
+
+model AgentRun {
+  id         String      @id @default(cuid())
+  workflowId String
+  workflow   WorkflowRun @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  agent      String
+  task       String
+  status     String      @default("queued")
+  attempt    Int         @default(1)
+  inputIds   Json        @default("[]")
+  outputIds  Json        @default("[]")
+  startedAt  DateTime    @default(now())
+  finishedAt DateTime?
+  error      String?
+  modelCalls ModelCall[]
+  toolCalls  ToolCall[]
+
+  @@index([workflowId])
+}
+
+model ModelCall {
+  id             String   @id @default(cuid())
+  agentRunId     String
+  agentRun       AgentRun @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+  provider       String   @default("meta")
+  modelRequested String
+  modelReturned  String?
+  promptSystem   String?
+  promptTask     String?
+  promptVersion  String?
+  requestParams  Json?
+  responseRaw    Json?
+  responseNorm   Json?
+  tokensIn       Int?
+  tokensOut      Int?
+  durationMs     Int?
+  status         String   @default("ok")
+  error          String?
+
+  @@index([agentRunId])
+}
+
+model ToolCall {
+  id         String   @id @default(cuid())
+  agentRunId String
+  agentRun   AgentRun @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+  tool       String
+  args       Json?
+  result     Json?
+  status     String   @default("ok")
+  durationMs Int?
+
+  @@index([agentRunId])
+}
+
+model WorkflowEvent {
+  id         String      @id @default(cuid())
+  workflowId String
+  workflow   WorkflowRun @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  type       String
+  agent      String?
+  refId      String?
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+
+  @@index([workflowId, createdAt])
+}
+
+model Artifact {
+  id         String             @id @default(cuid())
+  workflowId String
+  workflow   WorkflowRun        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  type       String
+  producedBy String
+  version    Int                @default(1)
+  data       Json
+  status     String             @default("draft")
+  evidence   ArtifactEvidence[]
+  createdAt  DateTime           @default(now())
+
+  @@index([workflowId])
+}
+
+model ArtifactEvidence {
+  id         String   @id @default(cuid())
+  artifactId String
+  artifact   Artifact @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+  documentId String
+  page       Int
+  section    String?
+  quote      String?
+  method     String   @default("text")
+  region     Json?
+  confidence Float?
+
+  @@index([artifactId])
+}
+
+model PromptTemplate {
+  id      String @id @default(cuid())
+  agent   String
+  version String
+  system  String
+  task    String
+
+  @@unique([agent, version])
+}
+
+// ---- Company Brain RAG (§6B) ----
+
+model CompanyBrainDoc {
+  id                 String       @id @default(cuid())
+  companyId          String
+  documentType       String
+  version            Int          @default(1)
+  issueDate          DateTime?
+  expiryDate         DateTime?
+  verificationStatus String       @default("extracted_unverified")
+  source             String?
+  fileName           String
+  sha256             String?
+  chunks             BrainChunk[]
+
+  @@index([companyId])
+}
+
+model BrainChunk {
+  id         String          @id @default(cuid())
+  documentId String
+  document   CompanyBrainDoc @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  page       Int?
+  text       String
+  embedding  Json?
+
+  @@index([documentId])
+}
+
+model RetrievalTrace {
+  id          String   @id @default(cuid())
+  workflowId  String
+  agentRunId  String?
+  companyId   String
+  query       String
+  filters     Json
+  chunkIds    Json
+  sentToModel Json
+  latencyMs   Int?
+  createdAt   DateTime @default(now())
+
+  @@index([workflowId])
+  @@index([companyId])
+}

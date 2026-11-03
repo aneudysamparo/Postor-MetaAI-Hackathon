@@ -16,6 +16,9 @@ build/
 # Generated local storage (created by `npm run seed`)
 storage/
 
+# Generated SQLite fallback schema (derived from schema.prisma, see T1.2)
+apps/api/prisma/schema.sqlite.prisma
+
 # Logs and OS artifacts
 *.log
 .DS_Store
