@@ -1,0 +1,7 @@
+{
+  "source": "Item del pliego original (seccion 3, especificaciones tecnicas). El pliego no se modifica.",
+  "budget_includes_itbis": true,
+  "items": [
+    { "id": "C-1", "kind": "good", "description": "Microsoft 365 Business Premium, licenciamiento CSP, vigencia 3 anos (incluye Microsoft Teams)", "unit": "Licencia", "quantity": 100, "file": "C-Pliego de condiciones.pdf", "page": 4, "estimated_unit_price_dop": null }
+  ]
+}

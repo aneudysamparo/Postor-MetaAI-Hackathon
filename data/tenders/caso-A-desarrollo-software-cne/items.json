@@ -1,0 +1,16 @@
+{
+  "source": "Lista de items transcrita del pliego original (ver archivo y pagina por item). El pliego no se modifica.",
+  "budget_includes_itbis": true,
+  "items": [
+    {
+      "id": "A-1",
+      "kind": "service",
+      "description": "Servicios profesionales: (1) despliegue y acompanamiento de la plataforma de servicio en linea en Azure (arquitectura de referencia, ambientes Dev/QA/Produccion, CI/CD en Azure DevOps, despliegue sin interrupcion, seguridad, observabilidad, respaldo y transferencia de conocimientos); (2) desarrollo de software o arquitectura de sistemas: cuarenta (40) horas",
+      "unit": "UD",
+      "quantity": 1,
+      "file": "A-Pliego de condiciones.pdf",
+      "page": 3,
+      "estimated_unit_price_dop": null
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "source": "Componentes minimos del pliego original (seccion 3.4) y servicio de 24 meses (paginas 3 y 34). El pliego no se modifica.",
+  "budget_includes_itbis": true,
+  "items": [
+    { "id": "B-1", "kind": "good", "description": "Access points Wi-Fi 6 de exterior (minimo 3)", "unit": "Unidad", "quantity": 3, "file": "B-Pliego Base de Condiciones CM-2026-0041 REV FDT 28.10.2026.pdf", "page": 10, "estimated_unit_price_dop": null },
+    { "id": "B-2", "kind": "good", "description": "Switch PoE 16 puertos 10/100/1000 (al menos 8 PoE+ 802.3at)", "unit": "Unidad", "quantity": 1, "file": "B-Pliego Base de Condiciones CM-2026-0041 REV FDT 28.10.2026.pdf", "page": 9, "estimated_unit_price_dop": null },
+    { "id": "B-3", "kind": "good", "description": "Router / gateway de borde", "unit": "Unidad", "quantity": 1, "file": "B-Pliego Base de Condiciones CM-2026-0041 REV FDT 28.10.2026.pdf", "page": 14, "estimated_unit_price_dop": null },
+    { "id": "B-4", "kind": "good", "description": "PDU inteligente", "unit": "Unidad", "quantity": 1, "file": "B-Pliego Base de Condiciones CM-2026-0041 REV FDT 28.10.2026.pdf", "page": 13, "estimated_unit_price_dop": null },
+    { "id": "B-5", "kind": "good", "description": "Respaldo energetico (UPS)", "unit": "Unidad", "quantity": 1, "file": "B-Pliego Base de Condiciones CM-2026-0041 REV FDT 28.10.2026.pdf", "page": 12, "estimated_unit_price_dop": null },
+    { "id": "B-6", "kind": "good", "description": "Gabinete de redes con patch panel y organizador de cables", "unit": "Unidad", "quantity": 1, "file": "B-Pliego Base de Condiciones CM-2026-0041 REV FDT 28.10.2026.pdf", "page": 8, "estimated_unit_price_dop": null },
+    { "id": "B-7", "kind": "good", "description": "Infraestructura de red y materiales: cableado UTP Cat 6 / fibra y canalizacion EMT", "unit": "Global", "quantity": 1, "file": "B-Pliego Base de Condiciones CM-2026-0041 REV FDT 28.10.2026.pdf", "page": 13, "estimated_unit_price_dop": null },
+    { "id": "B-8", "kind": "good", "description": "Instalacion, configuracion, pruebas y puesta en marcha del punto", "unit": "Servicio", "quantity": 1, "file": "B-Pliego Base de Condiciones CM-2026-0041 REV FDT 28.10.2026.pdf", "page": 34, "estimated_unit_price_dop": null },
+    { "id": "B-9", "kind": "service", "description": "Operacion, monitoreo y mantenimiento preventivo/correctivo del punto Wi-Fi durante 24 meses (disponibilidad minima 95%)", "unit": "Mes", "quantity": 24, "file": "B-Pliego Base de Condiciones CM-2026-0041 REV FDT 28.10.2026.pdf", "page": 3, "estimated_unit_price_dop": null }
+  ]
+}

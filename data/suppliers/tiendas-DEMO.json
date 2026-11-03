@@ -1,0 +1,78 @@
+{
+  "fictional": true,
+  "notice": "TIENDAS FICTICIAS DE DEMOSTRACION. Catalogos y precios inventados para la demo de Postor; no son empresas ni precios reales. Precios en RD$ SIN ITBIS.",
+  "catalog_date": "2026-10-20",
+  "stores": [
+    {
+      "id": "TIENDA-01",
+      "name": "Redes y Conectividad RD, SRL (ficticio)",
+      "supplier_id": "SUP-002",
+      "line": "Networking y telecomunicaciones",
+      "valid_until": "2026-12-31",
+      "notes": "Catalogo renovado: sustituye la cotizacion vencida DOC-QUOT-002. Distribuidor; no emite autorizacion de fabricante.",
+      "products": [
+        { "sku": "RC-AP6-IN", "name": "Access point Wi-Fi 6 de interior (802.11ax, PoE, gestion en nube)", "unit": "Unidad", "price_dop": 33900.0, "stock": 140 },
+        { "sku": "RC-AP6-OUT", "name": "Access point Wi-Fi 6 de exterior IP67 (802.11ax, PoE)", "unit": "Unidad", "price_dop": 77400.0, "stock": 30 },
+        { "sku": "RC-SW24-POE", "name": "Switch gestionable 24 puertos PoE+ (370 W, 4 SFP+)", "unit": "Unidad", "price_dop": 127600.0, "stock": 12 },
+        { "sku": "RC-SW16-POE", "name": "Switch PoE 16 puertos 10/100/1000 (8 PoE+ 802.3at)", "unit": "Unidad", "price_dop": 41200.0, "stock": 15 },
+        { "sku": "RC-GW-VPN", "name": "Router / gateway de borde con VPN sitio a sitio", "unit": "Unidad", "price_dop": 36500.0, "stock": 10 }
+      ]
+    },
+    {
+      "id": "TIENDA-02",
+      "name": "Distribuidora WiFi Total, SRL (ficticio)",
+      "supplier_id": "SUP-005",
+      "line": "Soluciones inalambricas",
+      "valid_until": "2026-12-15",
+      "notes": "Precios por unidad; entrega en 21 dias.",
+      "products": [
+        { "sku": "WT-AX-IN", "name": "Access point Wi-Fi 6 de interior (802.11ax, PoE)", "unit": "Unidad", "price_dop": 35200.0, "stock": 200 },
+        { "sku": "WT-AX-OUT", "name": "Access point Wi-Fi 6 de exterior IP67", "unit": "Unidad", "price_dop": 79800.0, "stock": 40 },
+        { "sku": "WT-SW24", "name": "Switch 24 puertos PoE+ gestionable", "unit": "Unidad", "price_dop": 131900.0, "stock": 8 },
+        { "sku": "WT-CTRL", "name": "Controlador local de hardware para red Wi-Fi", "unit": "Unidad", "price_dop": 58000.0, "stock": 5 }
+      ]
+    },
+    {
+      "id": "TIENDA-03",
+      "name": "Electro Cableado del Cibao, SRL (ficticio)",
+      "supplier_id": "SUP-006",
+      "line": "Electricidad, cableado estructurado e instalacion",
+      "valid_until": "2026-12-31",
+      "notes": "Instalacion en Santiago y Santo Domingo; materiales nuevos certificados.",
+      "products": [
+        { "sku": "EC-UPS15", "name": "UPS en linea 1.5 kVA (respaldo energetico)", "unit": "Unidad", "price_dop": 24600.0, "stock": 20 },
+        { "sku": "EC-PDU12", "name": "PDU inteligente 12 tomas medidas (NEMA 5-20R / 5-15R)", "unit": "Unidad", "price_dop": 28900.0, "stock": 12 },
+        { "sku": "EC-GAB12", "name": "Gabinete de pared 12U con patch panel y organizador de cables", "unit": "Unidad", "price_dop": 18700.0, "stock": 25 },
+        { "sku": "EC-CAB-PT", "name": "Cableado UTP Cat 6 / fibra y canalizacion EMT (global por punto)", "unit": "Global", "price_dop": 96000.0, "stock": null },
+        { "sku": "EC-INST-PT", "name": "Servicio de instalacion, configuracion y puesta en marcha (por punto)", "unit": "Servicio", "price_dop": 85000.0, "stock": null }
+      ]
+    },
+    {
+      "id": "TIENDA-04",
+      "name": "Licencias y Software Empresarial LSE, SRL (ficticio)",
+      "supplier_id": "SUP-003",
+      "line": "Licencias y software empresarial",
+      "valid_until": "2026-12-31",
+      "notes": "Reventa via distribuidor mayorista. Una cotizacion NO equivale a autorizacion del fabricante para el oferente.",
+      "products": [
+        { "sku": "LSE-M365-BP-3Y", "name": "Microsoft 365 Business Premium, suscripcion CSP 3 anos (por licencia)", "unit": "Licencia", "price_dop": 40800.0, "stock": null },
+        { "sku": "LSE-M365-BS-1Y", "name": "Microsoft 365 Business Standard, licencia anual", "unit": "Licencia", "price_dop": 9800.0, "stock": null },
+        { "sku": "LSE-WS2022", "name": "Windows Server 2022 Standard (licencia)", "unit": "Licencia", "price_dop": 62000.0, "stock": null }
+      ]
+    },
+    {
+      "id": "TIENDA-05",
+      "name": "TecnoSuministros del Caribe, SRL (ficticio)",
+      "supplier_id": "SUP-001",
+      "line": "Equipos de computo y perifericos",
+      "valid_until": "2026-12-31",
+      "notes": "Equipos Dell y Lenovo.",
+      "products": [
+        { "sku": "TS-T14", "name": "Laptop Lenovo ThinkPad T14 (i7, 16GB RAM, 512GB SSD)", "unit": "Unidad", "price_dop": 68500.0, "stock": 12 },
+        { "sku": "TS-L5440", "name": "Laptop Dell Latitude 5440 (i5, 16GB RAM, 512GB SSD)", "unit": "Unidad", "price_dop": 59200.0, "stock": 8 },
+        { "sku": "TS-MON24", "name": "Monitor 24 pulgadas Full HD", "unit": "Unidad", "price_dop": 11900.0, "stock": 30 },
+        { "sku": "TS-LASER", "name": "Impresora laser monocromatica", "unit": "Unidad", "price_dop": 18400.0, "stock": 6 }
+      ]
+    }
+  ]
+}

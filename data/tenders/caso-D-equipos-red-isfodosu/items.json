@@ -1,0 +1,9 @@
+{
+  "source": "Items y precios unitarios estimados del pliego original (seccion 3, p5; presupuesto, p12). El pliego no se modifica.",
+  "budget_includes_itbis": true,
+  "items": [
+    { "id": "D-1", "kind": "good", "description": "Punto de acceso (AP) de interior: adquisicion, configuracion e instalacion", "unit": "Unidad", "quantity": 110, "file": "D-2. Pliego de condiciones _ocred.pdf", "page": 5, "estimated_unit_price_dop": 49920.0 },
+    { "id": "D-2", "kind": "good", "description": "Punto de acceso (AP) de exterior", "unit": "Unidad", "quantity": 17, "file": "D-2. Pliego de condiciones _ocred.pdf", "page": 12, "estimated_unit_price_dop": 113580.0 },
+    { "id": "D-3", "kind": "good", "description": "Switch PoE de 24 puertos", "unit": "Unidad", "quantity": 7, "file": "D-2. Pliego de condiciones _ocred.pdf", "page": 12, "estimated_unit_price_dop": 188820.0 }
+  ]
+}

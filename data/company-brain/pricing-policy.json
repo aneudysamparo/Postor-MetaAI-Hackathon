@@ -1,0 +1,17 @@
+{
+  "fictional": true,
+  "notice": "POLITICA DE PRECIOS FICTICIA de NovaTech Solutions, SRL (DEMO). Tarifas y margenes inventados para la demo.",
+  "currency": "DOP",
+  "itbis_pct": 18,
+  "offer_target_pct_of_budget": 97,
+  "offer_band_pct_of_budget": { "min": 95, "max": 99 },
+  "min_margin_pct": 10,
+  "rationale": "La oferta total (con ITBIS) se ubica entre el 95% y el 99% del presupuesto de referencia de la entidad, apuntando al 97%, siempre que deje al menos 10% de margen sobre el costo. Si no lo deja, Postor lo marca: precio no rentable, decide una persona.",
+  "service_rates": [
+    { "role": "Arquitecto cloud", "rate_dop_per_hour": 1800.0 },
+    { "role": "Ingeniero DevOps", "rate_dop_per_hour": 1500.0 },
+    { "role": "Desarrollador full-stack", "rate_dop_per_hour": 1250.0 },
+    { "role": "Gerente de proyecto", "rate_dop_per_hour": 1600.0 },
+    { "role": "Tecnico de redes", "rate_dop_per_hour": 650.0 }
+  ]
+}
