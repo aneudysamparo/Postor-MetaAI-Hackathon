@@ -22,7 +22,10 @@ open Dominican public tenders (DGCP portal, unmodified originals):
 | D · ISFODOSU network equipment | Ratios pass, contract ≈ 86% of revenue | **NEEDS_REVIEW**       |
 
 The point: the same pipeline says _go_ and _don't go_ **for the right reasons**,
-with every claim traced to a tender clause and a company document.
+with every claim traced to a tender clause and a company document. The table
+shows the verdicts the dataset was designed for; on the real documents cases B
+and D turned out stricter and the system says so — see
+[`EXECUTION-SUMMARY.md`](EXECUTION-SUMMARY.md).
 
 ## How it works
 

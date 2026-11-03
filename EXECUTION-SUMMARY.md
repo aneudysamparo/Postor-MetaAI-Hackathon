@@ -1,0 +1,82 @@
+# Execution summary — Postor AI Bid Team
+
+Hackathon window: Oct 26 – Nov 4, 2026. Every number below comes from live
+runs against the Meta Model API (`muse-spark-1.3`) on the 4 real DGCP
+tenders, with the fictional company NovaTech Solutions SRL (DEMO).
+
+## What works end to end
+
+- **Orchestrator + 6 agents** (Opportunity, Tender Analyst, Compliance,
+  Research & Pricing, Bid Writer, Bid Reviewer) plus a visual reader for
+  scanned pages, all exchanging Zod-validated objects.
+- **Evidence everywhere**: every requirement cites document + page; the UI
+  opens the original, byte-identical PDF at that page.
+- **Deterministic guards around the model**: the verdict, the financial
+  ratios (solvency 2.68 / liquidity 1.80 / debt 0.60), contract concentration,
+  price validation (a price survives only if it literally appears in a valid
+  quotation) and mandatory-requirement coverage in the review are code, not
+  model output.
+- **Bid package**: the 6 SNCC forms and each tender's own SNCC.F.033 are
+  filled from the company profile; offer prices, signatures and anything
+  unknown stay `[PENDING: ...]`. Downloads require human validation. Nothing
+  is ever submitted.
+- **Agent Trace**: every model call stores and shows the prompt sent, the
+  response, tokens in/out, duration and an estimated cost (tokens ×
+  configurable rates, labeled as an estimate).
+
+## Live results vs. the design oracle
+
+`data/expected-results/scenarios.json` holds the verdicts the dataset was
+designed for. The system judges the real tender documents, which turned out
+stricter than the design in two cases. We kept the document-faithful verdict
+instead of tuning prompts toward the oracle.
+
+| Case                   | Oracle             | Live verdict | Decisive reasons cited by the system                                                                                                                                                                                                                                          |
+| ---------------------- | ------------------ | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A · CNE Azure software | GO                 | **GO** ✓     | 6 years, 2 reference letters, Azure CVs/cert, RPE/TSS/DGII current                                                                                                                                                                                                            |
+| B · INDOTEL Wi-Fi      | GO_WITH_CONDITIONS | **NO_GO**    | pliego p25 (CUMPLE/NO CUMPLE): georeferenced fiber-coverage file the company lacks; 2 similar Wi-Fi projects required, 1 on file; certified structured-cabling engineer (only cert is an expired CCNA). The manufacturer/distributor letter is correctly a solvable condition |
+| C · UAF Microsoft 365  | NO_GO              | **NO_GO** ✓  | factory authorization required (pliego p11, CUMPLE/NO CUMPLE p19); no Microsoft partner/CSP status; a distributor quotation does not substitute it                                                                                                                            |
+| D · ISFODOSU network   | NEEDS_REVIEW       | **NO_GO**    | SNCC.F.047 manufacturer authorization mandatory (p18, p29); manufacturer-certified engineer (p31). Ratios pass and the ~86% revenue concentration is detected (0.857)                                                                                                         |
+
+Run time per full pipeline: 9–19 minutes (A 544 s, B 638 s, C 628 s, D
+1140 s; D's pliego + amendments yield ~300 requirements).
+
+## Per-agent timings (average over live runs)
+
+| Agent             | Wall time | Avg model call | Notes                                 |
+| ----------------- | --------- | -------------- | ------------------------------------- |
+| Opportunity       | 55 s      | 69 s           | metadata only, never reads the pliego |
+| Tender Analyst    | 268 s     | 163 s          | 12-page windows, 4 in parallel        |
+| Visual reader     | 21 s      | 13 s           | ≤2 scanned pages per run              |
+| Compliance        | 343 s     | 46 s           | batches of 8, 4 in parallel           |
+| Pricing           | 41 s      | 39 s           | one call + deterministic guard        |
+| Writer + Reviewer | 130 s     | 63 / 93 s      | one correction round when needed      |
+
+## Found by live runs (each fixed with a regression test)
+
+1. Explicit `null`s and objects where strings were expected → lenient
+   schemas + normalization (analyst, opportunity).
+2. One invalid analyst window sank the whole step → windows fail
+   independently; unread pages are flagged and the run lands on
+   `needs_review`.
+3. Sequential calls pushed case D past 20 min → bounded concurrency pool.
+4. A manufacturer-or-distributor letter was treated as a blocker →
+   compliance prompt v2 (obtainable letters are conditions).
+5. Goods specifications were compared with company experience → v3 (specs
+   describe the product to quote).
+6. Blockers that might be met through a partner → v4 labels blockers
+   `clear` / `disputed`; disputed-only blockers yield `needs_review`.
+7. pdfjs rendered scanned JBIG2 pages washed out → wasm + fonts wired.
+
+## Out of scope / P1
+
+- **SAM 3.1 region boxes**: the segmentation contract could not be verified
+  on the hackathon account (chat endpoint 404, responses endpoint returns no
+  boxes). The interface is wired and fails closed; pages are read whole by
+  Muse Spark and cited by page. No coordinates are ever invented.
+- Embeddings: deterministic hash baseline behind the interface; multilingual
+  transformer and pgvector are P1.
+- External tender API (`ApiTenderSource`) is a stub; the demo reads fixtures.
+- Postgres path validated by schema/migration diff; live demo runs on SQLite.
+- Live runs take minutes; a production build would stream progress per
+  requirement batch and cache unchanged tender analyses.
