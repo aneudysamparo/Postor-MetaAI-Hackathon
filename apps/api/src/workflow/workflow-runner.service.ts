@@ -344,8 +344,9 @@ export class WorkflowRunner {
   // persistence and trace; it only changes what is read and how much is
   // written, and runs every independent step in parallel:
   //   load_context -> dossier analyst (deterministic, ms) -> consolidate
-  //   -> [opportunity | compliance (lite Brain) | pricing] in parallel
-  //   -> writer -> reviewer (no correction round) -> documents.
+  //   -> lane 1: opportunity
+  //      lane 2: [compliance (lite Brain) | pricing] -> writer -> reviewer
+  //              (no correction round) -> documents.
   // Visual reading is skipped: the dossier is already text.
   private async executeLite(runId: string): Promise<void> {
     try {
@@ -373,38 +374,55 @@ export class WorkflowRunner {
         skipped: true,
         reason: 'lite mode: the key-requirements dossier is already text.',
       });
-      const liteCodes = loadLiteDocCodes();
-      const parallelAgents = ['opportunity', 'compliance', 'pricing'];
-      const parallelSteps: Promise<unknown>[] = [this.runOpportunity(runId, context)];
+      // Two independent lanes. The opportunity agent (metadata fit) feeds
+      // nothing downstream, so it runs beside the whole evidence lane
+      // instead of holding the writer back.
+      const opportunityLane = this.runOpportunity(runId, context).then(
+        () => null,
+        () => 'opportunity',
+      );
+      let evidenceLane: Promise<string[]> = Promise.resolve([]);
       if (!analystFailed) {
-        parallelSteps.push(this.runCompliance(runId, context, { documentCodes: liteCodes }));
-        parallelSteps.push(this.runPricing(runId, context));
+        evidenceLane = this.runLiteEvidenceLane(runId, context);
       }
-      const outcomes = await Promise.allSettled(parallelSteps);
-      outcomes.forEach((outcome, index) => {
-        const agent = parallelAgents[index];
-        if (outcome.status === 'rejected' && agent !== undefined) {
-          failures.push(agent);
-        }
-      });
-      if (!analystFailed) {
-        try {
-          await this.runDrafting(runId, context, LITE_DRAFTING);
-        } catch {
-          failures.push('writer');
-        }
-        try {
-          await this.runDocuments(runId, context);
-        } catch {
-          failures.push('documents');
-        }
+      const [opportunityFailure, laneFailures] = await Promise.all([opportunityLane, evidenceLane]);
+      if (opportunityFailure !== null) {
+        failures.push(opportunityFailure);
       }
+      failures.push(...laneFailures);
       await this.finish(runId, failures);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await this.transition(runId, WORKFLOW_STATUS.FAILED);
       await this.emit(runId, WORKFLOW_EVENT.FAILED, null, null, { error: message });
     }
+  }
+
+  // Lite evidence lane: compliance and pricing in parallel, then the short
+  // draft + review, then the bid documents. Returns the failed agents.
+  private async runLiteEvidenceLane(runId: string, context: LoadedContext): Promise<string[]> {
+    const failures: string[] = [];
+    const [compliance, pricing] = await Promise.allSettled([
+      this.runCompliance(runId, context, { documentCodes: loadLiteDocCodes() }),
+      this.runPricing(runId, context),
+    ]);
+    if (compliance.status === 'rejected') {
+      failures.push('compliance');
+    }
+    if (pricing.status === 'rejected') {
+      failures.push('pricing');
+    }
+    try {
+      await this.runDrafting(runId, context, LITE_DRAFTING);
+    } catch {
+      failures.push('writer');
+    }
+    try {
+      await this.runDocuments(runId, context);
+    } catch {
+      failures.push('documents');
+    }
+    return failures;
   }
 
   private async finish(runId: string, failures: string[]): Promise<void> {
