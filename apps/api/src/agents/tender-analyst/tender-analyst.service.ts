@@ -1,5 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { RequirementDraft, TenderRequirement, toTenderRequirement } from '@postor/contracts';
+import {
+  AnalystWindowOutput,
+  RequirementDraft,
+  TenderRequirement,
+  toTenderRequirement,
+} from '@postor/contracts';
 import { DocxTextExtractor } from '../../documents/docx-text-extractor';
 import { PdfTextExtractor } from '../../documents/pdf-text-extractor';
 import { TENDER_SOURCE, TenderFileRef, TenderSource } from '../../documents/tender-source';
@@ -24,6 +29,9 @@ export interface MergedAnalysis {
   contradictions: string[];
   windowsRun: number;
   traces: AgentCallTrace[];
+  // Parallel to traces: the validated output of each window call, so the
+  // orchestrator can persist the exact normalized response per ModelCall.
+  windowOutputs: AnalystWindowOutput[];
 }
 
 interface StoredPageQuality {
@@ -112,6 +120,7 @@ export class TenderAnalystService {
     const tagged: TaggedDraft[] = [];
     const contradictionLists: string[][] = [];
     const traces: AgentCallTrace[] = [];
+    const windowOutputs: AnalystWindowOutput[] = [];
     let windowsRun = 0;
     let order = 0;
     for (const file of targets) {
@@ -131,6 +140,7 @@ export class TenderAnalystService {
         };
         const result = await this.agent.run(input);
         traces.push(result.trace);
+        windowOutputs.push(result.data);
         windowsRun += 1;
         for (const draft of result.data.requirements) {
           order += 1;
@@ -152,6 +162,7 @@ export class TenderAnalystService {
       contradictions: mergeContradictions(contradictionLists),
       windowsRun,
       traces,
+      windowOutputs,
     };
   }
 

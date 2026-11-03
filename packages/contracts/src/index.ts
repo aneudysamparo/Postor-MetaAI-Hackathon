@@ -153,9 +153,9 @@ export const RequirementDraftSchema = z.object({
   category: RequirementCategorySchema,
   mandatory: z.boolean(),
   page: z.number().int(),
-  section: z.string().optional(),
-  consequence: z.string().optional(),
-  deadline: z.string().optional(),
+  section: z.string().nullish(),
+  consequence: z.string().nullish(),
+  deadline: z.string().nullish(),
   confidence: z.number().min(MIN_CONFIDENCE).max(MAX_CONFIDENCE),
 });
 export type RequirementDraft = z.infer<typeof RequirementDraftSchema>;
@@ -185,6 +185,11 @@ export function toTenderRequirement(
   const pageValid = draft.page >= 1 && draft.page <= context.pageCount;
   const page = Math.max(draft.page, 1);
   const stem = `${context.documentId}-p${page}-${index}`;
+  // The model often emits explicit nulls for absent optionals; the contract
+  // wants them absent, so nulls normalize to undefined here.
+  const section = draft.section ?? undefined;
+  const consequence = draft.consequence ?? undefined;
+  const deadline = draft.deadline ?? undefined;
   return TenderRequirementSchema.parse({
     id: stem,
     category: draft.category,
@@ -195,12 +200,12 @@ export function toTenderRequirement(
     source: {
       documentId: context.documentId,
       page,
-      section: draft.section,
+      section,
       evidenceId: `${stem}-ev`,
       method: context.method,
     },
-    consequence: draft.consequence,
-    deadline: draft.deadline,
+    consequence,
+    deadline,
     confidence: draft.confidence,
     status: pageValid ? 'verified' : 'unknown',
   });

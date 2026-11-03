@@ -38,6 +38,18 @@ describe('requirement mapper', () => {
     assert.equal(requirement.source.page, 99);
   });
 
+  it('normalizes explicit null optionals to undefined', () => {
+    const requirement = toTenderRequirement(
+      draft({ section: null, consequence: null, deadline: null }),
+      CONTEXT,
+      3,
+    );
+    assert.equal(requirement.status, 'verified');
+    assert.equal(requirement.source.section, undefined);
+    assert.equal(requirement.consequence, undefined);
+    assert.equal(requirement.deadline, undefined);
+  });
+
   it('repairs non-positive pages to 1 and marks unknown', () => {
     const requirement = toTenderRequirement(draft({ page: 0 }), CONTEXT, 2);
     assert.equal(requirement.status, 'unknown');
