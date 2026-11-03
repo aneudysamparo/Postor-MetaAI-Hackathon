@@ -2,6 +2,7 @@ import { BadRequestException, Inject, Injectable, Logger, NotFoundException } fr
 import { TenderRequirement, TenderRequirementSchema } from '@postor/contracts';
 import { Prisma } from '@prisma/client';
 import { AgentCallTrace } from '../agents/base/base-agent';
+import { ComplianceService } from '../agents/compliance/compliance.service';
 import { OpportunityAgent, OpportunityInput } from '../agents/opportunity/opportunity.agent';
 import { TenderAnalystService } from '../agents/tender-analyst/tender-analyst.service';
 import { StructuredFact, buildStructuredFacts } from '../brain/structured-facts';
@@ -15,6 +16,7 @@ import {
   WORKFLOW_STATUS,
   WorkflowStatus,
   assertTransition,
+  evidenceRowId,
 } from './workflow-state';
 
 export interface StartWorkflowInput {
@@ -57,6 +59,7 @@ export class WorkflowRunner {
     private readonly ingestion: DocumentIngestionService,
     private readonly opportunity: OpportunityAgent,
     private readonly analyst: TenderAnalystService,
+    private readonly compliance: ComplianceService,
   ) {}
 
   public async startWorkflow(input: StartWorkflowInput) {
@@ -146,6 +149,21 @@ export class WorkflowRunner {
         });
       } else {
         await this.consolidate(runId);
+      }
+      // Step 4 runs sequentially: it consumes the consolidated requirements.
+      // Without them it is skipped like consolidation, not failed.
+      if (analystFailed) {
+        await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'orchestrator', null, {
+          step: 'compliance.evaluate',
+          skipped: true,
+          reason: 'tender_analyst failed; no requirements to evaluate.',
+        });
+      } else {
+        try {
+          await this.runCompliance(runId, context);
+        } catch {
+          failures.push('compliance');
+        }
       }
       if (failures.length > 0) {
         await this.transition(runId, WORKFLOW_STATUS.NEEDS_REVIEW);
@@ -287,6 +305,57 @@ export class WorkflowRunner {
         'tender_analyst.extract',
         error,
       );
+      throw error;
+    }
+  }
+
+  // Step 4: requirement x company brain to findings + deterministic
+  // verdict. Compliance findings cite requirement ids and company DOC codes;
+  // they need no new evidence rows because requirement evidence already
+  // lives on the requirements artifact (reusing those ids would collide).
+  private async runCompliance(runId: string, context: LoadedContext): Promise<void> {
+    const agentRun = await this.startAgentRun(runId, 'compliance', 'evaluate', context.documentIds);
+    await this.emit(runId, WORKFLOW_EVENT.STEP_STARTED, 'compliance', agentRun.id, {
+      step: 'compliance.evaluate',
+    });
+    try {
+      const evaluation = await this.compliance.evaluate({
+        workflowId: runId,
+        agentRunId: agentRun.id,
+        opportunityId: context.opportunityId,
+        companyId: context.companyId,
+        tender: context.tender,
+      });
+      for (let index = 0; index < evaluation.traces.length; index += 1) {
+        const trace = evaluation.traces[index];
+        const findings = evaluation.batchFindings[index];
+        if (trace !== undefined && findings !== undefined) {
+          await this.saveModelCall(agentRun.id, trace, { findings });
+        }
+      }
+      const artifact = await this.prisma.artifact.create({
+        data: {
+          workflowId: runId,
+          type: 'compliance',
+          producedBy: 'compliance',
+          data: {
+            findings: evaluation.findings,
+            verdict: evaluation.verdict,
+            financials: evaluation.financials,
+            batchesRun: evaluation.batchesRun,
+            retrievalTraceIds: evaluation.retrievalTraceIds,
+          } as unknown as Prisma.InputJsonValue,
+        },
+      });
+      await this.finishAgentRun(agentRun.id, [artifact.id], null);
+      await this.emit(runId, WORKFLOW_EVENT.STEP_COMPLETED, 'compliance', agentRun.id, {
+        step: 'compliance.evaluate',
+        verdict: evaluation.verdict.verdict,
+        findings: evaluation.findings.length,
+        batchesRun: evaluation.batchesRun,
+      });
+    } catch (error) {
+      await this.failAgentRun(runId, agentRun.id, 'compliance', 'compliance.evaluate', error);
       throw error;
     }
   }
@@ -434,8 +503,9 @@ export class WorkflowRunner {
     }
   }
 
-  // Evidence rows reuse the contract evidenceId as their primary key, so a
-  // requirement's source.evidenceId opens exactly this row from the UI.
+  // Evidence rows scope the contract evidenceId with the artifact id (see
+  // evidenceRowId): a requirement citation opens exactly this row, and
+  // re-running a tender never collides with earlier runs.
   private async saveRequirementEvidence(
     artifactId: string,
     requirements: TenderRequirement[],
@@ -443,7 +513,7 @@ export class WorkflowRunner {
     for (const requirement of requirements) {
       await this.prisma.artifactEvidence.create({
         data: {
-          id: requirement.source.evidenceId,
+          id: evidenceRowId(artifactId, requirement.source.evidenceId),
           artifactId,
           documentId: requirement.source.documentId,
           page: requirement.source.page,

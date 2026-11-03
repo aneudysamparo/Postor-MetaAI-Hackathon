@@ -7,6 +7,7 @@ import {
   buildWindows,
   mergeContradictions,
   mergeDrafts,
+  normalizeContradictions,
 } from '../dist/agents/tender-analyst/tender-analyst.service.js';
 
 const CONTEXT = { documentId: 'doc-1', pageCount: 8, method: 'text' };
@@ -97,5 +98,12 @@ describe('draft merge', () => {
       ]),
       ['A vs B', 'C'],
     );
+  });
+
+  it('normalizes object and null contradictions without losing text', () => {
+    assert.deepEqual(normalizeContradictions(['plain', { a: 'A', b: 'B' }, null, 42]), [
+      'plain',
+      '{"a":"A","b":"B"}',
+    ]);
   });
 });

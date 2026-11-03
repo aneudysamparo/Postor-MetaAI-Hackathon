@@ -49,6 +49,8 @@ export class TenderAnalystAgent extends BaseAgent<AnalystWindowInput, AnalystWin
       '3. Capture guarantees, certifications, and mandatory conditions.',
       '4. Flag requirements whose omission could disqualify the bid.',
       '5. Record contradictions between passages instead of resolving them.',
+      '   Each contradiction MUST be a plain English string (never an object,',
+      '   never null); an empty array is fine when passages agree.',
       '6. Give every requirement: faithful original text, plain explanation,',
       '   category (one of: administrative, legal, technical, economic),',
       '   mandatory flag, ABSOLUTE page number, section heading when visible,',

@@ -7,6 +7,7 @@ import {
   PENDING_STEPS,
   WORKFLOW_STATUS,
   assertTransition,
+  evidenceRowId,
   isTerminalStatus,
 } from '../dist/workflow/workflow-state.js';
 
@@ -41,9 +42,17 @@ describe('workflow state machine', () => {
     assert.equal(isTerminalStatus(WORKFLOW_STATUS.QUEUED), false);
   });
 
-  it('keeps the T3 pipeline steps disjoint from the pending agents', () => {
+  it('keeps the pipeline steps disjoint from the pending agents', () => {
     const overlap = IMPLEMENTED_STEPS.filter((step) => PENDING_STEPS.includes(step));
     assert.equal(overlap.length, 0);
-    assert.ok(PENDING_STEPS.includes('compliance.evaluate'));
+    assert.ok(IMPLEMENTED_STEPS.includes('compliance.evaluate'));
+    assert.ok(PENDING_STEPS.includes('pricing.research'));
+  });
+
+  it('scopes evidence rows per run so re-runs never collide', () => {
+    const first = evidenceRowId('artifact-1', 'doc-p2-0-ev');
+    const second = evidenceRowId('artifact-2', 'doc-p2-0-ev');
+    assert.notEqual(first, second);
+    assert.ok(first.includes('doc-p2-0-ev'));
   });
 });

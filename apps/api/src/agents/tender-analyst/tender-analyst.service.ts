@@ -83,6 +83,22 @@ export function mergeDrafts(tagged: TaggedDraft[]): TaggedDraft[] {
   return merged;
 }
 
+// The model returns contradictions as plain strings most of the time, but
+// live runs show objects (and nulls) slipping through even after the retry.
+// Objects stringify to JSON so no reported contradiction is lost; anything
+// without text is dropped.
+export function normalizeContradictions(entries: unknown[]): string[] {
+  const normalized: string[] = [];
+  for (const entry of entries) {
+    if (typeof entry === 'string') {
+      normalized.push(entry);
+    } else if (typeof entry === 'object' && entry !== null) {
+      normalized.push(JSON.stringify(entry));
+    }
+  }
+  return normalized;
+}
+
 export function mergeContradictions(lists: string[][]): string[] {
   const seen = new Set<string>();
   const merged: string[] = [];
@@ -118,7 +134,7 @@ export class TenderAnalystService {
     const rowByFile = new Map(rows.map((row) => [row.fileName, row]));
     const targets = [tender.pliego, ...tender.amendments];
     const tagged: TaggedDraft[] = [];
-    const contradictionLists: string[][] = [];
+    const contradictionLists: unknown[][] = [];
     const traces: AgentCallTrace[] = [];
     const windowOutputs: AnalystWindowOutput[] = [];
     let windowsRun = 0;
@@ -157,9 +173,10 @@ export class TenderAnalystService {
         index,
       ),
     );
+    const normalizedLists = contradictionLists.map((list) => normalizeContradictions(list));
     return {
       requirements,
-      contradictions: mergeContradictions(contradictionLists),
+      contradictions: mergeContradictions(normalizedLists),
       windowsRun,
       traces,
       windowOutputs,

@@ -1,5 +1,6 @@
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { evidenceRowId } from './workflow-state';
 
 interface StoredPagePreview {
   page?: unknown;
@@ -15,9 +16,15 @@ export class EvidenceController {
 
   @Get(':id/evidence/:evidenceId')
   public async open(@Param('id') id: string, @Param('evidenceId') evidenceId: string) {
-    const evidence = await this.prisma.artifactEvidence.findUnique({
-      where: { id: evidenceId },
-    });
+    // Rows live under the composite id; the URL carries the contract key.
+    // A legacy fallback keeps rows minted before the composite readable.
+    const evidence =
+      (await this.prisma.artifactEvidence.findUnique({
+        where: { id: evidenceRowId(id, evidenceId) },
+      })) ??
+      (await this.prisma.artifactEvidence.findUnique({
+        where: { id: evidenceId },
+      }));
     if (evidence === null || evidence.artifactId !== id) {
       throw new NotFoundException(`Unknown evidence ${evidenceId} on artifact ${id}.`);
     }

@@ -66,8 +66,50 @@ export const ComplianceFindingSchema = z.object({
   risk: RiskLevelSchema,
   recommendedAction: z.string().min(1),
   requiresHumanReview: z.boolean(),
+  // True only when the gap cannot be closed before the tender closes (a
+  // structural blocker such as a missing manufacturer authorization the
+  // tender demands as admissibility). Nullish: the model emits explicit
+  // nulls, the service normalizes them to false.
+  blocker: z.boolean().nullish(),
+  // Role that should own the fix (null when no action is needed).
+  suggestedOwner: z.string().nullish(),
 });
 export type ComplianceFinding = z.infer<typeof ComplianceFindingSchema>;
+
+// What the compliance model returns per requirement batch: findings only.
+// The verdict is built deterministically by the service, never by the model.
+export const ComplianceOutputSchema = z.object({
+  findings: z.array(ComplianceFindingSchema),
+});
+export type ComplianceOutput = z.infer<typeof ComplianceOutputSchema>;
+
+export const VerdictConditionSchema = z.object({
+  requirementId: z.string().min(1),
+  description: z.string().min(1),
+  owner: z.string().min(1),
+  deadline: z.string().min(1),
+});
+export type VerdictCondition = z.infer<typeof VerdictConditionSchema>;
+
+export const FindingCountsSchema = z.object({
+  met: z.number().int().nonnegative(),
+  not_met: z.number().int().nonnegative(),
+  unknown: z.number().int().nonnegative(),
+  not_applicable: z.number().int().nonnegative(),
+  total: z.number().int().nonnegative(),
+});
+export type FindingCounts = z.infer<typeof FindingCountsSchema>;
+
+// Deterministic verdict over the findings (service-built, see
+// compliance-verdict.ts): rationale cites counts and decisive reasons,
+// conditions carry owner + deadline for every solvable gap.
+export const ComplianceVerdictSchema = z.object({
+  verdict: VerdictSchema,
+  rationale: z.string().min(1),
+  conditions: z.array(VerdictConditionSchema),
+  counts: FindingCountsSchema,
+});
+export type ComplianceVerdict = z.infer<typeof ComplianceVerdictSchema>;
 
 export const PricingStatusSchema = z.enum(['ok', 'insufficient_data', 'no_reliable_match']);
 export type PricingStatus = z.infer<typeof PricingStatusSchema>;
@@ -162,7 +204,10 @@ export type RequirementDraft = z.infer<typeof RequirementDraftSchema>;
 
 export const AnalystWindowOutputSchema = z.object({
   requirements: z.array(RequirementDraftSchema),
-  contradictions: z.array(z.string()),
+  // Free-form by design: the model sometimes returns objects or nulls here
+  // despite the prompt. The service normalizes entries to strings (objects
+  // via JSON) and drops non-textual ones instead of failing the batch.
+  contradictions: z.array(z.unknown()),
 });
 export type AnalystWindowOutput = z.infer<typeof AnalystWindowOutputSchema>;
 

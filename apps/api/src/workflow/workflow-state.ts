@@ -30,22 +30,18 @@ export const WORKFLOW_EVENT = {
 } as const;
 export type WorkflowEventType = (typeof WORKFLOW_EVENT)[keyof typeof WORKFLOW_EVENT];
 
-// Steps the runner executes today (TECH section 8, steps 1-3).
+// Steps the runner executes today (TECH section 8, steps 1-4).
 export const IMPLEMENTED_STEPS = [
   'load_context',
   'opportunity.evaluate',
   'tender_analyst.extract',
   'consolidate',
+  'compliance.evaluate',
 ] as const;
 
-// Agents that join in T4-T6. Listed on results so the UI can label a T3 run
+// Agents that join in T6. Listed on results so the UI can label the run
 // as a partial pipeline instead of a final verdict.
-export const PENDING_STEPS = [
-  'compliance.evaluate',
-  'pricing.research',
-  'writer.draft',
-  'reviewer.review',
-] as const;
+export const PENDING_STEPS = ['pricing.research', 'writer.draft', 'reviewer.review'] as const;
 
 const TERMINAL_STATUSES: readonly WorkflowStatus[] = [
   WORKFLOW_STATUS.COMPLETED,
@@ -67,6 +63,14 @@ const ALLOWED_TRANSITIONS: Record<WorkflowStatus, readonly WorkflowStatus[]> = {
 
 export function isTerminalStatus(status: WorkflowStatus): boolean {
   return TERMINAL_STATUSES.includes(status);
+}
+
+// Evidence rows scope the contract evidenceId (stable per requirement) with
+// the artifact id (unique per run): re-running a tender must not collide
+// with rows from earlier runs. The evidence endpoint rebuilds this same
+// composite from its URL params, so requirement citations still open it.
+export function evidenceRowId(artifactId: string, evidenceId: string): string {
+  return `${artifactId}-${evidenceId}`;
 }
 
 // Guards the state machine: terminal runs never move, and a run can only

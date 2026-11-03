@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ComplianceAgent } from '../agents/compliance/compliance.agent';
+import { ComplianceService } from '../agents/compliance/compliance.service';
 import { OpportunityAgent } from '../agents/opportunity/opportunity.agent';
 import { TenderAnalystAgent } from '../agents/tender-analyst/tender-analyst.agent';
 import { TenderAnalystService } from '../agents/tender-analyst/tender-analyst.service';
@@ -15,6 +17,13 @@ import { WorkflowRunner } from './workflow-runner.service';
 @Module({
   imports: [PrismaModule, ModelsModule, DocumentsModule, BrainModule],
   controllers: [WorkflowController, OpportunitiesController, EvidenceController],
-  providers: [WorkflowRunner, OpportunityAgent, TenderAnalystAgent, TenderAnalystService],
+  providers: [
+    WorkflowRunner,
+    OpportunityAgent,
+    TenderAnalystAgent,
+    TenderAnalystService,
+    ComplianceAgent,
+    ComplianceService,
+  ],
 })
 export class WorkflowModule {}
