@@ -1,0 +1,9 @@
+activo,cantidad,estado,ubicacion
+Laptop Dell Latitude 5440 (demo lab),8,bueno,Laboratorio de desarrollo
+Laptop Lenovo ThinkPad T14 (demo lab),4,bueno,Laboratorio de desarrollo
+Servidor de pruebas Dell PowerEdge T150,2,bueno,Oficina principal
+Switch gestionable 24 puertos,3,bueno,Oficina principal
+Access points WiFi 6,6,bueno,Oficina principal
+Kit de herramientas de red,2,bueno,Campo
+Impresora multifuncional,1,regular,Oficina principal
+Vehiculo de servicio (camioneta),1,bueno,Operaciones

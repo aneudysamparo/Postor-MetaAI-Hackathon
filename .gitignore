@@ -1,5 +1,6 @@
 # Internal-only: PRDs, plans, roadmap, reference material. Never published.
-docs/
+# Anchored to root: company-brain-demo/company/docs/ MUST be committed.
+/docs/
 
 # Dependencies and build output
 node_modules/
