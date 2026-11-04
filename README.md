@@ -322,8 +322,7 @@ for live results per case, per-agent timings, and what remained out of scope.
 
 - **Built during the event.** All code in this repository was written between
   Oct 26 and Nov 4, 2026; no pre-existing code was reused. Development used AI
-  coding assistance (Claude Code; commits are co-authored accordingly). The
-  web UI was rebuilt in TypeScript from a UI mock-up made for this project
+  coding assistance (Claude Code). The web UI was rebuilt in TypeScript from a UI mock-up made for this project
   during the event (not included in the repo).
 - **Third-party data.** The tender documents under `data/tenders/` are public
   records downloaded from the Dominican DGCP procurement portal, unmodified.
