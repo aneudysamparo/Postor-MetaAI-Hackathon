@@ -30,6 +30,29 @@ Spark confirming what it flags.
 5. **Leaves the human in charge** — anything unproven stays `[PENDING]`; the
    bid manager can answer by voice. Postor never submits, signs or sends.
 
+### Postor is a live product — Meta completes the flow
+
+Postor is not a hackathon concept: it is a live, paid SaaS for Dominican
+public procurement at **[postor.do](https://postor.do)**, already used by a
+small number of paying customers (7-day trial, then US$49.99/month or
+US$479.90/year, up to 5 users per company).
+
+|                     | Postor before the hackathon ([postor.do](https://postor.do))                                  | Postor with Meta AI (this repository)                                                                                                                |
+| ------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Find**            | Tenders from DGCP open data, filtered by the company's categories, institution and modality   | Same, plus the tender's own pliego, amendments and official forms read end to end                                                                    |
+| **Understand**      | Pliego analysis: an overview of what the tender requires, with citations to document and page | Every requirement checked against the company's own evidence (certifications with expiry dates, projects, finances, team), citing both sides         |
+| **Decide**          | Left to the customer                                                                          | An honest verdict — _GO / GO WITH CONDITIONS / NO GO / NEEDS REVIEW_ — with financial ratios, revenue concentration and conditions with owner + date |
+| **Prepare the bid** | Checklist of documents and dates to organize                                                  | A technical proposal draft audited by a second model, the SNCC forms and a priced F.033 economic offer; unknowns stay `[PENDING]`                    |
+| **Trust**           | Citations to the source                                                                       | Every model call traced (prompt, response, tokens, cost estimate), scanned seals localized by SAM 3.1, every page screened for prompt injection      |
+
+In short: the live product helps a company **find** a tender and **see what
+it asks for**; with Muse Spark, Muse Wonder, SAM 3.1, Muse Voice Transcribe
+and Llama Prompt Guard 2, Postor covers the **whole path from tender to
+bid-ready draft**. This repository is the hackathon build of that new flow
+(written during the event, see [Disclosures](#disclosures)); it is what we
+will bring into the production product. In both, the company keeps the
+decision and submits on the official SECP portal itself.
+
 **Contents:** [For judges](#for-judges--start-here) ·
 [Meta models](#meta-models-we-use--and-where-they-run) ·
 [The demo](#the-demo) · [Why this matters](#why-this-matters-dominican-republic) ·
