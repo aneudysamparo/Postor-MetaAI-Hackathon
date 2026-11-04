@@ -187,9 +187,13 @@ only PROJECT-004 (14 Wi-Fi 6 APs) qualifies — see
 Figures from Postor's market research (Oct 2026), built on DGCP official
 data; each is labeled with its origin.
 
-- **The market:** the public procurement system (SECP) transacted
-  **RD$262,654 M in 2024** (≈ US$4.3 B, own calculation) across **64,851
-  processes** and **173,004 offers** — _official, DGCP 2024 bulletin_.
+- **The market is growing fast:** the Dominican state has awarded **more than
+  RD$437 B in public contracts so far in 2026** (Jan–Oct), after **RD$324 B in
+  2025** and **RD$191 B in 2024** — _own aggregation of confirmed contracts
+  from the DGCP open data (Compras Dominicanas), in DOP_. Every peso went
+  through a tender a small business had to read, page by page. (For scale, the
+  wider SECP system transacted RD$262,654 M in 2024 across 64,851 processes
+  and 173,004 offers — _official, DGCP 2024 bulletin_.)
 - **The funnel is the problem:** **129,813** companies are registered as state
   suppliers, but only **38,943** participate actively (_press, 2025_); **14,536**
   bid in 2024 and **11,672** won at least once (_official_). Most registered
