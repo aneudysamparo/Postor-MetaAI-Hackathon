@@ -26,3 +26,8 @@ apps/api/prisma/schema.sqlite.prisma
 # Local Claude Code session config
 .claude/
 video/
+
+# Local one-off debug/probe scripts (never committed)
+*.tmp.mjs
+*.tmp.js
+*.tmp.ts
