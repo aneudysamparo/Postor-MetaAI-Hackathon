@@ -6,11 +6,13 @@ conditions, don't bid, or let a human decide** — plus a first draft of the
 technical proposal when bidding makes sense.
 
 Built for the Meta AI Developer Hackathon (Startup track, _Build for Your
-World_) with **four Meta models**, each with one job: **Muse Spark** reads,
-judges and drafts (and screens every document for prompt injection), **Muse
-Wonder** audits the draft, **SAM 3.1** localizes official marks on scanned
-pages, and **Muse Voice Transcribe** lets the bid manager answer open
-`[PENDING]` items by voice.
+World_) with **five Meta models**, each with one job: **Muse Spark** reads,
+judges and drafts, **Muse Wonder** audits the draft, **SAM 3.1** localizes
+official marks on scanned pages, **Muse Voice Transcribe** lets the bid manager
+answer open `[PENDING]` items by voice, and **Llama Prompt Guard 2 (86M)** —
+Meta's open-weights prompt-injection classifier, self-hosted on **Modal** and
+called by URL — screens every tender page before the agents read it, with Muse
+Spark confirming what it flags.
 
 ### What Postor does
 
@@ -63,11 +65,10 @@ pages, and **Muse Voice Transcribe** lets the bid manager answer open
 
 ### Meta models we use — and where they run
 
-All four models are called on the **Meta Model API**
+Four models are called on the **Meta Model API**
 (`https://api.meta.ai/v1`) with one key (`META_API_KEY`, see
-[`.env.example`](.env.example)); nothing else is required. Optional:
-**Llama Prompt Guard 2 (86M)**, Meta's open-weights injection classifier,
-self-hosted on Modal ([`deploy/modal/prompt_guard.py`](deploy/modal/prompt_guard.py)),
+[`.env.example`](.env.example)). The fifth, **Llama Prompt Guard 2 (86M)**,
+Meta's open-weights injection classifier, runs self-hosted on Modal ([`deploy/modal/prompt_guard.py`](deploy/modal/prompt_guard.py)),
 screens every tender segment when `POSTOR_GUARD_URL` is set, and Muse Spark
 confirms what it flags (live: the DEMO trap is caught, the one false positive
 on the real tenders is cleared).
@@ -106,13 +107,14 @@ flowchart LR
 Blue = Muse Spark · purple = Muse Wonder · pink = SAM 3.1 · amber = Muse Voice
 Transcribe · grey = deterministic code (no model).
 
-| Meta model                  | Hosted                             | Used by                                                                                                 | How                                                                                                                                                                                                                                     | Code                                                                   |
-| --------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `muse-spark-1.3`            | Meta Model API                     | Opportunity, Tender Analyst (full mode), Compliance, Pricing, Bid Writer, vision reads of scanned pages | JSON-only prompts validated with Zod (one schema retry); 12-page windows and requirement batches run 4 in parallel                                                                                                                      | `apps/api/src/agents/*`, `apps/api/src/models/meta-model.service.ts`   |
-| `muse-wonder-1.0`           | Meta Model API                     | Bid Reviewer                                                                                            | A different model audits the draft Muse Spark wrote: omissions, unsupported claims, contradictions (live: ~16 s)                                                                                                                        | `apps/api/src/agents/reviewer/reviewer.agent.ts`                       |
-| `sam-3.1`                   | Meta Model API (`/responses`)      | Visual reader                                                                                           | One concept per call ("handwritten signature", "logo") on the rendered page; returns pixel boxes drawn over the original in the UI                                                                                                      | `apps/api/src/agents/visual/visual-evidence.service.ts`                |
-| `muse-spark-1.3` (guard)    | Meta Model API                     | Document guard                                                                                          | A deterministic screen finds AI-directed language in every pliego chunk; Muse Spark (`document-guard-v1`) judges only those. Flagged text is shown, never obeyed. Live: the DEMO trap → 99%; 1 of 566 real chunks escalated and cleared | `apps/api/src/models/document-guard.service.ts`                        |
-| `muse-voice-transcribe-1.0` | Meta Model API (`/asr/transcribe`) | Voice answers                                                                                           | The bid manager dictates answers to `[PENDING]` items; the WAV is transcribed (Spanish bias, acronyms as keywords) and Muse Spark (`voice-note-v1`) maps each statement to its item as a user declaration                               | `apps/api/src/workflow/voice-note.service.ts`, `apps/web/src/voice.ts` |
+| Meta model                  | Hosted                                                                          | Used by                                                                                                 | How                                                                                                                                                                                                                                                                            | Code                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `muse-spark-1.3`            | Meta Model API                                                                  | Opportunity, Tender Analyst (full mode), Compliance, Pricing, Bid Writer, vision reads of scanned pages | JSON-only prompts validated with Zod (one schema retry); 12-page windows and requirement batches run 4 in parallel                                                                                                                                                             | `apps/api/src/agents/*`, `apps/api/src/models/meta-model.service.ts`            |
+| `muse-wonder-1.0`           | Meta Model API                                                                  | Bid Reviewer                                                                                            | A different model audits the draft Muse Spark wrote: omissions, unsupported claims, contradictions (live: ~16 s)                                                                                                                                                               | `apps/api/src/agents/reviewer/reviewer.agent.ts`                                |
+| `sam-3.1`                   | Meta Model API (`/responses`)                                                   | Visual reader                                                                                           | One concept per call ("handwritten signature", "logo") on the rendered page; returns pixel boxes drawn over the original in the UI                                                                                                                                             | `apps/api/src/agents/visual/visual-evidence.service.ts`                         |
+| `muse-spark-1.3` (guard)    | Meta Model API                                                                  | Document guard                                                                                          | A deterministic screen finds AI-directed language in every pliego chunk; Muse Spark (`document-guard-v1`) judges only those. Flagged text is shown, never obeyed. Live: the DEMO trap → 99%; 1 of 566 real chunks escalated and cleared                                        | `apps/api/src/models/document-guard.service.ts`                                 |
+| `Llama-Prompt-Guard-2-86M`  | Meta open weights, self-hosted on **Modal** (`POSTOR_GUARD_URL` + bearer token) | Document guard                                                                                          | Scores every pliego/amendment segment (≤400 chars, 4 batches in parallel) for injection; flags go to Muse Spark for confirmation. Live: DEMO trap 82% → confirmed; one real false positive (0.99, case D) cleared by Spark. Without the URL the guard runs on Muse Spark alone | `apps/api/src/models/document-guard.service.ts`, `deploy/modal/prompt_guard.py` |
+| `muse-voice-transcribe-1.0` | Meta Model API (`/asr/transcribe`)                                              | Voice answers                                                                                           | The bid manager dictates answers to `[PENDING]` items; the WAV is transcribed (Spanish bias, acronyms as keywords) and Muse Spark (`voice-note-v1`) maps each statement to its item as a user declaration                                                                      | `apps/api/src/workflow/voice-note.service.ts`, `apps/web/src/voice.ts`          |
 
 **Deep dive:** [`META-MODELS.md`](META-MODELS.md) explains how each model is
 called, validated, guarded, traced and what happens when it fails.
